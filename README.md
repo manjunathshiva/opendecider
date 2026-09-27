@@ -61,7 +61,7 @@ record, an agent's tool-call trace. Questions can also be written with the helpe
 ## Beats Laya and Jev on typed-decisions
 
 On the [typed-decisions](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) benchmark (2,000 decisions across four
-business workflows), scored with the [Antz AI Jev-vs-Laya harness](https://github.com/pavanjava/jev_and_laya_benchmarking),
+business workflows), scored with the [Jev-vs-Laya harness](https://github.com/pavanjava/jev_and_laya_benchmarking) published by Kameshwara Pavan kumar Mantha and the Antz AI team,
 **opendecider-nano scores 0.796**, against **0.766** for Laya's typed-decisions checkpoint (+0.030, 95% CI +0.014 to
 +0.044) and **0.754** for TypeSafe Jev. Like Laya's checkpoint, it was fine-tuned on the dataset's train split; the test
 split was never used for training or model selection. **opendecider-small, which never saw the dataset, scores 0.672**,
