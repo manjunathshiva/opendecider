@@ -5,10 +5,12 @@ Ask a *choice*, a *score* or a *yes/no* question about a ticket, email, log line
 a probability for every option, fast enough to sit inside any pipeline or agent loop.
 Apache-2.0, runs on CPU, NVIDIA GPUs and Apple Silicon.
 
+Latencies are medians over our benchmark questions. Both models give identical benchmark results on Apple Silicon (MPS) and Linux + NVIDIA (CUDA).
+
 | Model | Size | Built on | Speed (per question) | Best at |
 |---|---|---|---|---|
-| [**opendecider-nano**](https://huggingface.co/manjunathshiva/opendecider-nano) | ~400M, 0.8 GB | Ettin-encoder-400m | **18 ms** (Apple M4 Max) | speed; typed business decisions |
-| [**opendecider-small**](https://huggingface.co/manjunathshiva/opendecider-small) | 4B (LoRA on Qwen3-4B), fits a 16 GB Mac | Qwen3-4B-Instruct-2507 | ~200 ms (Apple M4 Max) | accuracy + calibration on unseen tasks |
+| [**opendecider-nano**](https://huggingface.co/manjunathshiva/opendecider-nano) | ~400M, 0.8 GB | Ettin-encoder-400m | **17 ms** NVIDIA L40S · **18 ms** Apple M4 Max | speed; typed business decisions |
+| [**opendecider-small**](https://huggingface.co/manjunathshiva/opendecider-small) | 4B (LoRA on Qwen3-4B), fits a 16 GB Mac | Qwen3-4B-Instruct-2507 | 40 ms NVIDIA L40S · ~200 ms Apple M4 Max | accuracy + calibration on unseen tasks |
 
 ```bash
 pip install opendecider              # nano
