@@ -5,3 +5,4 @@ build/
 .pytest_cache/
 .DS_Store
 assets/table.jpg
+benchmarks/.cache/

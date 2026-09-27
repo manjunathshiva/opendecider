@@ -1,0 +1,5 @@
+opendecider[small]
+pandas
+pyarrow
+numpy
+datasets

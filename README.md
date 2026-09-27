@@ -101,7 +101,7 @@ Two checkpoints:
 
 * **opendecider-medium** (Qwen3-30B-A3B, for 36 GB+ machines) and **opendecider-large** (Qwen3-Next-80B-A3B, for 64 GB),
   aimed at closing the remaining gap to frontier LLMs.
-* **MLX builds** for Apple Silicon, a **Colab notebook** for NVIDIA, and the **benchmark harness** as runnable scripts.
+* **MLX builds** for Apple Silicon and a **Colab notebook** for NVIDIA.
 
 ## Installation details
 
@@ -176,6 +176,9 @@ overlap with all test sets (0 overlaps).
 
 Every model answered the same questions and was scored by the same code. **TypeSafe Jev was measured directly through
 TypeSafe's own API**, not taken from published figures. Full tables, per-task results and methodology: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).
+
+**Reproduce every number:** `python benchmarks/report.py` rebuilds all the tables from the committed results, and
+`python benchmarks/run.py --model <name>` re-scores any model. See [benchmarks/](https://github.com/manjunathshiva/opendecider/tree/main/benchmarks).
 
 ### Speed
 

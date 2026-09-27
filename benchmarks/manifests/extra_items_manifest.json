@@ -1,0 +1,3005 @@
+{
+ "seed": 20260926,
+ "items": [
+  {
+   "id": "agnews-00",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "9e337cb95a486a26452f9fd9543c377cd2cd7ae3f3d442efb5d971f3deaf127b",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-01",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "7fd37db757845453f64eb5d5fccb4b2d2c1043bbb79bc23d801bea89b603050b",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-02",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "0b521809639268aa256ac8a1199d9be34bb80e75f9da15bae61d425b0353e33b",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-03",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "22609151685260038c6421588e810f40a9df26ae5190fc9dd6c9342be1182893",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-04",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "a8c0f9622e2516144e3b5ba272948f1af432a696aaed77f1f9a7ab27b5a36602",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-05",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "3ce8de7cdf69e1d138caa20b083751bdf9ce2da81e0e44866a6386baab31cbcb",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-06",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "a05b2d4bf1b5b56ab67eb03486ce22bd6d85b6de0ccefe4b6709938cdd81dc96",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-07",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "2e50bb0da68abda40e403f9a6a1ca1130a57380502e83ae937fb6c9eab51fca6",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-08",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "c02f1d64ca97eb2abbd17633682a10cf3482920fb49e386488a8b0e7d0e0e456",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-09",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "b51db40351b717670e75e73ccc08b004c10a3e7d3bebad316da7e51f31043767",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-10",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "f13349253db0ee67890c4c2808292bd75ac370e7a619d74d8d58163e2eb71d17",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-11",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "d72c2105e7dc21885c5efc662b620092d17234d0913013c4fae868f73b110b47",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-12",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "2925da7704307de4b074f601c4db7c0b23acecfc0a146c439a1a367d06ae52ec",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-13",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "c80e8fb6dfcba4056168b2b441c98a4d323d459341a498fa0223b2780cf29480",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-14",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "04a94b0b6ffdf51d91455ade5cdc352b27c18af3193483b854e0540570226565",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-15",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "01497b3e876248740195db017d5b51cda1d3783831615bad4cb715208a658212",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-16",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "24b72d7005d617563cdba499c5e47f5c712ccede49e55a6fb88fa77c83a89a66",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-17",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "8d34740bbd009a460fe302de0effa878f6734438583f94d5b0ebee8f540c4023",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-18",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "511187af7296182c7bffc27ceb28d9c76ced243cfe04cebc1458e3a09c3aba01",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-19",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "bc2356fa17a06edf7c318469e5d950a64043388aa6685fc109eee61ec5219e50",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-20",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "0eb689bb86666a1e15bc132176214d26ff30fcb9bd4a3ac3fbc927420d97034f",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-21",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "22445dd329fb83662b5e0b7f5da68e877d934528f1fab83b57f41d04d15cd282",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-22",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "07fea4d289b75ec59c489527dcd63448b390841ddc76ae4e761a931ef0e102c3",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-23",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "3d508bcdd2ccee03ea0d5f5e57eba391ade7adb19c205fae5b21b5a2bcf3d27b",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-24",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "032af66c597d22f8678cda316478af3ee4ae2e3f4a40a3a40e383c7fc3436688",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-25",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "93bfd7212d73b8fc1c0793e7def781f158fa95215a93632f183d192772a0680c",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-26",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "b182de9e08b7e170af1e4af8f4d671515bdb22bb37f24e6edea1199734d74d7e",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-27",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "1b3c97feb0e235a4b4b258b4b5b761a0d35c68e1ed5e9030cdf943a3741a8bad",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-28",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "97a89d4063b4a978731a647547d7c0c60df9261dab7bda7d3eec5b5d75b5f5f9",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-29",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "6a877f91f561406ce0770cc482377560e04664569ef345ed2b6f102ade240e30",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-30",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "e54f47bc4455703ed163c0aaaef8bf5a9645ec12848a19bfedb62db65ef7b074",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-31",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "6f35ba9b2792eedb616d7ef0d71e796f4c124b73d89d0ab2c375acba033c5e3d",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-32",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "426177165932df71b6431b5dc4a82da91a062dce302eb32001a745dc63414400",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-33",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "215d8cbb1f74e2de90ea8112aba5af7454bfa680807b74a2ab322f9ea51510a6",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-34",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "097a06183903adff0cffc3e77ebb44b3da3fe646d820ff223e22d1ec0f65de9c",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-35",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "2ba8284bb532f35f34aab14e37cce4dddab08d5fddceb107eb91ee244344f2a6",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-36",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "17b9333039a433f946cddc54f1df9d2925e941320f04a1c3bc4eda295ea5813a",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-37",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "c69a89bbe6c2ccab4dd6508640fd67a837f3516b9aeec30645fb4529bb60ca84",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-38",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "5d00b19f9d4460c627b4a077b6542d39888397d741039b905f55214b854bf224",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-39",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "c337ef9949493f5db6f626b6caaf17f30605e74dc641028514bb3bc4455085a6",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-40",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "0fed607f3d86954efef79d70e2d20baec8b7a91fac420ac27477f7bd877d25d9",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-41",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "4769fcd2f0dffe972dbb666cc710cd9789f70021a05500948a8afcd1249639ec",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-42",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "9b3648a5581896a22c1ab501f261c49e7cefa39fe17f95ff07202192e9c81f7d",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-43",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "71b712c507f01197217b54fc17598a1a64e1b2d6c2022d86ca58cf8207e3d05a",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-44",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "f9d1c20307aa0fd2dcae23cfa559577d962bd3956f673ee878446bae0c20cc6e",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-45",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "8dc6240a570d600aa09efd3f84e5ac59811af815ea3836837a845dc99146754f",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-46",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "1a901af6b2c2e7a37003372deee831848cff5e0ba8723e4f4f4f20178fe3e600",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-47",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "84488bd17b7cebdc2292a02ab8f524ee86c0e4bdb25e35936f28987846f8d546",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-48",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "0fcb91df640f06b4267364bc269fa2579a49a4a16d0167992d5ffc6f12cd8b2a",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-49",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "684bde931dc16cfb6df4674c8c38788ec4d8cf5839cb6f93523545917142a78e",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-50",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "222c4d53ee721022cde3da62671e520ea68e85849395dc3ea75c9fd8f17f7624",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-51",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "c46f579f24b5963284a1ea0e365562ca3982d0dd2c65833f63ae1ab9ef4564f0",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-52",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "b89cabd3c6ee36f9d91d821e57507532a330857e3a5ba48f1831b73e2094551c",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-53",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "81788db62a290550d06ba60e6fcf57eacae5425c5324ab633ffc41ac34ab61da",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-54",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "4f6645130583cb3d35b7918601e5f8e32020e21d5df693e0752fb03f89eb4dac",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-55",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "9ca73983dc1ce98a3cf9d7625c4c7f773044e9305cb4886ac783070bf0822fc7",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-56",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "951b196f2edda8928431b549e864f6ef150e7bbc97bc6e8df3432e87e518e769",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-57",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "7a36eb0aaf5401282ee8c37389a2b1a4ad15e1f33d15d5ab449b51542f6ed0eb",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-58",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "b5718877eea49a235862d8bbfc298fba3bf1166716d63d34f947273e83f9e675",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-59",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "e9dd4a1726099664589bac97137a9ae9773128e6300533e7ac0d015d0b998d87",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-60",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "2f88c45bd19da3349a0c0f35d4005ccca688530a67a289c470765b1fee146679",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-61",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "892abffb6e01883e6494133d021a584b7fd3551cbd89a4d55ca0f72e798584ab",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-62",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "13cb68d39ea4d99db75b943af081c725efb411c0ec458190b50d3d22100130c9",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-63",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "722b3106da865e5c28f068c10ef60cc518615d43df1eaa824d2f325d8fb17950",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-64",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "159ad0ea0530ace96bfc977e60e680e1edb0a51dd84b5b9249f3bc348086e3cb",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-65",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "4cd4db5a8813635e95325b405ef5c782bef2914f6545524f5b095bb9e5aeb47f",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-66",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "225c0c88c2d3e64644c2c86691766a3209b22974502ffc1825d1f09240d4fb7b",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-67",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "c5014271ae0aaa2cecdce2c92e726ac00d8c7bfa40c37fd441108fb107322645",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-68",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "4ab9f26211943034b60c41eb7381b71297438fb6b17156153d0e2f4c7e509395",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-69",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "0ca387c775fe13b65fdc6c438cf4b7628be5acf7659cc5987f6e4348c2f11644",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-70",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "8f1bedb36cdc51991ba1575d850042d90baadacba924828052d80746bcc4ac5a",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-71",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "0a518e53db6941ca689133139c9ba138195466479f450339089bf7f55fb09b6c",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-72",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "9340859a3277f54d4f75fb43972f7bf6583ada6ab34765c731343136f339b017",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-73",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "d33d3109bcb54004281676758ab84e35ecf59ee7657abca9524504581c1ac816",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-74",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "dff984d7c73b33b4b260c9a692e27a561f338cf177cb21efae731d0c1e6a9ec6",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-75",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "64ab227a2e7bca474565bdb9d0cc7b20c91100c7029d80f3bbd9daf5710cbc02",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-76",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "407d1a93d9fe1c275d43b35114f7609367f9b04088ae38aaf55730ac593d4ccc",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-77",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "82c31d7d9aaf8cc976a48c027d999d5f27834d3f6d8133b9ef8657613846ae2a",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-78",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "ec7e4c83e61f317eb4d5311a460a01b4ddedba3acc76d9fb055e127db61899b4",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-79",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "33fccfec37ef954de418ac9de82cbdb9bb74b5555cb66fce7718add919c9a169",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-80",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "203a325c796f05b4e5f4fa476a76fc8d3971cad86d98355ccc1798a78e684eec",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-81",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "677c596d52aa7450cf191f5d0b3548160fdfe3f377f607617f0e44408f23c3e9",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-82",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "a53b6df5c7f1ac25ffca4cee2d648d9223cbf5efc316dc26bce37fc599b5c04c",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-83",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "a88d67dde5f8a1a502906a5cb0cd374129a2f3692e0393f8a5ca79f7b09dd14d",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-84",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "865edceb7c7dda99f9034eed900b789dcb836e75c5e66de77f03a3ee07f2cd74",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-85",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "5ec3d69e3669b181fabc33b8c5044fed115e7455ef75381aeb15168150563adc",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-86",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "d7ee91099774a3ab003b8e6f848b5f46177703288f561f21cf5c79df1043e3d1",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-87",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "f031eb722f743243c6203222fc4d06d70db6c1dbf90096fbf5ffd7d0187514ef",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-88",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "89e03a5c658d315d538dbc12bc09e3ab689684b1a1528f44b70ac5fcec5d1b5e",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-89",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "c3da76df793098507771741e01f3cd926cdad8c478cebee61b4f0d1fd558c824",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-90",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "d0bcd0c590649e61372a34d0bb2ee63bc093535b5f261fb042f3c10e56f6f368",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-91",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "08eaa6433578090c8ea09061ea6562fc240d9d587786a1f7def52e2f5bda5719",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-92",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Business",
+   "state_sha256": "e6f8700bc80203e77bd1e5ce2530f6ff4f3bbc545612adff4832ea5d281a919f",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-93",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "1480242dba494b6050ca0e79742d66da7d2880df72573ea7167d4ad2ce2d368d",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-94",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "dbbd2acb1ae190a273e535afee752052b29de03b72c41bfc8ca0e6714f5988d8",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-95",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "daad47db3ebdb1e3b05781839ca708e93202bfddce3f97c2208b0d11fdb94210",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-96",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sci/Tech",
+   "state_sha256": "8a7d3391a5cd8e45145a234ee9cc1441e9db80822dbe8030ae530b4d78573876",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-97",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "9a5250fff02f7fefe08824a68eb17951ee1a3942470fb68792de1ac8be7b7499",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-98",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "Sports",
+   "state_sha256": "8fc29ebb184d80bcb68ef451d6fb6d0d17cc6923a426d7ca9eb68c0b5f9b948d",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "agnews-99",
+   "task": "agnews",
+   "type": "choice",
+   "options": {
+    "World": "world news, politics, international affairs",
+    "Sports": "sports and athletes",
+    "Business": "business, companies, markets and the economy",
+    "Sci/Tech": "science and technology"
+   },
+   "gold": "World",
+   "state_sha256": "8d23fd4c59b7778895d04b012dff28fc7c92d318105950fb5523fa500157f4a3",
+   "instructions_sha256": "e69b44c8168809577fc51e45b505eed073dc380468a691dbf2dbdf4e55639170"
+  },
+  {
+   "id": "emotion-00",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "5f1ef581697bf6a0c35fcd7182b3bd1e447265cd8c455b33c6caf42e73403623",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-01",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "6ac9f07c9830bd38708d87ad45444d893f148535b9c49f603aee5ec54b740663",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-02",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "be4b91f8b0a76996225f4b682a65cd121334d2024869fec62e40cb4841789eaa",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-03",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "bbf3c7b243a49dea3241b69790640a450435483c56e495919d5e7dea39fe0bf4",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-04",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "7ca1f1fdb4c41f8e75a407fd1fda844d849103877ff979dc9163298f66314468",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-05",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "c7ec445c2fc5a43cde9ef085c47585f5ea71f9d4df44c41b30c5c3ce983cdb59",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-06",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "0b355da4526df18f8d12cecfc3e1690c45172f43531df38bad6121f121bcace8",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-07",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "661729654f6f15ff62053a85df1bb5b9a303e004a602627c966038e37b8cbe62",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-08",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "51a42325f1a19c31fc50caa1d06abef6173701a20fcaa7eadab39e575822e4d2",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-09",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "ffbef258121b358ef13141330545478e363472b8b4dca3826c977875c9d142fb",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-10",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "14834548bc187cb67c163e82b68e63223d6c170fbacf9ecdca0ec1ffe51cda97",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-11",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "06a5119b724ad96623be6c86a7624fd27775766d99e9e2e1f96a5714b44975c0",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-12",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "9d55236d2a85c66d0bdd701ca2529a9f7c77b4d51b21ce400b2a1d7b471081c4",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-13",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "5d47018004e4597dc8e50afa58040c033009ecea14822bc6e11f4fd92f1493b7",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-14",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "b7bca85221f3281c1db4db87df87ed0124027bba9ff42625938db5090802e1d6",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-15",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "9c48bd6f1579928ca01b3497da02c5acf9c7a7c7ad070bfd7c2da8de8e577da1",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-16",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "e9b35b321ad9d11ac2333b79c98b17422b960fab195293c924c9cb7987e93396",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-17",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "619703fe1e11baf858087a5336f434000766f0137ea97dc2517c8b51d41090ee",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-18",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "e9a5946d0d9ec744b760cbebf5d44b064708a80b478a60080fb498271b9bbabf",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-19",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "8196f4e04fa7b3dc449cf1967bb9b9e6430be9705b05b30b1385067ce946f13c",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-20",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "6253129b82ee0aeecd081418f381e878e8e17814b9209ae7f673d94c32034d38",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-21",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "0812e16e30c435669d13cd393220c8f9dd32c6457818250c2f123a730c39bc87",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-22",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "1fbf1aa387a6fc09dd5d7970c1795bc433e5cadb721bcafb8f356bda3b636c55",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-23",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "00a8dbc7978a6175240375f23a2f19debf7fc99dde684aa5f79d5d9e3085df27",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-24",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "50c6efd157176e40fc375c87839a8ae3971a0d6c928d7b2ef72ba5d9643afc78",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-25",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "9a4596276f188301b78d34c382ad6fcc1e6db5c974fbda9af3b3a4281114ad4b",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-26",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "3219819386158d32c4336adb7ac84aadacb4613e5761277181dfa9ca573fe52e",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-27",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "6946bd24436230ac917d52d02af602708008f5cb9695025f518562c98f235576",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-28",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "5d9a7acb891d90d2d4b01a6082f316a5f4a50c050226c38a738af72e2156b3db",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-29",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "0cf6af9691651873a1cc2f7a26c750db783b10466418241d1d1058c796cf9e5d",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-30",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "c110df5046db60776a628974c7131e452d4256f62a99347c385c0d0a2d5e76c2",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-31",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "bbeb49b4421be3bad47e0bc5d5541bf7ce302141ce55959691f137bab1d2507a",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-32",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "3824323a536cb3fc98dc24a0ff9b23a2da5f68353360f154c3f944b1c0f783b0",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-33",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "f70c3e4e39d62ec1f93c9f04d4630093e19da8250a6f6253960ed721860e22a8",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-34",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "f4656d98042eba669a9c0bfa9b220472f01049222f67c10a124da5c811228a6e",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-35",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "80f288336a1fd7348633861e1b3e7ae392649400a3884f723875c337e3a3362c",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-36",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "487ef6bd353d2f36844fbf7c2e8f4a58959e62db4f11a790271d7e02461ca204",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-37",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "78f7033eb698c84e7770b67f2d11901192762f24bf3eb25f5fe5eea3ee6f3f06",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-38",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "45ccfb48b642f9c5aeb3857c86189e333621c765bfd371e66ef17b57ddb20740",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-39",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "ded744513851e794eefaf15c7ced4196f9ebca9a47bff1213400814dfd28ea8e",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-40",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "8ceeaa7b21978456cb1e06a6cffffd2678098bfd2fa94681b2072eabe2935c46",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-41",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "806ecc51ca9c792d9a615f433860d1926fe3684d8f454b01173947a745e75c94",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-42",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "f2d6b6b09e1cbade2ab6fa3ff88ad54b6aeb58d843e6d87ca0fbb718c82b17b2",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-43",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "af6d7b5ab5808eb0a27dccca75cb85b1437794a5fd206c1853f66bd4c5f23917",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-44",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "0ed73169019a4f9dbc6b3a187c79f40e2b2546f051e66a51961b8cbe8a4941aa",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-45",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "5a3aa452658719c5c43633e3f5de3060d010b6ed040cd089d99e2aa06f1f71a7",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-46",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "9908292c0211feae6584cf3347605b0c32a5783da0e3813d11cc82b51fff9c02",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-47",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "6d4069a20e801c91ace946be19705dfe3ea635daf02cf0439daa8d0c6100a9b4",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-48",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "214b872cfa1c2b308637859d30f1eda15b4474420a62ba92455ba0e94c1465f9",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-49",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "394fccaf4a43615b1161fecd3283dfe7775379b69c358b9defe2bdf840995815",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-50",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "16d68979a1009939157b7ce5f8e30ab1fa8ac1ddb97faf0592594d4a890f2d37",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-51",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "c01e6025b8109c2d8c5126c71273e021aeed1f34f36fff28dc7434dc9cc52ec5",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-52",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "4621b5b3862454b23aeef1fc1f6a743e62abaf38e62c2dac8c6650c3852f377b",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-53",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "faf07ff35830253a9e300ab538a5806a69771feb7985faf4f3594d046f654d52",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-54",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "8912eb1b86e0200284c71445ae303270f8357271987dc2886294ffddbbad2ca0",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-55",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "6dd2ca74518d45b799ea05d960ff4bde2f04697a2afbb719a06cf631dbe22bc8",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-56",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "52bc905168891fbda7963548c6ff47e139bbe1e21821b3be29a583cab71a4fcd",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-57",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "481379c20359e0a6463c28b9936d991e4ce2bda99924c7b5b7da9d325ea8e25d",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-58",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "08e4c503b0d84e2cf7eb0905fd042660448fc77451029d9cafdc21231129ef8c",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-59",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "23cd47317a9281bc2240064352adfb4a04600a7d2c47334b639c6abf08261ac8",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-60",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "4646610e02de84317436ac6f30f832bdfe47c1cb5a0bd11e57fe4da28977e665",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-61",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "5b8220c0478811a227140674c15e09e16e36e8c7a6bf32684c2a96815793c4ba",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-62",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "f54387ca0117e6e62d8d747c77d2045126f10fae9ddecf1876f5d0de79bf15c3",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-63",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "9ada74ab1956786a5df746ca85449d49c8d8e17769e0c61e537cc1c3bd9526b7",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-64",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "65b93d7943530e6f462afa5ebd987c927dec03e079f243271e5446eecc896c15",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-65",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "ff35c8c8089dfcdcbc3b1b37f8df567bec255502aa17d24d0286300d3dbc9fac",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-66",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "f9351529ef932f4210ede0d5c0786c10e0c89190a89753a413eaa1eeba3aeb82",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-67",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "93b6427180d42e404d2bd65b1957a003f1f37cfbe2790c96c2f7da719429717a",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-68",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "78f6293a27c5860c1cc15747be9eecafe56df77355ddb4b588497175290e399c",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-69",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "47418b908316c6e60679d14e20281dd0bd2c6a3938daf1835907fbadada8f766",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-70",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "6d5f4dfd59a0db691b442858c4765cc752a78b9783482a40719d1caf0bb4dd93",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-71",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "2c5807828bff9330915bf8f6a57a45779053c2aee52539a4fd8ee1133cd15408",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-72",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "82bde88ad01beb536aa8688bd64ac33aa850049e2b34da6cc6f01a9892153054",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-73",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "04a4166f0561d84f1e181173f1ba6008574e53d9d82c7daf3f7ec7e55bd3b3ff",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-74",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "9a71fbd0d9feabb80cd69f8d8c882176b7b6221ce0dc248cdd8ce88258a0fd28",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-75",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "4a3967d702be09e2f97d45b3d5a88639c3c839e3fe506e6039aaf7d2fccb7c51",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-76",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "bf99ffdc9b23cf50e48062df98323271f45f447b9ea84b096ec51c6e1b2e2b93",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-77",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "029b8cf06fa169c7a866cd2c878f0a934ba5f898dd9f20191795dd3fd2f7c80a",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-78",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "901648164b58b51ecdfab4e29c2690cf54bda16ebe90597e30b8c00ed3bc1379",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-79",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "247321bfcddacf8851aa0f84a8d47220c533ab6afd1264a1972c93ce093397e8",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-80",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "835d4411139763f176d35cc8e7837317452c9a758e7c8d9a84c0b1aa7c4ab8a7",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-81",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "42c8448b24c13b20af93ba02f514f5e36b43ee428a6541867789f401a279f936",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-82",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "5907b4fe728f500c8fdc21b7731b473aee2fd8452f4b7e1883140fdde8be86e4",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-83",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "d7b24cfa7e756b80a55152bf202dc7cabc67e615fa9e068f71dd34c56d25f6e5",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-84",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "bd65953a196dbc3fa7c34ef222ad2af76cbd253523e07317f6bd89a3c41d3250",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-85",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "bca60cbe96aed863d49fbca3c8d3d6af05aa287d7adc0cd551305c734612280a",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-86",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "87fe2720d018337819dc12fe7944b599a8d6c3ad2dfc63c826ffcfadb31495fc",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-87",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "128d3fa7a85cb4482438f9edcfb9ad16042e50c68cfa32556918d92e305b6c1e",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-88",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "418331de73a98d00abccbc725436394c730be5ffa47bfacbbeab4e7409f36f7b",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-89",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "surprise",
+   "state_sha256": "96d929db922d426e554a625ba4b3574dd4beab333567ab6efb139d234f41fab2",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-90",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "ef8e63791890f97f653152ca6783701849922828d21628b993036de17ea48d39",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-91",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "40316f678ffdc76cb4829cbce001dc612c6d7eeee0a0fdc8cdb41ef3dc89c618",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-92",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "sadness",
+   "state_sha256": "bb22751768bcd7df28cec326ae8c4baaeb5bf4189f9e393cb23b1f350f751ac4",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-93",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "fear",
+   "state_sha256": "2da2591ee35e05a5dd6b8593a3a8a41e8681d023565551bf78a4dadca3895b38",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-94",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "b4b9e112a7d54f0eb20424984be74800474ab935eec746da4eb5218459c24371",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-95",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "love",
+   "state_sha256": "e30213e39233decda5e74211cf896465b624958db19eaf8915aa7e0851d853b8",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-96",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "3751c00281bd62ca089b6d53b5f2fed574da87c51059a914d25a4657654130ce",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-97",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "e5decbd3412a70c0d99c98977d4cfa594866508f4d9ca6c66a89b0924bf0034d",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-98",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "joy",
+   "state_sha256": "c7e877d12c59e59ff9d5a71afaf6647e1239f78c8d160616ff5a28941d5a7a8b",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  },
+  {
+   "id": "emotion-99",
+   "task": "emotion",
+   "type": "choice",
+   "options": {
+    "sadness": null,
+    "joy": null,
+    "love": null,
+    "anger": null,
+    "fear": null,
+    "surprise": null
+   },
+   "gold": "anger",
+   "state_sha256": "ca5765f230512f0f563bc093cda8eeabd8bd2e38d302582245bbd470a23fdc52",
+   "instructions_sha256": "cd5229f319ce5063bed79bc1eae3c7630823a8b53ec40e0bf2b1f28dd617f679"
+  }
+ ]
+}
