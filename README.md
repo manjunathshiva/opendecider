@@ -89,7 +89,7 @@ Two checkpoints:
 | | backbone | params | context | memory | use it for |
 |---|---|---|---|---|---|
 | [`opendecider-nano`](https://huggingface.co/manjunathshiva/opendecider-nano) | Ettin-encoder-400m | ~400M | 2,048 | 2.0 GiB | speed: 17–18 ms per question, ~9 ms batched; typed business decisions |
-| [`opendecider-small`](https://huggingface.co/manjunathshiva/opendecider-small) | Qwen3-4B-Instruct-2507 + LoRA | 4B | 768 (training inputs) | 8.9 GiB, fits a 16 GB Mac | accuracy and calibration on decisions it has never seen |
+| [`opendecider-small`](https://huggingface.co/manjunathshiva/opendecider-small) | Qwen3-4B-Instruct-2507 + LoRA | 4B | 768 (training inputs) | 8.9 GiB, tested on a 16 GB Mac mini | accuracy and calibration on decisions it has never seen |
 
 ### Coming next (in development)
 
@@ -115,7 +115,7 @@ pip install "opendecider[small]"
 * **Device:** CUDA, then MPS, then CPU, chosen automatically. Override with `load(..., device="cpu")`.
 * **Offline or air-gapped:** download a model folder once (`huggingface-cli download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
 * **CPU only:** nano runs fine on CPU for batch jobs. small needs ~17 GB of RAM in fp32 and is slow on CPU.
-* **Memory:** nano 2.0 GiB, small 8.9 GiB of GPU or unified memory (measured on Apple Silicon).
+* **Memory:** nano 2.0 GiB, small 8.9 GiB of GPU or unified memory, measured on a 16 GB Mac mini (M4), where the GPU budget is 11.8 GiB.
 
 ## Decision primitives
 
@@ -179,6 +179,8 @@ TypeSafe's own API**, not taken from published figures. Full tables, per-task re
 | 5 | 24.4 ms (4.9 ms/q) | 54.3 ms (10.9 ms/q) | 190.1 ms (38.0 ms/q) | 680 ms (136 ms/q) |
 | 10 | 42.9 ms (4.3 ms/q) | 98.1 ms (9.8 ms/q) | 388.2 ms (38.8 ms/q) | 1.37 s (137 ms/q) |
 | 50 | 189.5 ms (3.8 ms/q) | 467 ms (9.3 ms/q) | 1.94 s (38.7 ms/q) | 6.86 s (137 ms/q) |
+
+**On a 16 GB Mac mini (M4):** nano 28 ms and small 280 ms per question, using 2.0 GiB and 8.9 GiB of the 11.8 GiB GPU budget, with answers identical to the 64 GB Mac to four decimals.
 
 For reference, TypeSafe Jev answered at a **404 ms** median per question through its API in our runs.
 
