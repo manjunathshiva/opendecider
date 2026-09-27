@@ -1,0 +1,27 @@
+OpenDecider
+Copyright 2026 Manjunath Janardhan
+
+The code in this repository is licensed under the Apache License, Version 2.0 (LICENSE).
+
+Model weights
+- opendecider-nano: fine-tuned from Ettin-encoder-400m (jhu-clsp/ettin-encoder-400m, MIT).
+- opendecider-small: LoRA adapter for Qwen3-4B-Instruct-2507 (Qwen/Qwen3-4B-Instruct-2507, Apache-2.0).
+
+Training data (used for training only; no dataset text is redistributed)
+- knowledgator/gliclass-v2.0 (Apache-2.0)
+- CLINC150, clinc/clinc_oos (CC BY 3.0)
+- GoEmotions, google-research-datasets/go_emotions (Apache-2.0)
+- SQuAD 2.0, rajpurkar/squad_v2 (CC BY-SA 4.0)
+- WANLI, alisawuffles/WANLI (CC BY 4.0)
+- FEVER NLI, pietrolesci/nli_fever (CC BY-SA 3.0, from Wikipedia)
+- DBpedia-14, fancyzhx/dbpedia_14 (CC BY-SA 3.0)
+- Civil Comments, google/civil_comments (CC0)
+- SMS Spam Collection, UCI Machine Learning Repository (CC BY 4.0)
+- Natural Questions, via sentence-transformers/natural-questions (CC BY-SA 3.0)
+- PAWS, google-research-datasets/paws (Google LLC; free for any use with attribution)
+- HotpotQA, hotpotqa/hotpot_qa (CC BY-SA 4.0)
+- typed-decisions train split, LocalLLaMA/typed-decisions (opendecider-nano only; the test split is never used)
+- Synthetic business cases, emails and reviews written for this project by DeepSeek V4.1 Flash (MIT) and
+  Qwen3-30B-A3B-Instruct-2507 (Apache-2.0)
+
+Teacher models (soft labels): Qwen3-235B-A22B-Instruct-2507 (Apache-2.0), DeepSeek V4.1 Flash (MIT).
