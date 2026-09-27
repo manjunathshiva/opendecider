@@ -150,7 +150,34 @@ def laya_table():
         print(f"| {m} | **{st.mean(x.values()):.3f}** | {tr:.3f} | {ho:.3f} | " + " | ".join(f"{x[t]:.3f}" for t in tasks) + " |")
 
 
+def coverage_table():
+    """Automate only the most confident share of decisions: accuracy on that share (selective accuracy)."""
+    def sel(pairs, cov):
+        pairs = sorted(pairs, key=lambda x: -x[0]); k = max(1, round(len(pairs) * cov))
+        return sum(c for _, c in pairs[:k]) / k
+    its = {i["id"]: i for i in I.general()}
+    core = [i for i in its if its[i]["task"] in CORE]
+    print("\n## Accuracy when automating only the most confident share\n")
+    print("| benchmark | model | all | 90% | 70% | 50% |")
+    print("|---|---|---|---|---|---|")
+    for path in sorted((RESULTS / "general").glob("*.jsonl")):
+        recs = {r["id"]: r for r in rows(path)}
+        if not all(i in recs for i in core):
+            continue
+        pairs = []
+        for i in core:
+            q = norm(recs[i]["probs"]); k = max(q, key=q.get); pairs.append((q[k], float(k == its[i]["gold"])))
+        print(f"| general (200) | {path.stem} | " + " | ".join(f"{sel(pairs, c):.3f}" for c in (1.0, 0.9, 0.7, 0.5)) + " |")
+    for path in sorted((RESULTS / "typed").glob("*.jsonl")):
+        rs = rows(path)
+        if len(rs) < 2000:
+            continue
+        pairs = [(max(norm(r["probs"]).values()), float(str(r["pred"]) == str(r["gold"]))) for r in rs]
+        print(f"| typed-decisions | {path.stem} | " + " | ".join(f"{sel(pairs, c):.3f}" for c in (1.0, 0.9, 0.7, 0.5)) + " |")
+
+
 if __name__ == "__main__":
     general_table()
     typed_table()
     laya_table()
+    coverage_table()

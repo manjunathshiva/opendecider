@@ -271,6 +271,25 @@ to 0.735 and cut its calibration error from 0.289 to 0.087. CLM-8B, a contrastiv
 classification-style decisions (0.000 on label-only BANKING77); its strongest task is passage relevance (0.603 on MS
 MARCO, near Laya's 0.625, which trained on it).
 
+### Automating only the confident decisions
+
+A common way to deploy a decision model is to let it act on its most confident cases and send the rest to a person.
+This is the accuracy on the most confident share of decisions:
+
+| benchmark | model | all decisions | most confident 70% | most confident 50% |
+|---|---|---|---|---|
+| typed-decisions | **opendecider-small-td** | 0.792 | 0.893 | **0.949** |
+| typed-decisions | **opendecider-nano** | 0.796 | **0.894** | 0.943 |
+| typed-decisions | TypeSafe Jev 1.13 | 0.754 | 0.839 | 0.882 |
+| general (200) | TypeSafe Jev 1.13 | 0.730 | **0.829** | **0.860** |
+| general (200) | **opendecider-small** | 0.735 | 0.800 | 0.830 |
+| general (200) | Laya | 0.545 | 0.543 | 0.550 |
+
+On typed-decisions, automating the confident half gives 94–95% accuracy with OpenDecider against 88% with Jev. On the
+general decisions Jev ranks its own confidence better (0.86 vs 0.83 on the confident half), even though its calibration
+error is higher. Laya's confidence barely separates right from wrong answers here: its accuracy stays near 0.55 at every
+threshold, so check it on your own data before thresholding on it.
+
 ## Honest limits
 
 * **Phishing detection is the weakest task:** 0.63 on Laya's battery for both models, against Jev's 0.90 and Laya's 0.98 (Laya trained on that dataset).
