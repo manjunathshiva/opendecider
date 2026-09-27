@@ -9,6 +9,7 @@
 
 <div align="center">
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--nano-blue)](https://huggingface.co/manjunathshiva/opendecider-nano)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--small-blue)](https://huggingface.co/manjunathshiva/opendecider-small)
 [![Collection](https://img.shields.io/badge/%F0%9F%A4%97%20Collection-OpenDecider-orange)](https://huggingface.co/collections/manjunathshiva/opendecider-6ab8c838909092518d50a9ea)
@@ -24,12 +25,13 @@
 
 ```bash
 pip install opendecider              # opendecider-nano
-pip install "opendecider[small]"     # adds peft for opendecider-small
+pip install "opendecider[small]"     # adds peft for opendecider-small and opendecider-small-td
+pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 ```
 
 Python 3.10 or newer. Works on Linux, Windows and macOS, on CPU, NVIDIA (CUDA) and Apple Silicon (MPS), and picks the
 device for you. Platform notes: [Installation details](https://github.com/manjunathshiva/opendecider#installation-details).
-Try it without installing: [live demo](https://huggingface.co/spaces/manjunathshiva/opendecider-demo).
+Try it without installing: [live demo](https://huggingface.co/spaces/manjunathshiva/opendecider-demo), or on a free NVIDIA GPU in [Colab](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb).
 
 ## Quickstart
 
@@ -65,13 +67,21 @@ business workflows), scored with the [Jev-vs-Laya harness](https://github.com/pa
 **opendecider-nano scores 0.796**, against **0.766** for Laya's typed-decisions checkpoint (+0.030, 95% CI +0.014 to
 +0.044) and **0.754** for TypeSafe Jev. Like Laya's checkpoint, it was fine-tuned on the dataset's train split; the test
 split was never used for training or model selection. **opendecider-small, which never saw the dataset, scores 0.672**,
-against 0.362 for Laya's base checkpoint.
+against 0.362 for Laya's base checkpoint, and its workflow-tuned version, **opendecider-small-td, scores 0.792** (+0.026 vs Laya's checkpoint, 95% CI +0.008 to +0.043).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/comparison_table.jpg" alt="OpenDecider vs TypeSafe Jev, Laya, CLM-8B and frontier LLMs: typed-decisions, general decisions, Laya's battery, calibration, speed and open weights, same questions and same scorer" width="100%" />
 </p>
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
+
+## What's new in 0.1.1
+
+* **opendecider-small-td:** the 4B fine-tuned for business workflows, 0.792 on typed-decisions.
+* **Apple Silicon MLX builds** of opendecider-small: `pip install "opendecider[mlx]"`. The 8-bit build (4.5 GB) gives the same answers as full precision on 399 of 400 general and 1,955 of 2,000 typed-decisions questions, about 2× faster than PyTorch on a Mac; the 4-bit build (2.6 GB) costs about 2 points on typed-decisions.
+* **Colab notebook** for NVIDIA ([open it](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb)), tested top to bottom on an NVIDIA GPU.
+* **Benchmark harness** in [benchmarks/](https://github.com/manjunathshiva/opendecider/tree/main/benchmarks): rebuilds every table here from the logged answers and re-scores any model.
+* **T4 support:** opendecider-small runs in fp16 on GPUs without bf16 (probabilities within about 0.003 of bf16).
 
 ## What's new in 0.1.0
 
@@ -90,12 +100,15 @@ OpenDecider answers typed questions over any state in **a single forward pass** 
 (small). There's no text generation, so nothing to parse and nothing to hallucinate. Every answer carries a full,
 calibrated probability distribution you can threshold, route on or log.
 
-Two checkpoints:
+The checkpoints:
 
 | | backbone | params | context | memory | use it for |
 |---|---|---|---|---|---|
 | [`opendecider-nano`](https://huggingface.co/manjunathshiva/opendecider-nano) | Ettin-encoder-400m | ~400M | 2,048 | 2.0 GiB | speed: 17–18 ms per question, ~9 ms batched; typed business decisions |
 | [`opendecider-small`](https://huggingface.co/manjunathshiva/opendecider-small) | Qwen3-4B-Instruct-2507 + LoRA | 4B | 768 (training inputs) | 8.9 GiB, tested on a 16 GB Mac mini | accuracy and calibration on decisions it has never seen |
+| [`opendecider-small-td`](https://huggingface.co/manjunathshiva/opendecider-small-td) | Qwen3-4B-Instruct-2507 + LoRA | 4B | 768 (training inputs) | 8.9 GiB | business workflows like typed-decisions' (triage, invoices, security alerts, agent traces): 0.792 |
+| [`opendecider-small-mlx-8bit`](https://huggingface.co/manjunathshiva/opendecider-small-mlx-8bit) | opendecider-small, MLX 8-bit | 4B | 768 (training inputs) | 4.5 GB | Macs: same answers as full precision (1,955/2,000 on typed-decisions), 66 ms per question |
+| [`opendecider-small-mlx-4bit`](https://huggingface.co/manjunathshiva/opendecider-small-mlx-4bit) | opendecider-small, MLX 4-bit | 4B | 768 (training inputs) | 2.6 GB | Macs with little memory; about 2 points lower on typed-decisions (0.651) |
 
 ### Coming next (in development)
 

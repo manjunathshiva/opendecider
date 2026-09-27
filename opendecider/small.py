@@ -34,7 +34,12 @@ class SmallModel:
         from transformers import AutoModelForCausalLM, AutoTokenizer
         self.device = device
         self.tok = AutoTokenizer.from_pretrained(base)
-        dtype = torch.bfloat16 if device != "cpu" else torch.float32
+        if device == "cpu":
+            dtype = torch.float32
+        elif device == "cuda" and not torch.cuda.is_bf16_supported():
+            dtype = torch.float16          # e.g. a Colab T4 (no bf16 tensor cores)
+        else:
+            dtype = torch.bfloat16
         m = AutoModelForCausalLM.from_pretrained(base, dtype=dtype).to(device)
         self.m = PeftModel.from_pretrained(m, adapter_path).merge_and_unload().eval()
         self.letters = [self.tok.encode(c, add_special_tokens=False)[0] for c in LETTERS]

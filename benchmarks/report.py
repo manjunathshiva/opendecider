@@ -59,6 +59,9 @@ def general_table():
     print("|---|---|---|---|---|---|---|---|---|---|---|")
     for path in sorted((RESULTS / "general").glob("*.jsonl")):
         recs = {r["id"]: r for r in rows(path)}
+        if len(set(recs) & set(its)) < len(its):   # unfinished run: never report a partial table row
+            print(f"| {path.stem} | (incomplete: {len(set(recs) & set(its))}/{len(its)} items, skipped) |")
+            continue
         acc, pooled, confs, cor = {}, [], [], []
         for t in CORE + ["agnews", "emotion"]:
             rs = [(its[i], recs[i]) for i in its if its[i]["task"] == t and i in recs]
@@ -90,6 +93,9 @@ def typed_table(ref="ebeddf4f166058ac1cf094050d157bc5fed4943a"):   # Antz AI res
     qtype = {k: v[2] for k, v in meta.items()}
     for path in sorted((RESULTS / "typed").glob("*.jsonl")):
         rs = rows(path)
+        if len(rs) < 2000:   # a partial run would shrink the common question set for every model
+            print(f"(skipping {path.stem}: incomplete, {len(rs)}/2000 decisions)\n")
+            continue
         if meta:
             mism = sum(1 for r in rs if (r["case"], r["q"]) in meta and str(r["gold"]) != meta[(r["case"], r["q"])][1])
             if mism:
@@ -126,6 +132,10 @@ def laya_table():
     out = {}
     for path in sorted((RESULTS / "laya_battery").glob("*.jsonl")):
         got = {(r["suite"], r["i"]): r["p"] for r in rows(path)}
+        need = sum(len(S["cases"]) for S in suites.values())
+        if len(got) < need:
+            print(f"(skipping {path.stem}: incomplete, {len(got)}/{need} battery cases)")
+            continue
         out[path.stem] = {s.split(".")[-1]: metrics([(g, np.array(got[(s, i)])) for i, g in enumerate(S["gold"]) if (s, i) in got])["accuracy"]
                           for s, S in suites.items()}
     committed = json.loads((I.CACHE / "laya" / "research" / "results" / "app_benchmark_results.json").read_text())

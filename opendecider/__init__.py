@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .questions import Choice, Noul, Score, answer, as_dict, options
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = ["load", "OpenDecider", "Choice", "Score", "Noul", "__version__"]
 
 
@@ -58,13 +58,17 @@ def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | No
         from huggingface_hub import snapshot_download
         path = Path(snapshot_download(name_or_path, revision=revision))
     meta = json.loads((path / "opendecider.json").read_text())
-    device = device or default_device()
+    if meta["kind"] != "small-mlx":   # MLX builds need neither torch nor a device choice
+        device = device or default_device()
     if meta["kind"] == "nano":
         from .nano import NanoModel
         impl = NanoModel(str(path), device, meta.get("max_len", 2048))
     elif meta["kind"] == "small":
         from .small import SmallModel
         impl = SmallModel(str(path), meta["base_model"], device)
+    elif meta["kind"] == "small-mlx":   # merged + quantised build for Apple Silicon (pip install "opendecider[mlx]")
+        from .mlx_small import MLXSmallModel
+        impl = MLXSmallModel(str(path))
     else:
         raise ValueError(f"unknown model kind {meta['kind']!r}")
     return OpenDecider(impl, meta)

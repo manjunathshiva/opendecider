@@ -59,7 +59,7 @@ jobs:
           whl = glob.glob("dist/*.whl")[0]
           names = set(zipfile.ZipFile(whl).namelist())
           need = ["opendecider/__init__.py", "opendecider/questions.py", "opendecider/nano.py",
-                  "opendecider/small.py", "opendecider/bench_speed.py"]
+                  "opendecider/small.py", "opendecider/bench_speed.py", "opendecider/mlx_small.py"]
           missing = [n for n in need if n not in names]
           if missing:
               sys.exit(f"{whl} is missing {missing}")
