@@ -95,7 +95,7 @@ on 5 of these 10 datasets, so we also split the score:
 - **Training:** distillation from calibrated soft labels. Two open teachers (Qwen3-235B-A22B-Instruct-2507, DeepSeek
   V4.1 Flash) scored the training questions through log-probabilities, and each teacher was temperature-scaled on
   held-out gold labels before averaging; datasets with gold labels only use label-smoothed gold. Data: public classification, NLI, QA, relevance, toxicity and paraphrase datasets plus
-  synthetic business cases, emails and reviews (see [NOTICE](NOTICE)). Only openly licensed teachers were used; no outputs of proprietary models.
+  synthetic business cases, emails and reviews (see [NOTICE](NOTICE)). Only openly licensed teachers were used: no outputs of Claude or GPT models (their terms forbid training competing models).
 - **No test data in training:** every benchmark dataset above (and its family) is excluded, and each training pool is
   checked for text overlap against all test sets (0 overlaps).
 
