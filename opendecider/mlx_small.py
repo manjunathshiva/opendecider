@@ -6,14 +6,21 @@ above 26 options, each option name's log-probability after the shared prompt.
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 from .small import LETTERS, SYSTEM, render
 
 
 class MLXSmallModel:
-    def __init__(self, path: str):
+    def __init__(self, path: str, mlx_base: str | None = None):
+        """`path`: a merged MLX model, or (with `mlx_base`) an MLX LoRA adapter applied to that base at load time."""
         from mlx_lm import load
-        self.model, self.tok = load(path)
+        if mlx_base:
+            from huggingface_hub import snapshot_download
+            base = mlx_base if Path(mlx_base).exists() else snapshot_download(mlx_base)
+            self.model, self.tok = load(base, adapter_path=path)
+        else:
+            self.model, self.tok = load(path)
         self.letters = [self.tok.encode(c, add_special_tokens=False)[0] for c in LETTERS]
         self.device = "mlx"
 

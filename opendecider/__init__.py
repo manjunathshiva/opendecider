@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .questions import Choice, Noul, Score, answer, as_dict, options
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __all__ = ["load", "OpenDecider", "Choice", "Score", "Noul", "__version__"]
 
 
@@ -65,10 +65,11 @@ def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | No
         impl = NanoModel(str(path), device, meta.get("max_len", 2048))
     elif meta["kind"] == "small":
         from .small import SmallModel
-        impl = SmallModel(str(path), meta["base_model"], device)
+        impl = SmallModel(str(path), meta["base_model"], device,
+                          meta.get("device_map") if device == "cuda" else None)
     elif meta["kind"] == "small-mlx":   # merged + quantised build for Apple Silicon (pip install "opendecider[mlx]")
         from .mlx_small import MLXSmallModel
-        impl = MLXSmallModel(str(path))
+        impl = MLXSmallModel(str(path), meta.get("mlx_base"))
     else:
         raise ValueError(f"unknown model kind {meta['kind']!r}")
     return OpenDecider(impl, meta)

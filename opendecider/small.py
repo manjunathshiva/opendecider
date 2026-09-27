@@ -29,7 +29,7 @@ def render(state, instructions, options: dict, lettered=True) -> str:
 
 
 class SmallModel:
-    def __init__(self, adapter_path: str, base: str, device: str):
+    def __init__(self, adapter_path: str, base: str, device: str, device_map: str | None = None):
         from peft import PeftModel
         from transformers import AutoModelForCausalLM, AutoTokenizer
         self.device = device
@@ -40,7 +40,11 @@ class SmallModel:
             dtype = torch.float16          # e.g. a Colab T4 (no bf16 tensor cores)
         else:
             dtype = torch.bfloat16
-        m = AutoModelForCausalLM.from_pretrained(base, dtype=dtype).to(device)
+        if device_map:   # larger than one GPU (e.g. opendecider-medium): spread over all GPUs
+            m = AutoModelForCausalLM.from_pretrained(base, dtype=dtype, device_map=device_map)
+            self.device = str(m.get_input_embeddings().weight.device)
+        else:
+            m = AutoModelForCausalLM.from_pretrained(base, dtype=dtype).to(device)
         self.m = PeftModel.from_pretrained(m, adapter_path).merge_and_unload().eval()
         self.letters = [self.tok.encode(c, add_special_tokens=False)[0] for c in LETTERS]
 
@@ -55,7 +59,7 @@ class SmallModel:
         if len(names) <= len(LETTERS):
             x = torch.tensor([self.ids(render(state, instructions, options))], device=self.device)
             h = self.m.model(input_ids=x).last_hidden_state[0, -1]
-            logits = self.m.lm_head(h)[self.letters[:len(names)]].float()
+            logits = self.m.lm_head(h.to(self.m.lm_head.weight.device))[self.letters[:len(names)]].float()
             return dict(zip(names, torch.softmax(logits, -1).tolist()))
         pre = self.ids(render(state, instructions, options, lettered=False))
         labs = [self.tok.encode(n, add_special_tokens=False) for n in names]
@@ -70,7 +74,7 @@ class SmallModel:
             h = self.m.model(input_ids=x, attention_mask=a).last_hidden_state
             for r, t in enumerate(labs[i:i + 16]):
                 pos = torch.arange(len(pre) - 1, len(pre) - 1 + len(t), device=self.device)
-                lp = F.log_softmax(self.m.lm_head(h[r, pos]).float(), -1)
+                lp = F.log_softmax(self.m.lm_head(h[r, pos.to(h.device)].to(self.m.lm_head.weight.device)).float(), -1)
                 scores.append(sum(lp[j, t[j]].item() for j in range(len(t))))
         top = max(scores)
         w = [math.exp(s - top) for s in scores]

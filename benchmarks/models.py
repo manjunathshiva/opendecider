@@ -90,6 +90,6 @@ def get(name: str):
         return Jev()
     if name.startswith("laya"):
         return Laya({"laya": "english", "laya-td": "typed-decisions", "laya-ml": "multilingual"}[name])
-    if name in ("opendecider-nano", "opendecider-small"):
+    if name.startswith("opendecider-") and "/" not in name:   # a published model, e.g. opendecider-medium-td
         return OpenDecider(f"manjunathshiva/{name}")
     return OpenDecider(name)   # a local folder or any Hub repo with opendecider.json
