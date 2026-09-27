@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="150" viewBox="0 0 660 150">
+<rect x="20" y="20" width="110" height="110" rx="24.2" fill="#2563eb" fill-opacity="0.12"/>
+<rect x="37.6" y="44.2" width="74.8" height="14.3" rx="7.2" fill="#9ca3af"/>
+<rect x="37.6" y="68.4" width="49.9" height="14.3" rx="7.2" fill="#2563eb"/>
+<rect x="37.6" y="92.60000000000001" width="28.8" height="14.3" rx="7.2" fill="#9ca3af"/>
+<circle cx="108.0" cy="75.6" r="8.2" fill="#2563eb"/>
+<text x="150" y="92" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="64" font-weight="700" fill="#111827">Open<tspan fill="#2563eb">Decider</tspan></text>
+<text x="153" y="126" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#6b7280" letter-spacing="0.5">typed decisions · calibrated probabilities</text>
+</svg>
