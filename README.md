@@ -67,6 +67,12 @@ business workflows), scored with the [Jev-vs-Laya harness](https://github.com/pa
 split was never used for training or model selection. **opendecider-small, which never saw the dataset, scores 0.672**,
 against 0.362 for Laya's base checkpoint.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/comparison_table.jpg" alt="OpenDecider vs TypeSafe Jev, Laya, CLM-8B and frontier LLMs: typed-decisions, general decisions, Laya's battery, calibration, speed and open weights, same questions and same scorer" width="100%" />
+</p>
+
+<sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
+
 ## What's new in 0.1.0
 
 * **First release:** `opendecider-nano` (~400M, Ettin encoder) and `opendecider-small` (4B, LoRA on Qwen3-4B-Instruct-2507).
