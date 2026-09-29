@@ -27,7 +27,7 @@
 
 ```bash
 pip install opendecider              # opendecider-nano
-pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td and -medium-td
+pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td, -medium-td and -large-td
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 ```
 
@@ -93,6 +93,10 @@ these workflows, not as general superiority.
 * **opendecider-medium-td** (Qwen3-30B-A3B + LoRA): 0.765 on 200 general decisions, the best of any model you can run
   yourself and ahead of Jev (0.730); the closest of all systems to the human label
   spread on ChaosNLI (JSD 0.035); 0.788 on typed-decisions and 0.725 on Laya's battery. NVIDIA / Linux only.
+* **opendecider-large-td** (Qwen3-Next-80B-A3B + LoRA), no package update needed: the best calibration of any model you
+  can run yourself (ECE 0.083) and the closest of all 16 tested systems to human judgement (JSD 0.030); typed-decisions
+  0.801 (+0.035 vs Laya-td like for like); its most confident half of general decisions is 0.870 accurate vs Jev's 0.860.
+  NVIDIA only, ~160 GB of GPU memory.
 * **Multi-GPU loading:** models larger than one GPU are spread across all visible GPUs automatically.
 
 ## What's new in 0.1.1
@@ -128,12 +132,14 @@ The checkpoints:
 | [`opendecider-small`](https://huggingface.co/manjunathshiva/opendecider-small) | Qwen3-4B-Instruct-2507 + LoRA | 4B | 768 (training inputs) | 8.9 GiB, tested on a 16 GB Mac mini | accuracy and calibration on decisions it has never seen |
 | [`opendecider-small-td`](https://huggingface.co/manjunathshiva/opendecider-small-td) | Qwen3-4B-Instruct-2507 + LoRA | 4B | 768 (training inputs) | 8.9 GiB | business workflows like typed-decisions' (triage, invoices, security alerts, agent traces): 0.792 |
 | [`opendecider-medium-td`](https://huggingface.co/manjunathshiva/opendecider-medium-td) | Qwen3-30B-A3B-Instruct-2507 + LoRA | 30B (3B active) | 768 (training inputs) | 61 GB bf16, across several GPUs (tested on 4× L40S) | the most accurate self-hostable model on general decisions (0.765) and the closest to human judgement; NVIDIA only |
+| [`opendecider-large-td`](https://huggingface.co/manjunathshiva/opendecider-large-td) | Qwen3-Next-80B-A3B-Instruct + LoRA | 80B (3B active) | 768 (training inputs) | 160 GB bf16, across several GPUs (tested on 4× L40S) | probabilities you can threshold on: best calibration and agreement with people; NVIDIA only |
 | [`opendecider-small-mlx-8bit`](https://huggingface.co/manjunathshiva/opendecider-small-mlx-8bit) | opendecider-small, MLX 8-bit | 4B | 768 (training inputs) | 4.5 GB | Macs: same answers as full precision (1,955/2,000 on typed-decisions), 66 ms per question |
 | [`opendecider-small-mlx-4bit`](https://huggingface.co/manjunathshiva/opendecider-small-mlx-4bit) | opendecider-small, MLX 4-bit | 4B | 768 (training inputs) | 2.6 GB | Macs with little memory; about 2 points lower on typed-decisions (0.651) |
 
 ### Coming next (in development)
 
-* **opendecider-large** (Qwen3-Next-80B-A3B), aimed at closing the remaining gap to frontier LLMs.
+* **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed
+  exactly from rules, so it measures correctness rather than agreement with a teacher model.
 * **No Mac build of medium yet:** a 4-bit MLX version (before the typed-decisions fine-tune) scored 0.725 on general decisions, no better than
   opendecider-small-mlx-8bit (0.730) at several times the memory, so it was not released.
 
@@ -156,7 +162,8 @@ pip install "opendecider[small]"
 * **Offline or air-gapped:** download a model folder once (`huggingface-cli download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
 * **CPU only:** nano runs fine on CPU for batch jobs. small needs ~17 GB of RAM in fp32 and is slow on CPU.
 * **Memory:** nano 2.0 GiB, small 8.9 GiB of GPU or unified memory, measured on a 16 GB Mac mini (M4), where the GPU budget is 11.8 GiB.
-  medium-td has 61 GB of bf16 weights and is spread across all visible NVIDIA GPUs (tested on 4× L40S, 48 GB each).
+  medium-td has 61 GB and large-td 160 GB of bf16 weights, spread across all visible NVIDIA GPUs (both tested on 4× L40S,
+  48 GB each). large-td needs transformers 4.57 or newer; `pip install flash-linear-attention` speeds it up.
 
 ## Decision primitives
 
@@ -195,6 +202,8 @@ Measure latency on your own hardware: `python -m opendecider.bench_speed manjuna
   option name's log-probability after the shared prompt.
 * **opendecider-medium-td:** the same design on Qwen3-30B-A3B-Instruct-2507 (a mixture of experts, 3B active). The LoRA
   adapter (r = 16) is on the attention projections only; the experts are frozen.
+* **opendecider-large-td:** the same design on Qwen3-Next-80B-A3B-Instruct, whose layers mix full attention (12) and
+  Gated DeltaNet linear attention (36); the adapter covers the attention projections of both.
 
 ## Training
 
@@ -205,7 +214,7 @@ not hard labels. Datasets that come with gold labels only use label-smoothed gol
 
 **Data.** Public classification, intent, emotion, NLI, reading-comprehension, topic, toxicity, spam, relevance and
 paraphrase datasets, plus synthetic business cases, emails and product reviews written for this project (full list and
-licences in [NOTICE](https://github.com/manjunathshiva/opendecider/blob/main/NOTICE)). opendecider-nano, -small-td and -medium-td then had a short fine-tune on the typed-decisions train split.
+licences in [NOTICE](https://github.com/manjunathshiva/opendecider/blob/main/NOTICE)). opendecider-nano, -small-td, -medium-td and -large-td then had a short fine-tune on the typed-decisions train split.
 **No benchmark dataset below, or its family, is in the training data**, and every training pool was checked for text
 overlap with all test sets (0 overlaps).
 
@@ -228,46 +237,46 @@ TypeSafe's own API**, not taken from published figures. Full tables, per-task re
 
 **On a 16 GB Mac mini (M4):** nano 28 ms and small 280 ms per question, using 2.0 GiB and 8.9 GiB of the 11.8 GiB GPU budget, with answers identical to the 64 GB Mac to four decimals.
 
-opendecider-medium-td answers in **214 ms** (median, one question) spread across 4× NVIDIA L40S. For reference, TypeSafe
+opendecider-medium-td answers in **214 ms** and opendecider-large-td in **440 ms** (median, one question) spread across 4× NVIDIA L40S. For reference, TypeSafe
 Jev answered at a **404 ms** median per question through its API in our runs.
 
 ### OpenDecider vs TypeSafe Jev (measured through TypeSafe's API)
 
-| Benchmark / metric | TypeSafe Jev 1.13 | opendecider-nano | opendecider-small | opendecider-medium-td |
-|---|---|---|---|---|
-| typed-decisions, 2,000 decisions (Jev zero-shot; nano and medium-td fine-tuned on its train split) | 0.754 | **0.796** | 0.672 (zero-shot) | 0.788 |
-| 200 general decisions (BANKING77, BoolQ, Yelp, ChaosNLI) | 0.730 | 0.680 | 0.735 | **0.765** |
-| Laya's application battery, 10 tasks | **0.774** | 0.656 | 0.702 | 0.725 |
-| Calibration error (ECE), general decisions | 0.164 | 0.092 | **0.087** | 0.110 |
-| Distance from the human label spread (ChaosNLI JSD) | 0.148 | 0.045 | 0.040 | **0.035** |
-| Median latency, 1 question | 404 ms (API) | **17 ms** (L40S) | 40 ms (L40S) | 214 ms (4× L40S) |
-| Weights | closed API | **Apache-2.0** | **Apache-2.0** | **Apache-2.0** |
-| Cost | $0.025 per 1,000 decisions | self-hosted | self-hosted | self-hosted |
+| Benchmark / metric | TypeSafe Jev 1.13 | opendecider-nano | opendecider-small | opendecider-medium-td | opendecider-large-td |
+|---|---|---|---|---|---|
+| typed-decisions, 2,000 decisions (Jev zero-shot; nano, medium-td and large-td fine-tuned on its train split) | 0.754 | 0.796 | 0.672 (zero-shot) | 0.788 | **0.801** |
+| 200 general decisions (BANKING77, BoolQ, Yelp, ChaosNLI) | 0.730 | 0.680 | 0.735 | **0.765** | 0.750 |
+| Laya's application battery, 10 tasks | **0.774** | 0.656 | 0.702 | 0.725 | 0.718 |
+| Calibration error (ECE), general decisions | 0.164 | 0.092 | 0.087 | 0.110 | **0.083** |
+| Distance from the human label spread (ChaosNLI JSD) | 0.148 | 0.045 | 0.040 | 0.035 | **0.030** |
+| Median latency, 1 question | 404 ms (API) | **17 ms** (L40S) | 40 ms (L40S) | 214 ms (4× L40S) | 440 ms (4× L40S) |
+| Weights | closed API | **Apache-2.0** | **Apache-2.0** | **Apache-2.0** | **Apache-2.0** |
+| Cost | $0.025 per 1,000 decisions | self-hosted | self-hosted | self-hosted | self-hosted |
 
 #### Where Jev leads
 
-* **Laya's application battery:** Jev 0.774 vs 0.725 (medium-td), 0.702 (small) and 0.656 (nano); 0.803 on the five
-  tasks Laya was not trained on. Jev is strongest on phishing (0.897, vs our 0.63–0.65), jailbreak detection (0.940 vs
+* **Laya's application battery:** Jev 0.774 vs 0.725 (medium-td), 0.718 (large-td), 0.702 (small) and 0.656 (nano); 0.803 on the five
+  tasks Laya was not trained on. Jev is strongest on phishing (0.897, vs our 0.63–0.70), jailbreak detection (0.940 vs
   0.76 for medium-td), spam (0.985), model routing (0.975) and 77-label BANKING77 (0.845).
 * **BoolQ-style yes/no reading questions** (0.94, vs 0.74 nano and 0.90 small; medium-td ties at 0.94) and **BANKING77
   routing with 78 options** on our bench (0.76, vs 0.68 nano, 0.70 small and 0.72 medium-td).
 * **typed-decisions without fine-tuning:** Jev 0.754 vs opendecider-small 0.672. The fine-tuned nano (0.796) passes it.
 
 Where OpenDecider leads Jev: general decisions (medium-td 0.765 and
-small 0.735 vs 0.730), calibration (ECE 0.087–0.110 vs 0.164), agreement with human label spread (JSD 0.035–0.045 vs
-0.148), typed-decisions after fine-tuning on its train split (0.796 vs Jev zero-shot 0.754; not like for like), toxicity moderation on Laya's battery (medium-td 0.802 vs 0.665), latency (17–214 ms vs 404 ms), open weights
+small 0.735 vs 0.730), calibration (ECE 0.083–0.110 vs 0.164), agreement with human label spread (JSD 0.030–0.045 vs
+0.148), confident-half accuracy on general decisions (large-td 0.870 vs 0.860), typed-decisions after fine-tuning on its train split (0.796 vs Jev zero-shot 0.754; not like for like), toxicity moderation on Laya's battery (medium-td 0.802 vs 0.665), latency (17–440 ms vs 404 ms), open weights
 and self-hosting.
 
 ### OpenDecider vs Laya
 
-| Benchmark | Laya | Laya typed-decisions | opendecider-nano | opendecider-small | opendecider-medium-td |
-|---|---|---|---|---|---|
-| typed-decisions (Antz harness) | 0.362 | 0.766 | **0.796** | 0.672 | 0.788 |
-| 200 general decisions | 0.545 | 0.570 | 0.680 | 0.735 | **0.765** |
-| Laya's battery, all 10 tasks | 0.695 | 0.702 | 0.656 | 0.702 | **0.725** |
-| Laya's battery, the 5 tasks Laya was not trained on | 0.579 | 0.609 | 0.656 | 0.743 | **0.768** |
-| BANKING77, 77 labels (Laya's battery) | 0.425 | 0.492 | 0.645 | 0.748 | **0.785** |
-| Calibration error (ECE), general decisions | 0.327 | 0.162 | 0.092 | **0.087** | 0.110 |
+| Benchmark | Laya | Laya typed-decisions | opendecider-nano | opendecider-small | opendecider-medium-td | opendecider-large-td |
+|---|---|---|---|---|---|---|
+| typed-decisions (Antz harness) | 0.362 | 0.766 | 0.796 | 0.672 | 0.788 | **0.801** |
+| 200 general decisions | 0.545 | 0.570 | 0.680 | 0.735 | **0.765** | 0.750 |
+| Laya's battery, all 10 tasks | 0.695 | 0.702 | 0.656 | 0.702 | **0.725** | 0.718 |
+| Laya's battery, the 5 tasks Laya was not trained on | 0.579 | 0.609 | 0.656 | 0.743 | **0.768** | 0.757 |
+| BANKING77, 77 labels (Laya's battery) | 0.425 | 0.492 | 0.645 | 0.748 | **0.785** | 0.677 |
+| Calibration error (ECE), general decisions | 0.327 | 0.162 | 0.092 | 0.087 | 0.110 | **0.083** |
 
 #### Where Laya leads
 
@@ -285,7 +294,8 @@ and self-hosting.
 | **opendecider-medium-td** | **0.765** | 0.110 | 214 ms (4× L40S) | self-hosted |
 | DeepSeek V4.1 Flash | 0.760 | 0.138 | 4.08 s | $0.158 |
 | MiniMax M3 | 0.755 | 0.112 | 1.02 s | $0.149 |
-| Qwen3-Next-80B-A3B, untrained | 0.750 | 0.230 | local | – |
+| **opendecider-large-td** | **0.750** | **0.083** | 440 ms (4× L40S) | self-hosted |
+| Qwen3-Next-80B-A3B-Instruct, untrained (large's base) | 0.750 | 0.230 | local | – |
 | Qwen3-30B-A3B-Instruct-2507, untrained (medium's base) | 0.745 | 0.233 | local | – |
 | Kimi K3 | 0.745 | 0.119 | 6.28 s | $3.64 |
 | **opendecider-small** | **0.735** | **0.087** | **40 ms** | self-hosted |
@@ -296,7 +306,7 @@ and self-hosting.
 
 Only Claude Fable 5.1 and GPT-6 Astra beat opendecider-medium-td here, at 10–20× its latency and with a per-call bill;
 it edges past DeepSeek V4.1 Flash (0.760), one of its own teachers, within this set's ±3-point noise. Distillation moved Qwen3-4B from 0.700 to 0.735 (calibration
-error 0.289 to 0.087) and Qwen3-30B-A3B from 0.745 to 0.765 (0.233 to 0.110). CLM-8B, a contrastive reranker, is near chance on
+error 0.289 to 0.087) and Qwen3-30B-A3B from 0.745 to 0.765 (0.233 to 0.110); it left Qwen3-Next-80B's accuracy at 0.750 but cut its calibration error from 0.230 to 0.083. CLM-8B, a contrastive reranker, is near chance on
 classification-style decisions (0.000 on label-only BANKING77); its strongest task is passage relevance (0.603 on MS
 MARCO, near Laya's 0.625, which trained on it).
 
@@ -308,41 +318,44 @@ This is the accuracy on the most confident share of decisions:
 | benchmark | model | all decisions | most confident 70% | most confident 50% |
 |---|---|---|---|---|
 | typed-decisions | **opendecider-small-td** | 0.792 | 0.893 | **0.949** |
-| typed-decisions | **opendecider-nano** | 0.796 | **0.894** | 0.943 |
+| typed-decisions | **opendecider-nano** | 0.796 | 0.894 | 0.943 |
 | typed-decisions | **opendecider-medium-td** | 0.788 | 0.896 | 0.948 |
+| typed-decisions | **opendecider-large-td** | 0.801 | **0.901** | 0.947 |
 | typed-decisions | TypeSafe Jev 1.13 | 0.754 | 0.839 | 0.882 |
-| general (200) | TypeSafe Jev 1.13 | 0.730 | **0.829** | **0.860** |
+| general (200) | **opendecider-large-td** | 0.750 | 0.807 | **0.870** |
+| general (200) | TypeSafe Jev 1.13 | 0.730 | **0.829** | 0.860 |
 | general (200) | **opendecider-small** | 0.735 | 0.800 | 0.830 |
 | general (200) | **opendecider-medium-td** | 0.765 | 0.807 | 0.820 |
 | general (200) | Laya | 0.545 | 0.543 | 0.550 |
 
 On typed-decisions, automating the confident half gives 94–95% accuracy with OpenDecider against 88% with Jev. On the
-general decisions Jev ranks its own confidence better (0.86 vs 0.82–0.83 on the confident half), even though its calibration
-error is higher. Laya's confidence barely separates right from wrong answers here: its accuracy stays near 0.55 at every
+general decisions Jev ranks its confidence better than the 4B and 30B (0.86 vs 0.82–0.83 on the confident half), but
+opendecider-large-td passes it (0.87). Laya's confidence barely separates right from wrong answers here: its accuracy stays near 0.55 at every
 threshold, so check it on your own data before thresholding on it.
 
 ## Honest limits
 
 * **Phishing detection is the weakest task:** 0.63–0.65 on Laya's battery for every OpenDecider model, against Jev's 0.90 and Laya's 0.98 (Laya trained on that dataset).
 * **TypeSafe Jev leads Laya's application battery** (0.774 vs 0.725 medium-td, 0.702 small, 0.656 nano).
-* **opendecider-medium-td needs about 61 GB of GPU memory** across one or more NVIDIA GPUs, and has no Mac build.
+* **opendecider-medium-td needs about 61 GB and -large-td about 160 GB of GPU memory** across NVIDIA GPUs; neither has a Mac build.
+* **opendecider-large-td is not more accurate than medium-td** on unseen decisions (0.750 vs 0.765); it is better calibrated.
 * **opendecider-nano trails Laya on Laya's battery overall** (0.656 vs 0.695), because half its tasks are Laya's training data.
 * **opendecider-small is zero-shot on typed-decisions** and trails Jev there (0.672 vs 0.754).
 * **English only so far.** The training data includes some Spanish, German, French, Portuguese, Italian and Dutch, but no multilingual evaluation has been run.
-* **opendecider-small and -medium-td answer questions one at a time** (small: ~137 ms per question on a Mac, ~40 ms on an L40S). Use nano when you need many decisions per second.
+* **opendecider-small, -medium-td and -large-td answer questions one at a time** (small: ~137 ms per question on a Mac, ~40 ms on an L40S). Use nano when you need many decisions per second.
 * **Descriptions help.** Very terse or cryptic option labels are harder for every model, so give options a short description when you can.
 
 ## Links
 
 * **Live demo:** https://huggingface.co/spaces/manjunathshiva/opendecider-demo
 * **PyPI:** https://pypi.org/project/opendecider/
-* **Models:** [opendecider-nano](https://huggingface.co/manjunathshiva/opendecider-nano) · [opendecider-small](https://huggingface.co/manjunathshiva/opendecider-small) · [opendecider-small-td](https://huggingface.co/manjunathshiva/opendecider-small-td) · [opendecider-medium-td](https://huggingface.co/manjunathshiva/opendecider-medium-td) · [collection](https://huggingface.co/collections/manjunathshiva/opendecider-6ab8c838909092518d50a9ea)
+* **Models:** [opendecider-nano](https://huggingface.co/manjunathshiva/opendecider-nano) · [opendecider-small](https://huggingface.co/manjunathshiva/opendecider-small) · [opendecider-small-td](https://huggingface.co/manjunathshiva/opendecider-small-td) · [opendecider-medium-td](https://huggingface.co/manjunathshiva/opendecider-medium-td) · [opendecider-large-td](https://huggingface.co/manjunathshiva/opendecider-large-td) · [collection](https://huggingface.co/collections/manjunathshiva/opendecider-6ab8c838909092518d50a9ea)
 * **Full benchmark tables:** [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md)
 * **Related:** [Jev vs frontier LLMs benchmark](https://github.com/manjunathshiva/jev-frontier-bench)
 
 ## License
 
-Code and weights: Apache-2.0. Base models: Ettin-encoder-400m (MIT), Qwen3-4B-Instruct-2507 and Qwen3-30B-A3B-Instruct-2507 (Apache-2.0).
+Code and weights: Apache-2.0. Base models: Ettin-encoder-400m (MIT), Qwen3-4B-Instruct-2507, Qwen3-30B-A3B-Instruct-2507 and Qwen3-Next-80B-A3B-Instruct (Apache-2.0).
 Training-data attributions: [NOTICE](https://github.com/manjunathshiva/opendecider/blob/main/NOTICE).
 
 ```bibtex
