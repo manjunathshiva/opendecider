@@ -12,6 +12,8 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--nano-blue)](https://huggingface.co/manjunathshiva/opendecider-nano)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--small-blue)](https://huggingface.co/manjunathshiva/opendecider-small)
+[![nano downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fhuggingface.co%2Fapi%2Fmodels%2Fmanjunathshiva%2Fopendecider-nano&query=%24.downloads&label=nano%20downloads%2Fmonth&logo=huggingface&color=yellow)](https://huggingface.co/manjunathshiva/opendecider-nano)
+[![small downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fhuggingface.co%2Fapi%2Fmodels%2Fmanjunathshiva%2Fopendecider-small&query=%24.downloads&label=small%20downloads%2Fmonth&logo=huggingface&color=yellow)](https://huggingface.co/manjunathshiva/opendecider-small)
 [![Collection](https://img.shields.io/badge/%F0%9F%A4%97%20Collection-OpenDecider-orange)](https://huggingface.co/collections/manjunathshiva/opendecider-6ab8c838909092518d50a9ea)
 [![PyPI version](https://img.shields.io/pypi/v/opendecider.svg)](https://pypi.org/project/opendecider/)
 [![Live demo](https://img.shields.io/badge/%F0%9F%A4%97%20Space-live%20demo-orange)](https://huggingface.co/spaces/manjunathshiva/opendecider-demo)
@@ -60,16 +62,25 @@ print(result["answers"]["churn_risk"]["noul"])     # 0.922 = probability the ans
 A state can be plain text or any JSON-serialisable object: a ticket with subject, body and customer fields, a log
 record, an agent's tool-call trace. Questions can also be written with the helper classes `Choice`, `Score` and `Noul`.
 
-## Beats Laya and Jev on typed-decisions
+## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
-On the [typed-decisions](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) benchmark (2,000 decisions across four
-business workflows), scored with the [Jev-vs-Laya harness](https://github.com/pavanjava/jev_and_laya_benchmarking) published by Kameshwara Pavan kumar Mantha and the Antz AI team,
-**opendecider-nano scores 0.796**, against **0.766** for Laya's typed-decisions checkpoint (+0.030, 95% CI +0.014 to
-+0.044) and **0.754** for TypeSafe Jev. Like Laya's checkpoint, it was fine-tuned on the dataset's train split; the test
-split was never used for training or model selection. **opendecider-small, which never saw the dataset, scores 0.672**,
-against 0.362 for Laya's base checkpoint, and its workflow-tuned version, **opendecider-small-td, scores 0.792** (+0.026 vs Laya's checkpoint, 95% CI +0.008 to +0.043).
-The 30B **opendecider-medium-td scores 0.788** there (+0.022, 95% CI +0.005 to +0.040) and is also the most accurate
-self-hostable model on 200 general decisions (0.765, against 0.730 for Jev).
+**On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for
+TypeSafe Jev**, the best of any model you can run yourself; only Claude Fable 5.1 (0.840) and GPT-6 Astra (0.790) score
+higher, at 10–20× the latency. Its probabilities are also the closest of all tested systems to the spread of 100 human
+votes on ChaosNLI (JSD 0.035, against 0.148 for Jev).
+
+On the [typed-decisions](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) benchmark (2,000 decisions across
+four business workflows), scored with the [Jev-vs-Laya harness](https://github.com/pavanjava/jev_and_laya_benchmarking)
+published by Kameshwara Pavan kumar Mantha and the Antz AI team, the like-for-like comparison is with Laya's
+typed-decisions checkpoint, which was also fine-tuned on the dataset's train split (the test split was never used for
+training or model selection): **opendecider-nano 0.796** vs **0.766** (+0.030, 95% CI +0.014 to +0.044),
+**opendecider-small-td 0.792** (+0.026, +0.008 to +0.043) and **opendecider-medium-td 0.788** (+0.022, +0.005 to +0.040).
+
+Zero-shot models are a reference there, not a head-to-head: TypeSafe Jev scores 0.754 and meraGPT Decider 1 0.768 (the
+dataset's leaderboard), and **opendecider-small, which never saw the dataset, scores 0.672** (Laya's base checkpoint
+0.362). The dataset's gold labels come from a ~4B teacher whose own fresh samples agree with them 73.5% of the time, and
+its card notes that fine-tuned and zero-shot scores are not comparable, so read fine-tuned scores near 0.8 as fitting
+these workflows, not as general superiority.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/comparison_table.jpg" alt="OpenDecider vs TypeSafe Jev, Laya, CLM-8B and frontier LLMs: typed-decisions, general decisions, Laya's battery, calibration, speed and open weights, same questions and same scorer" width="100%" />
@@ -224,7 +235,7 @@ Jev answered at a **404 ms** median per question through its API in our runs.
 
 | Benchmark / metric | TypeSafe Jev 1.13 | opendecider-nano | opendecider-small | opendecider-medium-td |
 |---|---|---|---|---|
-| typed-decisions, 2,000 decisions | 0.754 | **0.796** | 0.672 (zero-shot) | 0.788 |
+| typed-decisions, 2,000 decisions (Jev zero-shot; nano and medium-td fine-tuned on its train split) | 0.754 | **0.796** | 0.672 (zero-shot) | 0.788 |
 | 200 general decisions (BANKING77, BoolQ, Yelp, ChaosNLI) | 0.730 | 0.680 | 0.735 | **0.765** |
 | Laya's application battery, 10 tasks | **0.774** | 0.656 | 0.702 | 0.725 |
 | Calibration error (ECE), general decisions | 0.164 | 0.092 | **0.087** | 0.110 |
@@ -242,9 +253,9 @@ Jev answered at a **404 ms** median per question through its API in our runs.
   routing with 78 options** on our bench (0.76, vs 0.68 nano, 0.70 small and 0.72 medium-td).
 * **typed-decisions without fine-tuning:** Jev 0.754 vs opendecider-small 0.672. The fine-tuned nano (0.796) passes it.
 
-Where OpenDecider leads Jev: typed-decisions after fine-tuning (0.796 vs 0.754), general decisions (medium-td 0.765 and
+Where OpenDecider leads Jev: general decisions (medium-td 0.765 and
 small 0.735 vs 0.730), calibration (ECE 0.087–0.110 vs 0.164), agreement with human label spread (JSD 0.035–0.045 vs
-0.148), toxicity moderation on Laya's battery (medium-td 0.802 vs 0.665), latency (17–214 ms vs 404 ms), open weights
+0.148), typed-decisions after fine-tuning on its train split (0.796 vs Jev zero-shot 0.754; not like for like), toxicity moderation on Laya's battery (medium-td 0.802 vs 0.665), latency (17–214 ms vs 404 ms), open weights
 and self-hosting.
 
 ### OpenDecider vs Laya
