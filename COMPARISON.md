@@ -80,6 +80,7 @@ Laya was trained on the first five datasets (its own `in_training` flags). OpenD
 
 - OpenDecider-nano was fine-tuned on the typed-decisions **train** split, as Laya's typed-decisions checkpoint was; the test split was never used for training or model selection. OpenDecider-small-td and -medium-td had the same short fine-tune, as did -large-td (100 train cases held out for model selection); OpenDecider-small never saw typed-decisions.
 - No benchmark dataset above (or its family) is in OpenDecider's training data; every training pool was checked for text overlap with all test sets (0 overlaps).
+- Jev and request shape (typed-decisions): asked one question per request, Jev scores 0.754; sent the whole case in one request (the dataset's native format, 2026-09-29, jev-1.13.0) it scores 0.737 (Brier 0.148, as on the dataset card). The gap is all in yes/no questions (0.843 vs 0.788). Tables here use the higher 0.754. Per-question outputs of both runs: benchmarks/results/typed/jev.jsonl and jev-whole-case.jsonl.
 - Frontier-LLM numbers come from the same 200 items, run 2026-09-19; Jev's typed-decisions score rose 2 points between Antz AI's run and ours (a newer Jev version).
 - CLM-8B was run with its own engine through the official vLLM pooling server. Its model card's example (billing 0.93878) did not reproduce even that way (0.9889).
 - Latencies: medians over the benchmark questions, one question per call. API latencies include the network.

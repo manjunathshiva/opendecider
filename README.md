@@ -76,7 +76,8 @@ typed-decisions checkpoint, which was also fine-tuned on the dataset's train spl
 training or model selection): **opendecider-nano 0.796** vs **0.766** (+0.030, 95% CI +0.014 to +0.044),
 **opendecider-small-td 0.792** (+0.026, +0.008 to +0.043) and **opendecider-medium-td 0.788** (+0.022, +0.005 to +0.040).
 
-Zero-shot models are a reference there, not a head-to-head: TypeSafe Jev scores 0.754 and meraGPT Decider 1 0.768 (the
+Zero-shot models are a reference there, not a head-to-head: TypeSafe Jev scores 0.754 asked one question per request
+(0.737 when sent the whole case in one request, the dataset's native format) and meraGPT Decider 1 0.768 (the
 dataset's leaderboard), and **opendecider-small, which never saw the dataset, scores 0.672** (Laya's base checkpoint
 0.362). The dataset's gold labels come from a ~4B teacher whose own fresh samples agree with them 73.5% of the time, and
 its card notes that fine-tuned and zero-shot scores are not comparable, so read fine-tuned scores near 0.8 as fitting
