@@ -369,7 +369,7 @@ pip install "opendecider[small]"
 ```
 
 * **Device:** CUDA, then MPS, then CPU, chosen automatically. Override with `load(..., device="cpu")`.
-* **Offline or air-gapped:** download a model folder once (`huggingface-cli download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
+* **Offline or air-gapped:** download a model folder once (`hf download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
 * **Google Colab:** run `pip uninstall -y torchao` before loading small or small-td. Colab preinstalls torchao 0.10,
   which recent peft refuses to load LoRA adapters next to ("Found an incompatible version of torchao"); OpenDecider
   does not use torchao.
@@ -548,7 +548,7 @@ threshold, so check it on your own data before thresholding on it.
 
 ## Honest limits
 
-* **Phishing detection is the weakest task:** 0.63–0.65 on Laya's battery for every OpenDecider model, against Jev's 0.90 and Laya's 0.98 (Laya trained on that dataset).
+* **Phishing detection is the weakest task:** 0.63–0.70 on Laya's battery for every OpenDecider model, against Jev's 0.90 and Laya's 0.98 (Laya trained on that dataset).
 * **TypeSafe Jev leads Laya's application battery** (0.774 vs 0.725 medium-td, 0.702 small, 0.656 nano).
 * **opendecider-medium-td needs about 61 GB and -large-td about 160 GB of GPU memory** across NVIDIA GPUs; neither has a Mac build.
 * **opendecider-large-td is not more accurate than medium-td** on unseen decisions (0.750 vs 0.765); it is better calibrated.

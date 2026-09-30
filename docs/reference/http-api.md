@@ -70,14 +70,15 @@ your proxy's rules.
 
 | status | when | default limit (setting) |
 |---|---|---|
-| 400 | the body is not a JSON object | |
+| 400 | the body is not valid JSON, or not a JSON object | |
 | 401 | missing or wrong bearer token | |
 | 413 | the body is too large | 1 MiB (`OPENDECIDER_MAX_BODY_BYTES`) |
-| 422 | invalid questions, too many questions, options or states, or the state is too long | 64 questions per state, 256 options per question, 200,000 characters of state, 256 states per batch |
+| 422 | invalid questions, too many questions, options or states, or the state is too long | 64 questions per state, 256 options per question (26 for a model served by LM Studio, Ollama or vLLM), 200,000 characters of state, 256 states per batch |
 | 503 | the server is at capacity (with `Retry-After: 1`) | 256 admitted requests (`--max-in-flight`) |
 | 504 | no answer in time | 30 s (`--request-timeout-s`) |
 | 500 | inference failed (no internals are returned) | |
 
-Every error body is `{"detail": "<a message naming the problem>"}`, and every response has an `x-request-id` header
-(the client's, if it sent one). A client should retry 503 after `Retry-After`; see
+Errors the server reports itself (all the rows above) have the body `{"detail": "<a message naming the problem>"}`,
+and those responses and every success carry an `x-request-id` header (the client's, if it sent one). An unexpected
+internal error returns a plain `500 Internal Server Error` without them; it never includes a traceback or a path. A client should retry 503 after `Retry-After`; see
 [examples/serve_client.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/serve_client.py).

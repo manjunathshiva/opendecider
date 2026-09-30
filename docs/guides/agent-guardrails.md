@@ -45,6 +45,8 @@ On those three traces nano answers `continue`, `abort` and `ask_user`.
 
 - **Rules on top of probabilities.** The yes/no questions (`looping`, `risky`) act as hard stops; the multi-way choice
   is only followed when the model is confident. When it is not, the guard asks the user instead of guessing.
+- **Cap retries in the orchestrator.** `guard()` keeps no state, so it can answer `retry` on every call; count the
+  retries per step outside it and stop or ask the user when the limit is reached.
 - **Describe the options.** "the agent is failing or unsafe: stop it" works better than a bare `abort`.
 - **Keep the trace compact.** nano reads up to 2,048 tokens and truncates the state first (the answer is then marked
   `truncated`); summarise long tool outputs before asking.

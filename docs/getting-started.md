@@ -96,7 +96,7 @@ results = model.system_one_batch(["The app crashes on login.", "How do I downloa
 
 - **Device:** CUDA, then MPS, then CPU, chosen automatically. Override with `load(..., device="cpu")`.
 - **Offline or air-gapped:** download a model folder once
-  (`huggingface-cli download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
+  (`hf download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
 - **CPU only:** nano runs fine on CPU for batch jobs. small needs about 17 GB of RAM in fp32 and is slow on CPU.
 - **Memory:** nano 2.0 GiB, small 8.9 GiB of GPU or unified memory (measured on a 16 GB Mac mini M4).
 - **Speed on your machine:** `python -m opendecider.bench_speed manjunathshiva/opendecider-nano`.

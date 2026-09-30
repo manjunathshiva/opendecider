@@ -2,7 +2,7 @@
 
 What OpenDecider is not good at yet, measured on the same benchmarks as everything else.
 
-- **Phishing detection is the weakest task:** 0.63–0.65 on Laya's battery for every OpenDecider model, against Jev's
+- **Phishing detection is the weakest task:** 0.63–0.70 on Laya's battery for every OpenDecider model, against Jev's
   0.90 and Laya's 0.98 (Laya trained on that dataset).
 - **TypeSafe Jev leads Laya's application battery** (0.774 vs 0.725 medium-td, 0.702 small, 0.656 nano).
 - **opendecider-small is zero-shot on typed-decisions** and trails Jev there (0.672 vs 0.754). Use small-td or nano for
