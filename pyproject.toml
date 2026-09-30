@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opendecider"
-version = "0.1.2"
+version = "0.2.0"
 description = "Small open decision models (System One): typed choice / score / yes-no questions with calibrated probabilities. Runs on CPU, NVIDIA and Apple Silicon."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,7 +12,7 @@ license = { text = "Apache-2.0" }
 authors = [{ name = "Manjunath Janardhan" }]
 keywords = ["decision model", "system one", "classification", "calibration", "typed decisions", "jev", "laya"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
