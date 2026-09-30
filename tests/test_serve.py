@@ -174,10 +174,11 @@ def test_failed_merged_batch_logs_the_failing_request(caplog):
     gate.set()
     probs, _ = ok.result(timeout=5)   # the healthy request still gets its answer
     assert len(probs) == 1 and fake.batches[0] == 2   # both were in one model call, which failed
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):   # inference failed: a 500 without internals
         bad.result(timeout=5)
     failures = [r.getMessage() for r in caplog.records if r.getMessage().startswith("inference failed")]
     assert failures == ["inference failed (request req-bad)"]
+    assert "a batch of 2 requests failed (RuntimeError)" in caplog.text   # the merged failure is visible too
 
 
 def test_request_id_is_echoed_only_when_it_looks_like_one():

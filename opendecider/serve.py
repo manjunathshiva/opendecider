@@ -36,7 +36,7 @@ from dataclasses import dataclass, field, fields
 
 log = logging.getLogger("opendecider.serve")
 # a client's x-request-id is echoed and logged only if it looks like one; otherwise the server makes its own
-REQUEST_ID = re.compile(r"[A-Za-z0-9._:-]{1,128}")
+_REQUEST_ID = re.compile(r"[A-Za-z0-9._:-]{1,128}")
 
 
 def _env(name: str, default, cast):
@@ -201,6 +201,10 @@ class Batcher:
                     log.exception("inference failed (request %s)", jobs[0].request_id or "-")
                     jobs[0].future.set_exception(_InferenceError())
                 return
+            # a merged batch failed: retry each request on its own. Log it, so a failure that only happens at this batch
+            # size (e.g. out of memory) is visible even when every retry succeeds.
+            log.warning("a batch of %d requests failed (%s); retrying each request on its own",
+                        len(jobs), type(e).__name__)
             for j in jobs:
                 self._run([j])
             return
@@ -379,7 +383,7 @@ def create_app(model=None, settings: Settings | None = None):
     @app.middleware("http")
     async def request_id(request: Request, call_next):
         rid = request.headers.get("x-request-id") or ""
-        if not REQUEST_ID.fullmatch(rid):
+        if not _REQUEST_ID.fullmatch(rid):
             rid = uuid.uuid4().hex
         request.state.request_id = rid
         try:

@@ -19,6 +19,11 @@ format.
   plain-text 500 without the id; the traceback is logged with the request id.
 - `opendecider serve`: an inference failure is now logged with the request id of the request that failed, as
   SECURITY.md describes; before, the log line did not say which request it was.
+- `opendecider serve`: when a batch that merges several requests fails and each request is retried on its own, the
+  failure is now logged as a warning; before, it was invisible when every retry succeeded.
+
+### Security
+
 - `opendecider serve`: a client's `x-request-id` is echoed and logged only if it is up to 128 letters, digits and
   `.` `_` `:` `-`; any other value is replaced by a generated id, so a client cannot write arbitrary text into the
   server log.
@@ -30,7 +35,8 @@ format.
   confident automation and agent guardrails, benchmarks, limitations, and Python, HTTP and command-line reference.
 - New [examples](examples/): support triage, an agent guardrail, automating only the confident decisions (measured
   on the typed-decisions test split), an HTTP client for `opendecider serve`, and LM Studio / Ollama / vLLM. CI runs
-  them against opendecider-nano on CPU (`remote_backends.py`, which needs a model server, is compile-checked).
+  them against opendecider-nano on CPU whenever the package or the examples change (`remote_backends.py`, which needs
+  a model server, is compile-checked).
 - The Colab notebook covers small-td, batching, confident automation and `opendecider serve`, and is saved with the
   outputs of a run on an NVIDIA T4. It removes Colab's preinstalled torchao 0.10 first: recent peft refuses to load
   LoRA adapters next to it, so opendecider-small failed to load on Colab.
