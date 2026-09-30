@@ -65,6 +65,7 @@ class Settings:
     max_state_chars: int = 200_000    # JSON-serialised state
     max_batch_states: int = 256       # states per /v1/systemone/batch request
     threads: int = 0                  # torch intra-op threads on CPU (0 = torch default)
+    small_batch: int = 1              # Qwen-based models: questions per forward pass (1 = exact published path)
     root_path: str = ""               # public URL prefix behind a reverse proxy
     log_level: str = "info"
 
@@ -237,6 +238,8 @@ def create_app(model=None, settings: Settings | None = None):
         t0 = time.perf_counter()
         model = load(s.model, device=s.device or None, revision=s.revision or None)
         log.info("loaded %s in %.1f s", s.model, time.perf_counter() - t0)
+    if s.small_batch > 1 and hasattr(model.impl, "batch"):
+        model.impl.batch = s.small_batch
     metrics = _Metrics()
     batcher = Batcher(model, s.max_batch, s.batch_wait_ms, metrics)
     expected = ("Bearer " + s.api_key).encode("utf-8", "surrogateescape") if s.api_key else b""
