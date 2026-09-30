@@ -10,6 +10,18 @@ format.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [Unreleased]
+
+### Documentation
+
+- New [examples](examples/): support triage, an agent guardrail, automating only the confident decisions (measured
+  on the typed-decisions test split), an HTTP client for `opendecider serve`, and LM Studio / Ollama / vLLM. CI runs
+  them against opendecider-nano on CPU (`remote_backends.py`, which needs a model server, is compile-checked).
+- The Colab notebook covers small-td, batching, confident automation and `opendecider serve`, and is saved with the
+  outputs of a run on an NVIDIA T4. It removes Colab's preinstalled torchao 0.10 first: recent peft refuses to load
+  LoRA adapters next to it, so opendecider-small failed to load on Colab.
+- Installation details (README): on Colab, `pip uninstall -y torchao` before loading small or small-td.
+
 ## [0.2.1] - 2026-09-30
 
 ### Added
