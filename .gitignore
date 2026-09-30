@@ -6,3 +6,4 @@ build/
 .DS_Store
 assets/table.jpg
 benchmarks/.cache/
+site/

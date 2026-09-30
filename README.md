@@ -9,6 +9,7 @@
 
 <div align="center">
 
+[![Documentation](https://img.shields.io/badge/docs-manjunathshiva.github.io%2Fopendecider-526CFE?logo=materialformkdocs&logoColor=white)](https://manjunathshiva.github.io/opendecider/)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--nano-blue)](https://huggingface.co/manjunathshiva/opendecider-nano)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--small-blue)](https://huggingface.co/manjunathshiva/opendecider-small)
@@ -41,6 +42,12 @@ device for you. Platform notes: [Installation details](https://github.com/manjun
 Try it without installing: [live demo](https://huggingface.co/spaces/manjunathshiva/opendecider-demo), or on a free NVIDIA GPU in [Colab](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb).
 Runnable [examples](https://github.com/manjunathshiva/opendecider/tree/main/examples) for support triage, agent
 guardrails, automating only the confident decisions, calling `opendecider serve`, and LM Studio / Ollama / vLLM.
+**Documentation:** [manjunathshiva.github.io/opendecider](https://manjunathshiva.github.io/opendecider/), with guides for
+[serving](https://manjunathshiva.github.io/opendecider/guides/serve/),
+[LM Studio, Ollama and vLLM](https://manjunathshiva.github.io/opendecider/guides/model-servers/) and
+[automating the confident decisions](https://manjunathshiva.github.io/opendecider/guides/confident-automation/), plus the
+[Python](https://manjunathshiva.github.io/opendecider/reference/python-api/) and
+[HTTP](https://manjunathshiva.github.io/opendecider/reference/http-api/) API reference.
 
 ## Quickstart
 
@@ -319,12 +326,32 @@ The checkpoints:
 | [`opendecider-small-GGUF`](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) | opendecider-small, GGUF Q8_0 / Q4_K_M | 4B | 768 (training inputs) | 4.3 / 2.5 GB | LM Studio and Ollama: typed-decisions 0.669 at Q8_0 (full precision 0.671) |
 | [`opendecider-small-td-GGUF`](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF) | opendecider-small-td, GGUF Q8_0 / Q4_K_M | 4B | 768 (training inputs) | 4.3 / 2.5 GB | LM Studio and Ollama, business workflows: 0.794 at Q8_0 (full precision 0.792) |
 
-### Coming next (in development)
+No Mac build of medium: a 4-bit MLX version (before the typed-decisions fine-tune) scored 0.725 on general decisions, no
+better than opendecider-small-mlx-8bit (0.730) at several times the memory, so it was not released.
 
-* **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed
-  exactly from rules, so it measures correctness rather than agreement with a teacher model.
-* **No Mac build of medium yet:** a 4-bit MLX version (before the typed-decisions fine-tune) scored 0.725 on general decisions, no better than
-  opendecider-small-mlx-8bit (0.730) at several times the memory, so it was not released.
+## Roadmap
+
+**In progress**
+
+* **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
+  typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
+  ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
+
+**Next**
+
+* **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
+  ships (0.3).
+* **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
+  from rules, so it measures correctness rather than agreement with a teacher model.
+* **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
+* **Agent frameworks:** LangChain / LangGraph and LlamaIndex tools.
+* **An MCP server,** so AI assistants and coding agents can call OpenDecider as a tool.
+* **A TypeScript client** for `opendecider serve`.
+* **ONNX export** of opendecider-nano for edge and in-browser use.
+* **Multilingual evaluation.**
+
+Want to help with one of these? See [where to help](https://github.com/manjunathshiva/opendecider/blob/main/CONTRIBUTING.md)
+and open an issue to agree on the approach first.
 
 ## Installation details
 
@@ -342,7 +369,7 @@ pip install "opendecider[small]"
 ```
 
 * **Device:** CUDA, then MPS, then CPU, chosen automatically. Override with `load(..., device="cpu")`.
-* **Offline or air-gapped:** download a model folder once (`huggingface-cli download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
+* **Offline or air-gapped:** download a model folder once (`hf download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
 * **Google Colab:** run `pip uninstall -y torchao` before loading small or small-td. Colab preinstalls torchao 0.10,
   which recent peft refuses to load LoRA adapters next to ("Found an incompatible version of torchao"); OpenDecider
   does not use torchao.
@@ -521,7 +548,7 @@ threshold, so check it on your own data before thresholding on it.
 
 ## Honest limits
 
-* **Phishing detection is the weakest task:** 0.63–0.65 on Laya's battery for every OpenDecider model, against Jev's 0.90 and Laya's 0.98 (Laya trained on that dataset).
+* **Phishing detection is the weakest task:** 0.63–0.70 on Laya's battery for every OpenDecider model, against Jev's 0.90 and Laya's 0.98 (Laya trained on that dataset).
 * **TypeSafe Jev leads Laya's application battery** (0.774 vs 0.725 medium-td, 0.702 small, 0.656 nano).
 * **opendecider-medium-td needs about 61 GB and -large-td about 160 GB of GPU memory** across NVIDIA GPUs; neither has a Mac build.
 * **opendecider-large-td is not more accurate than medium-td** on unseen decisions (0.750 vs 0.765); it is better calibrated.
