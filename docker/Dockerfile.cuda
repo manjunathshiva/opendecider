@@ -2,7 +2,7 @@
 #   docker build -f docker/Dockerfile.cuda -t opendecider:cuda .
 #   docker run --gpus all -p 8000:8000 -v opendecider-models:/models \
 #     -e OPENDECIDER_MODEL=manjunathshiva/opendecider-small opendecider:cuda
-FROM pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
+FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
 
 # the base image uses the system Python (PEP 668); inside a container installing into it is the intended use
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_BREAK_SYSTEM_PACKAGES=1 \
