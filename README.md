@@ -176,7 +176,9 @@ these workflows, not as general superiority.
 * **Load-tested:** 100 concurrent users with 0 errors; nano serves 50 requests/s on one NVIDIA L4 and 24 on 8 CPU cores
   with `--dtype bfloat16`.
 * **Nothing silent:** responses report token usage and mark truncated inputs.
-* **Production/Stable:** semantic versioning for the API and the wire format, plus CodeQL, Dependabot and a
+* **Production/Stable:** a [versioning policy](https://github.com/manjunathshiva/opendecider/blob/main/CHANGELOG.md) for the API and the wire
+  format (patch releases never break it; breaking changes only in a new minor release, after a deprecation), plus
+  CodeQL, Dependabot and a
   [security policy](https://github.com/manjunathshiva/opendecider/blob/main/SECURITY.md).
 
 ## What's new in 0.1.2

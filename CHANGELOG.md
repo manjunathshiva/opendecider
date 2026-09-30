@@ -1,8 +1,14 @@
 # Changelog
 
-All notable changes to the `opendecider` package. Versions follow [Semantic Versioning](https://semver.org): from
-0.2.0 on, the public API (`load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer
-fields and the HTTP wire format) changes only in a new minor version, with a deprecation first.
+All notable changes to the `opendecider` package. Versions follow [Semantic Versioning](https://semver.org). The public
+API is `load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer fields and the HTTP wire
+format.
+
+- **Before 1.0.0** (0.x): patch releases (0.2.x) never change the public API. A breaking change can only ship in a new
+  minor release (0.3.0, 0.4.0, …), and only after at least one release in which the old behaviour emits a deprecation
+  warning.
+- **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
+  again with a deprecation release first.
 
 ## [0.2.0] - 2026-09-30
 
@@ -32,7 +38,8 @@ fields and the HTTP wire format) changes only in a new minor version, with a dep
   vulnerability reporting, a protected `main` with required checks.
 
 ### Changed
-- Development status: Production/Stable. The public API and the HTTP wire format follow the versioning rules above.
+- Development status: Production/Stable: the public API and the HTTP wire format follow the versioning policy at the
+  top of this file (for 0.x, breaking changes only in a new minor release, after a deprecation release).
 - Qwen-based models refuse an input longer than their context with a clear `ValueError` (HTTP 422) instead of
   failing inside torch.
 
