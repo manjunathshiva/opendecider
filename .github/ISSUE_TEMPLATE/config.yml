@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://manjunathshiva.github.io/opendecider/
+    about: Getting started, choosing a model, serving, LM Studio / Ollama / vLLM, and the API reference.
+  - name: Security vulnerability
+    url: https://github.com/manjunathshiva/opendecider/security/advisories/new
+    about: Report security issues privately, not as a public issue.
