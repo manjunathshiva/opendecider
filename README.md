@@ -9,6 +9,7 @@
 
 <div align="center">
 
+[![Documentation](https://img.shields.io/badge/docs-manjunathshiva.github.io%2Fopendecider-526CFE?logo=materialformkdocs&logoColor=white)](https://manjunathshiva.github.io/opendecider/)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--nano-blue)](https://huggingface.co/manjunathshiva/opendecider-nano)
 [![Hugging Face Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-opendecider--small-blue)](https://huggingface.co/manjunathshiva/opendecider-small)
@@ -41,6 +42,12 @@ device for you. Platform notes: [Installation details](https://github.com/manjun
 Try it without installing: [live demo](https://huggingface.co/spaces/manjunathshiva/opendecider-demo), or on a free NVIDIA GPU in [Colab](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb).
 Runnable [examples](https://github.com/manjunathshiva/opendecider/tree/main/examples) for support triage, agent
 guardrails, automating only the confident decisions, calling `opendecider serve`, and LM Studio / Ollama / vLLM.
+**Documentation:** [manjunathshiva.github.io/opendecider](https://manjunathshiva.github.io/opendecider/), with guides for
+[serving](https://manjunathshiva.github.io/opendecider/guides/serve/),
+[LM Studio, Ollama and vLLM](https://manjunathshiva.github.io/opendecider/guides/model-servers/) and
+[automating the confident decisions](https://manjunathshiva.github.io/opendecider/guides/confident-automation/), plus the
+[Python](https://manjunathshiva.github.io/opendecider/reference/python-api/) and
+[HTTP](https://manjunathshiva.github.io/opendecider/reference/http-api/) API reference.
 
 ## Quickstart
 

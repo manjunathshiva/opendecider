@@ -1,0 +1,74 @@
+# Documentation site, built with Zensical (https://zensical.org) and published to GitHub Pages by
+# .github/workflows/docs.yml. Preview locally:
+#   pip install -r requirements-docs.txt && zensical serve
+
+[project]
+site_name = "OpenDecider"
+site_description = "Open, calibrated System 1 decision models: typed choice, score and yes/no answers with a probability for every option"
+site_url = "https://manjunathshiva.github.io/opendecider/"
+site_author = "Manjunath Janardhan"
+repo_url = "https://github.com/manjunathshiva/opendecider"
+repo_name = "manjunathshiva/opendecider"
+edit_uri = "edit/main/docs/"
+copyright = "Apache 2.0 · Manjunath Janardhan"
+nav = [
+  { "Home" = "index.md" },
+  { "Get started" = "getting-started.md" },
+  { "Choose a model" = "models.md" },
+  { "Guides" = [
+    { "Serve it (Jev-compatible API)" = "guides/serve.md" },
+    { "LM Studio, Ollama and vLLM" = "guides/model-servers.md" },
+    { "Automate the confident decisions" = "guides/confident-automation.md" },
+    { "Agent guardrails" = "guides/agent-guardrails.md" },
+  ] },
+  { "Examples and notebook" = "examples.md" },
+  { "Benchmarks" = "benchmarks.md" },
+  { "Limitations" = "limitations.md" },
+  { "Reference" = [
+    { "Python API" = "reference/python-api.md" },
+    { "HTTP API" = "reference/http-api.md" },
+    { "Command line" = "reference/cli.md" },
+  ] },
+  { "Changelog" = "https://github.com/manjunathshiva/opendecider/blob/main/CHANGELOG.md" },
+]
+
+[project.theme]
+language = "en"
+# The repository's own logo files, so there is one copy to maintain.
+logo = "https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/logo-mark.svg"
+favicon = "https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/logo-mark.svg"
+features = [
+  "content.code.copy",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.instant",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+tables = {}
+toc.permalink = true
+pymdownx.details = {}
+pymdownx.highlight.anchor_linenums = true
+pymdownx.inlinehilite = {}
+pymdownx.superfences = {}
+pymdownx.tabbed.alternate_style = true
