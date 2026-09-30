@@ -239,6 +239,10 @@ def create_app(model=None, settings: Settings | None = None):
         t0 = time.perf_counter()
         model = load(s.model, device=s.device or None, revision=s.revision or None, dtype=s.dtype or None)
         log.info("loaded %s in %.1f s", s.model, time.perf_counter() - t0)
+    if hasattr(model.impl, "ping") and getattr(model.impl, "timeout", 0) > s.request_timeout_s:
+        # a model served elsewhere: give up on the upstream when the client gets its 504, so a hung server does not
+        # hold the inference thread (and every request behind it) for longer
+        model.impl.timeout = s.request_timeout_s
     if s.small_batch > 1 and hasattr(model.impl, "batch"):
         model.impl.batch = s.small_batch
     metrics = _Metrics()

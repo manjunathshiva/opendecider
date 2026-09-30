@@ -153,3 +153,74 @@ def test_ping():
     finally:
         srv.shutdown()
     assert load("openai:x", base_url="http://127.0.0.1:9/v1").impl.ping() is False
+
+
+def test_url_scheme_and_credential_transport(monkeypatch):
+    from opendecider.remote import RemoteModel
+    with pytest.raises(ValueError, match="http or https"):
+        RemoteModel("m", "file:///etc/passwd")
+    with pytest.raises(ValueError, match="plain HTTP"):                       # a key must not cross the network in clear
+        RemoteModel("m", "http://gpu-box.lan:8000/v1", api_key="secret")
+    RemoteModel("m", "https://gpu-box.lan:8000/v1", api_key="secret")        # HTTPS: fine
+    RemoteModel("m", "http://127.0.0.1:1234/v1", api_key="secret")           # loopback: fine
+    RemoteModel("m", "http://localhost:1234/v1", api_key="secret")
+    RemoteModel("m", "http://gpu-box.lan:8000/v1")                           # no key: plain HTTP on a LAN is allowed
+    monkeypatch.setenv("OPENDECIDER_REMOTE_ALLOW_HTTP", "1")
+    RemoteModel("m", "http://gpu-box.lan:8000/v1", api_key="secret")         # explicit opt-out
+
+
+def test_authorization_is_not_forwarded_on_redirects(monkeypatch):
+    from opendecider import remote
+    sent = []
+
+    def fake_urlopen(req, timeout):
+        sent.append(req)
+        raise remote.urllib.error.URLError("stop")
+    monkeypatch.setattr(remote.urllib.request, "urlopen", fake_urlopen)
+    m = remote.RemoteModel("m", "https://api.example/v1", api_key="secret")
+    with pytest.raises(RuntimeError):
+        m._complete("p")
+    req = sent[0]
+    assert req.unredirected_hdrs.get("Authorization") == "Bearer secret"   # sent to this origin only
+    assert "Authorization" not in req.headers                              # never copied onto a redirect
+    m2 = remote.RemoteModel("m", "http://127.0.0.1:1234/v1")               # no key configured: no header at all
+    sent.clear()
+    with pytest.raises(RuntimeError):
+        m2._complete("p")
+    assert not sent[0].has_header("Authorization")
+
+
+def test_timeouts_and_non_json_replies_are_clear_errors(monkeypatch):
+    from opendecider import remote
+
+    class Resp:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return b"<html>502 Bad Gateway</html>"
+    monkeypatch.setattr(remote.urllib.request, "urlopen", lambda req, timeout: Resp())
+    m = remote.RemoteModel("m", "http://127.0.0.1:1234/v1")
+    with pytest.raises(RuntimeError, match="not JSON"):
+        m._complete("p")
+
+    def slow(req, timeout):
+        raise TimeoutError("timed out")
+    monkeypatch.setattr(remote.urllib.request, "urlopen", slow)
+    with pytest.raises(RuntimeError, match="no answer within"):
+        m._complete("p")
+
+
+def test_server_caps_the_upstream_timeout_to_its_own():
+    pytest.importorskip("fastapi")
+    from opendecider import OpenDecider
+    from opendecider.remote import RemoteModel
+    from opendecider.serve import Settings, create_app
+    impl = RemoteModel("m", "http://127.0.0.1:1234/v1")
+    create_app(model=OpenDecider(impl, {"name": "m", "kind": "remote"}), settings=Settings(request_timeout_s=20))
+    assert impl.timeout == 20   # a hung upstream frees the inference thread when the client gets its 504

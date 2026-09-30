@@ -23,6 +23,9 @@ format.
   `opendecider serve --model lmstudio:...` puts the Jev-compatible `/v1/systemone` in front of it. Up to 26 options per
   question; the questions of a request run in parallel (4 at a time); transient upstream errors (429/5xx, reset
   connections) are retried twice; `opendecider serve`'s `/ready` reports 503 while the upstream server is unreachable.
+  Credentials (`OPENDECIDER_REMOTE_API_KEY`) go only to the configured origin, never onto a redirect, and over plain
+  HTTP only to this machine (use https for another host, or set `OPENDECIDER_REMOTE_ALLOW_HTTP=1`). Under
+  `opendecider serve` the upstream timeout is capped at the server's request timeout.
 
 ## [0.2.0] - 2026-09-30
 
