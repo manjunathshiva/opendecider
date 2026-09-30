@@ -1,0 +1,7 @@
+services:
+  opendecider:
+    build: { context: ., dockerfile: docker/Dockerfile.cuda }
+    deploy:
+      resources:
+        reservations:
+          devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]

@@ -85,5 +85,6 @@ def answer(q: dict, probs: dict) -> dict:
     top = max(probs, key=probs.get)
     if q["type"] == "score":
         return {"type": "score", "score": int(top), "expected": sum(int(k) * v for k, v in probs.items()),
+                "legend": {str(i): lvl for i, lvl in enumerate(q["criteria"])},
                 "probabilities": probs, "confidence": probs[top]}
     return {"type": "choice", "choice": top, "probabilities": probs, "confidence": probs[top]}

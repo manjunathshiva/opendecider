@@ -33,6 +33,9 @@ class NanoModel(nn.Module):
     def build(self, state, instructions: str, options: dict) -> list[int]:
         """Token ids with one [MASK] before each option; the state is truncated first, so every
         option always survives."""
+        return self._build(state, instructions, options)[0]
+
+    def _build(self, state, instructions: str, options: dict) -> tuple[list[int], bool]:
         t = self.tok
         st = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
         q = t.encode(f"question: {instructions}", add_special_tokens=False)
@@ -40,13 +43,18 @@ class NanoModel(nn.Module):
         for k, v in options.items():
             opts += [self.mask_id] + t.encode(f" {k}: {v}" if v and v != k else f" {k}", add_special_tokens=False)
         s = t.encode(f"input: {st}", add_special_tokens=False)
-        s = s[:max(self.max_len - len(q) - len(opts) - 4, 0)]
-        return [t.cls_token_id] + q + [t.sep_token_id] + opts + [t.sep_token_id] + s + [t.sep_token_id]
+        room = max(self.max_len - len(q) - len(opts) - 4, 0)
+        ids = [t.cls_token_id] + q + [t.sep_token_id] + opts + [t.sep_token_id] + s[:room] + [t.sep_token_id]
+        return ids, len(s) > room
 
     @torch.no_grad()
-    def decide_many(self, items: list[tuple]) -> list[dict]:
-        """[(state, instructions, options)] -> [{option: probability}], in one padded batch."""
-        ids = [self.build(*it) for it in items]
+    def decide_many(self, items: list[tuple], info: list | None = None) -> list[dict]:
+        """[(state, instructions, options)] -> [{option: probability}], in one padded batch.
+        If `info` is a list, one {"input_tokens", "truncated"} dict per item is appended to it."""
+        built = [self._build(*it) for it in items]
+        ids = [b for b, _ in built]
+        if info is not None:
+            info.extend({"input_tokens": len(b), "truncated": tr} for b, tr in built)
         L, pad = max(len(x) for x in ids), self.tok.pad_token_id
         x = torch.tensor([r + [pad] * (L - len(r)) for r in ids], device=self.device)
         att = torch.tensor([[1] * len(r) + [0] * (L - len(r)) for r in ids], device=self.device)

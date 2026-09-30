@@ -1,0 +1,14 @@
+# docker compose up          -> OpenDecider-nano on CPU at http://localhost:8000/v1/systemone
+# GPU: docker compose -f compose.yaml -f compose.cuda.yaml up
+services:
+  opendecider:
+    build: { context: ., dockerfile: docker/Dockerfile }
+    ports: ["8000:8000"]
+    environment:
+      OPENDECIDER_MODEL: ${OPENDECIDER_MODEL:-manjunathshiva/opendecider-nano}
+      OPENDECIDER_API_KEY: ${OPENDECIDER_API_KEY:-}      # set to require "Authorization: Bearer <key>"
+      OPENDECIDER_THREADS: ${OPENDECIDER_THREADS:-0}      # CPU: at most the number of physical cores
+    volumes: ["models:/models"]                          # downloaded weights survive restarts
+    restart: unless-stopped
+volumes:
+  models:

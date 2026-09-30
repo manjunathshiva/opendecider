@@ -1,0 +1,61 @@
+name: Docker
+
+# PRs and main: build the CPU image and smoke-test it for real (start the container, wait for /ready,
+# answer a Jev-format request with opendecider-nano). Tags (vX.Y.Z): also publish both images to GHCR:
+#   ghcr.io/<owner>/opendecider:<version> and :latest          (CPU)
+#   ghcr.io/<owner>/opendecider:<version>-cuda and :latest-cuda (NVIDIA)
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  cpu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the CPU image
+        run: docker build -f docker/Dockerfile -t opendecider:ci .
+      - name: Smoke test (nano, Jev wire format, auth)
+        run: |
+          docker run -d --name od -p 8000:8000 -e OPENDECIDER_API_KEY=ci-key opendecider:ci
+          for i in $(seq 1 90); do curl -sf localhost:8000/ready && break; sleep 4; done
+          curl -sf localhost:8000/health
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/v1/systemone -H 'content-type: application/json' -d '{"state":"x","questions":{"q":{"type":"noul","instructions":"?"}}}')
+          test "$code" = 401
+          curl -sf -X POST localhost:8000/v1/systemone -H 'content-type: application/json' -H 'Authorization: Bearer ci-key' \
+            -d '{"model":"jev-latest","state":"Hi, we were billed twice for March. Please refund the duplicate today.","questions":{"department":{"type":"choice","instructions":"Which department should handle this?","criteria":{"billing":"invoices, payments, refunds","technical":"bugs, outages"}},"urgency":{"type":"score","instructions":"How urgent?","criteria":["not urgent","soon","blocking"]},"refund":{"type":"noul","instructions":"Does the customer ask for a refund?"}}}' \
+            | tee out.json
+          python3 -c "import json; b=json.load(open('out.json')); a=b['answers']; assert a['department']['choice']=='billing', a; assert a['refund']['noul']>0.5, a; assert 'legend' in a['urgency'] and b['usage']['input_tokens']>0; print('smoke test OK')"
+          docker logs od | tail -20
+      - name: Publish to GHCR (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          V="${GITHUB_REF#refs/tags/v}"; IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/opendecider"
+          docker tag opendecider:ci "$IMG:$V" && docker tag opendecider:ci "$IMG:latest"
+          docker push "$IMG:$V" && docker push "$IMG:latest"
+
+  cuda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Free disk space for the CUDA base image
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc && df -h /
+      - name: Build the CUDA image (no GPU on CI runners; the image is exercised on AWS before a release)
+        run: docker build -f docker/Dockerfile.cuda -t opendecider:ci-cuda .
+      - name: Check the entry point imports
+        run: docker run --rm --entrypoint python opendecider:ci-cuda -c "import opendecider.serve, opendecider.cli, fastapi, uvicorn, peft; print('ok')"
+      - name: Publish to GHCR (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          V="${GITHUB_REF#refs/tags/v}"; IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/opendecider"
+          docker tag opendecider:ci-cuda "$IMG:$V-cuda" && docker tag opendecider:ci-cuda "$IMG:latest-cuda"
+          docker push "$IMG:$V-cuda" && docker push "$IMG:latest-cuda"

@@ -38,16 +38,69 @@ class OpenDecider:
 
     def __init__(self, impl, meta: dict):
         self.impl, self.meta = impl, meta
+        import inspect
+        try:
+            self._takes_info = "info" in inspect.signature(impl.decide_many).parameters
+        except (TypeError, ValueError):
+            self._takes_info = False
+
+    @property
+    def name(self) -> str:
+        return self.meta.get("name") or "opendecider"
+
+    @staticmethod
+    def prepare(questions: dict) -> dict:
+        """Validate typed questions and normalise them to dicts (raises ValueError with a readable message)."""
+        if not isinstance(questions, dict) or not questions:
+            raise ValueError("questions must be a non-empty object of named questions")
+        out = {}
+        for k, q in questions.items():
+            try:
+                out[str(k)] = as_dict(q)
+            except ValueError as e:
+                raise ValueError(f"question {k!r}: {e}") from None
+        return out
+
+    def decide(self, items: list[tuple]) -> tuple[list[dict], list[dict]]:
+        """[(state, instructions, options)] -> (option probabilities, per-item {input_tokens, truncated})."""
+        if self._takes_info:
+            info: list = []
+            probs = self.impl.decide_many(items, info=info)
+        else:
+            probs, info = self.impl.decide_many(items), [{} for _ in items]
+        return probs, info
+
+    @staticmethod
+    def items(state, qs: dict) -> list[tuple]:
+        return [(state, q["instructions"], options(q)) for q in qs.values()]
+
+    def assemble(self, qs: dict, probs: list[dict], info: list[dict]) -> dict:
+        """Typed answers in the System One response shape: {model, answers, usage[, warnings]}."""
+        answers, warnings = {}, []
+        for (k, q), p, inf in zip(qs.items(), probs, info):
+            answers[k] = answer(q, p)
+            if inf.get("truncated"):
+                answers[k]["truncated"] = True
+                warnings.append(f"question {k!r}: the state was truncated to fit the model's input length")
+        out = {"model": self.name, "answers": answers,
+               "usage": {"input_tokens": sum(i.get("input_tokens", 0) for i in info), "output_tokens": 0}}
+        if warnings:
+            out["warnings"] = warnings
+        return out
 
     def system_one(self, state, questions: dict) -> dict:
-        if not questions:
-            raise ValueError("questions must not be empty")
-        qs = {k: as_dict(q) for k, q in questions.items()}
+        qs = self.prepare(questions)
         t0 = time.perf_counter()
-        probs = self.impl.decide_many([(state, q["instructions"], options(q)) for q in qs.values()])
-        return {"model": self.meta.get("name"),
-                "answers": {k: answer(q, p) for (k, q), p in zip(qs.items(), probs)},
-                "latency_ms": round((time.perf_counter() - t0) * 1000, 1)}
+        out = self.assemble(qs, *self.decide(self.items(state, qs)))
+        out["latency_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+        return out
+
+    def system_one_batch(self, states: list, questions: dict) -> list[dict]:
+        """The same questions about many states, in one call (one padded batch for nano)."""
+        qs = self.prepare(questions)
+        n = len(qs)
+        probs, info = self.decide([it for st in states for it in self.items(st, qs)])
+        return [self.assemble(qs, probs[i * n:(i + 1) * n], info[i * n:(i + 1) * n]) for i in range(len(states))]
 
 
 def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | None = None,

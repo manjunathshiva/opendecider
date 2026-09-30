@@ -47,11 +47,16 @@ class SmallModel:
             m = AutoModelForCausalLM.from_pretrained(base, dtype=dtype).to(device)
         self.m = PeftModel.from_pretrained(m, adapter_path).merge_and_unload().eval()
         self.letters = [self.tok.encode(c, add_special_tokens=False)[0] for c in LETTERS]
+        self.max_input_tokens = int(getattr(self.m.config, "max_position_embeddings", 32768))
 
     def ids(self, prompt: str) -> list[int]:
         msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}]
         s = self.tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False)
-        return self.tok.encode(s, add_special_tokens=False)
+        ids = self.tok.encode(s, add_special_tokens=False)
+        if len(ids) > getattr(self, "max_input_tokens", 1 << 30):
+            raise ValueError(f"input is {len(ids)} tokens, longer than this model's {self.max_input_tokens}-token context")
+        self._last_tokens = len(ids)
+        return ids
 
     @torch.no_grad()
     def decide(self, state, instructions: str, options: dict) -> dict:
@@ -80,5 +85,10 @@ class SmallModel:
         w = [math.exp(s - top) for s in scores]
         return {k: v / sum(w) for k, v in zip(names, w)}
 
-    def decide_many(self, items: list[tuple]) -> list[dict]:
-        return [self.decide(*it) for it in items]
+    def decide_many(self, items: list[tuple], info: list | None = None) -> list[dict]:
+        out = []
+        for it in items:
+            out.append(self.decide(*it))
+            if info is not None:
+                info.append({"input_tokens": self._last_tokens, "truncated": False})
+        return out

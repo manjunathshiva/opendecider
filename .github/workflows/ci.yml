@@ -16,6 +16,6 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      # the question/answer logic is torch-free; model tests run in the release checks
-      - run: python -m pip install --no-deps -e . && python -m pip install pytest
+      # question/answer logic and the HTTP server (with a fake model) are torch-free; real-model tests run in docker.yml and the release checks
+      - run: python -m pip install --no-deps -e . && python -m pip install pytest fastapi httpx
       - run: python -m pytest -q tests

@@ -29,6 +29,7 @@
 pip install opendecider              # opendecider-nano
 pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td, -medium-td and -large-td
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
+pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
 ```
 
 Python 3.10 or newer. Works on Linux, Windows and macOS, on CPU, NVIDIA (CUDA) and Apple Silicon (MPS), and picks the
@@ -61,6 +62,56 @@ print(result["answers"]["churn_risk"]["noul"])     # 0.922 = probability the ans
 
 A state can be plain text or any JSON-serialisable object: a ticket with subject, body and customer fields, a log
 record, an agent's tool-call trace. Questions can also be written with the helper classes `Choice`, `Score` and `Noul`.
+
+## Serve it: a drop-in for Jev's API
+
+```bash
+pip install "opendecider[serve]"
+opendecider serve --model manjunathshiva/opendecider-nano       # http://0.0.0.0:8000
+# or: docker compose up        (CPU)   |   docker compose -f compose.yaml -f compose.cuda.yaml up   (NVIDIA)
+```
+
+The server speaks TypeSafe Jev's `/v1/systemone` protocol, so existing Jev clients work by changing the base URL.
+Tested with TypeSafe's own SDK (`@typesafe-ai/sdk` 0.6.0) and no code change:
+
+```bash
+TYPESAFE_BASE_URL=http://localhost:8000 TYPESAFE_API_KEY=<your OPENDECIDER_API_KEY> node app.js
+```
+
+```bash
+curl -s localhost:8000/v1/systemone -H 'content-type: application/json' -d '{
+  "state": "Hi, we were billed twice for March. Please refund the duplicate today.",
+  "questions": {"department": {"type": "choice", "instructions": "Which department?",
+                               "criteria": {"billing": "payments, refunds", "technical": "bugs, outages"}}}}'
+```
+
+| endpoint | what it does |
+|---|---|
+| `POST /v1/systemone` | one state, any number of typed questions (Jev's request and response shape) |
+| `POST /v1/systemone/batch` | `{"states": [...], "questions": {...}}`: the same questions about many states in one call |
+| `GET /v1/models` | the served model (as Jev's models list) |
+| `GET /health`, `GET /ready` | liveness and readiness probes (model, device, version, queue depth) |
+| `GET /metrics` | Prometheus text: requests by status, latency and batch-size histograms, in-flight, queue depth |
+
+**Production behaviour.**
+
+- **Batching across requests:** one inference thread merges the questions of all waiting requests into shared
+  batches, so nano's batched speed holds under concurrent load.
+- **Bounded load:** above `--max-in-flight` requests the server answers 503 with `Retry-After` at once instead of
+  queueing without limit, and a request not answered within `--request-timeout-s` gets 504.
+- **Validation:** request size, questions per state, options per question and state length are all bounded, and
+  invalid requests get a 4xx with a message naming the problem.
+- **Security and observability:**
+  - bearer-token auth (`OPENDECIDER_API_KEY`, constant-time comparison);
+  - an `x-request-id` header on every response;
+  - server errors never leak internals to the client.
+- **Configuration:** every flag is also an environment variable (`OPENDECIDER_MODEL`, `OPENDECIDER_DEVICE`,
+  `OPENDECIDER_MAX_BATCH`, `OPENDECIDER_THREADS`, …); see `opendecider serve --help`.
+
+On the wire a score answer follows Jev: `score` is the expected score (it can fall between levels) and `level` is the
+most likely level. In the Python library `score` is the most likely level and `expected` the expected score. Answers
+also carry `probabilities` and `confidence`, and `truncated` plus a top-level `warnings` list when a state was cut to
+fit the model's input length.
 
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
@@ -344,6 +395,9 @@ threshold, so check it on your own data before thresholding on it.
 * **opendecider-small is zero-shot on typed-decisions** and trails Jev there (0.672 vs 0.754).
 * **English only so far.** The training data includes some Spanish, German, French, Portuguese, Italian and Dutch, but no multilingual evaluation has been run.
 * **opendecider-small, -medium-td and -large-td answer questions one at a time** (small: ~137 ms per question on a Mac, ~40 ms on an L40S). Use nano when you need many decisions per second.
+* **More than 26 options:** the Qwen-based models switch from reading lettered options to scoring each option name,
+  which is weaker (BANKING77's 78 options still score 0.70 for small, but on long rule-based states it can fall close
+  to chance). A shortlist-then-letters fix is planned for 0.3, measured on every benchmark before it ships.
 * **Descriptions help.** Very terse or cryptic option labels are harder for every model, so give options a short description when you can.
 
 ## Links
