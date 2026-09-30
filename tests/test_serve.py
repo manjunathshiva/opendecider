@@ -125,7 +125,6 @@ def test_model_failure_is_isolated_and_logged(caplog):
     assert r.status_code == 422 and "context" in r.json()["detail"]   # the client's input problem, named
 
 
-
 def test_unexpected_error_keeps_json_body_and_request_id(caplog):
     app, _ = make()
     c = client(app)

@@ -389,7 +389,8 @@ def create_app(model=None, settings: Settings | None = None):
         try:
             response = await call_next(request)
         except Exception:   # noqa: BLE001 -- an unexpected error still gets the JSON body and the request id
-            log.exception("unhandled error on %s %s (request %s)", request.method, request.url.path, rid)
+            # %r: the path is decoded from the URL, so it could hold control characters; the id is already validated
+            log.exception("unhandled error on %s %r (request %s)", request.method, request.url.path, rid)
             response = JSONResponse({"detail": "internal server error"}, status_code=500)
         response.headers["x-request-id"] = rid
         return response

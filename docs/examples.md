@@ -4,8 +4,8 @@
 
 Short scripts, one per use case, in
 [examples/](https://github.com/manjunathshiva/opendecider/tree/main/examples). Each runs on a laptop CPU with
-opendecider-nano (a 0.8 GB download on first use), and CI runs them against the released model on every change
-(`remote_backends.py`, which needs a model server, is compile-checked).
+opendecider-nano (a 0.8 GB download on first use), and CI runs them against the released model whenever the package
+or the examples change (`remote_backends.py`, which needs a model server, is compile-checked).
 
 | script | what it shows |
 |---|---|
