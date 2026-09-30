@@ -6,13 +6,14 @@
 
 Standard library only, so the same code runs in any service. The server speaks TypeSafe Jev's /v1/systemone protocol:
 on the wire a score answer's `score` is the expected score and `level` the most likely level. Set OPENDECIDER_API_KEY
-if the server was started with one.
+if the server was started with one; it is sent only over https, or over http to this machine.
 """
 import argparse
 import json
 import os
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ap = argparse.ArgumentParser()
@@ -20,16 +21,21 @@ ap.add_argument("--url", default="http://localhost:8000")
 ap.add_argument("--wait", type=float, default=120, help="seconds to wait for the server to be ready")
 a = ap.parse_args()
 KEY = os.environ.get("OPENDECIDER_API_KEY")
+url = urllib.parse.urlsplit(a.url)
+if url.scheme not in ("http", "https") or not url.hostname:
+    raise SystemExit(f"--url must be an http or https URL, got {a.url!r}")
+if KEY and url.scheme == "http" and url.hostname not in ("localhost", "127.0.0.1", "::1"):
+    raise SystemExit("refusing to send OPENDECIDER_API_KEY over plain HTTP to another host; use https")
 
 
 def call(path: str, body: dict | None = None, tries: int = 5) -> dict:
     headers = {"content-type": "application/json"}
-    if KEY:
-        headers["authorization"] = f"Bearer {KEY}"
     data = json.dumps(body).encode() if body is not None else None
     for attempt in range(tries):
         try:
             req = urllib.request.Request(a.url.rstrip("/") + path, data=data, headers=headers)
+            if KEY:   # unredirected: urllib never copies it onto a redirect to another host
+                req.add_unredirected_header("Authorization", f"Bearer {KEY}")
             with urllib.request.urlopen(req, timeout=60) as r:
                 return json.loads(r.read())
         except urllib.error.HTTPError as e:
@@ -60,7 +66,8 @@ QUESTIONS = {
 }
 
 # one state
-r = call("/v1/systemone", {"state": "We were billed twice for March. Refund it today or we cancel.", "questions": QUESTIONS})
+r = call("/v1/systemone", {"state": "We were billed twice for March. Refund it today or we cancel.",
+                           "questions": QUESTIONS})
 ans = r["answers"]
 print(f"model {r['model']}, {r['usage']['input_tokens']} input tokens")
 print(f"  department {ans['department']['choice']} (p = {ans['department']['confidence']:.2f})")
