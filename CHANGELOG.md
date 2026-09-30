@@ -21,7 +21,8 @@ format.
   - for small-td: 0.794 against 0.792.
 
   `opendecider serve --model lmstudio:...` puts the Jev-compatible `/v1/systemone` in front of it. Up to 26 options per
-  question; the server's model runs the questions of a request in parallel (4 at a time).
+  question; the questions of a request run in parallel (4 at a time); transient upstream errors (429/5xx, reset
+  connections) are retried twice; `opendecider serve`'s `/ready` reports 503 while the upstream server is unreachable.
 
 ## [0.2.0] - 2026-09-30
 

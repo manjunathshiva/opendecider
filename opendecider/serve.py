@@ -384,8 +384,12 @@ def create_app(model=None, settings: Settings | None = None):
 
     @app.get("/ready")
     def ready():
-        return {"ready": batcher.thread.is_alive()} if batcher.thread.is_alive() else \
-            JSONResponse({"ready": False}, status_code=503)
+        alive = batcher.thread.is_alive()
+        ping = getattr(model.impl, "ping", None)   # a model served elsewhere (LM Studio / Ollama) must be reachable
+        upstream = ping() if ping else None
+        ok = alive and upstream is not False
+        body = {"ready": ok} if upstream is None else {"ready": ok, "upstream": upstream}
+        return body if ok else JSONResponse(body, status_code=503)
 
     @app.get("/metrics")
     def prometheus():

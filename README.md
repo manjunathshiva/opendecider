@@ -66,7 +66,7 @@ record, an agent's tool-call trace. Questions can also be written with the helpe
 
 ## Run it in LM Studio or Ollama
 
-The 4B models also come as GGUF builds for LM Studio, Ollama and other llama.cpp servers:
+The 4B models also come as GGUF builds for LM Studio, Ollama and other llama.cpp-based apps (tested: LM Studio and Ollama):
 [opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) and
 [opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF). The app runs the
 model; the opendecider package builds the prompt the model was trained on and reads the option probabilities from the
@@ -82,7 +82,7 @@ from opendecider import load
 
 model = load("lmstudio:opendecider-small")    # LM Studio's server on :1234 (`lms load opendecider-small@q8_0 --identifier opendecider-small`)
 model = load("ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0")      # after `ollama pull hf.co/...`
-model = load("openai:opendecider-small", base_url="http://gpu-box:8000/v1")  # llama.cpp server, vLLM, ...
+model = load("openai:opendecider-small", base_url="http://gpu-box:8000/v1")  # other OpenAI-compatible servers with top_logprobs
 ```
 
 ```bash
