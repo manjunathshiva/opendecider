@@ -2,8 +2,8 @@
 
 Short scripts, one per use case. Each runs on a laptop CPU with
 [opendecider-nano](https://huggingface.co/manjunathshiva/opendecider-nano) (a 0.8 GB download on first use) unless
-noted. CI runs each of them against the released model on every change, except `remote_backends.py`, which needs
-LM Studio, Ollama or vLLM running and is only compile-checked there.
+noted. CI runs each of them against the released model whenever the package or the examples change, except
+`remote_backends.py`, which needs LM Studio, Ollama or vLLM running and is only compile-checked there.
 
 | script | what it shows | run it |
 |---|---|---|

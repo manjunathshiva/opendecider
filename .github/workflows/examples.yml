@@ -1,0 +1,37 @@
+name: Examples
+
+# Every script in examples/ against the real opendecider-nano on CPU, so the examples can't silently go stale.
+# Runs only when something the examples depend on changes; documentation-only changes skip it (it is not a required
+# check, so a skipped run never blocks a merge).
+
+on:
+  push:
+    branches: [main]
+    paths: [opendecider/**, examples/**, pyproject.toml, .github/workflows/examples.yml]
+  pull_request:
+    paths: [opendecider/**, examples/**, pyproject.toml, .github/workflows/examples.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -e ".[serve]" pandas pyarrow
+      - run: python -m py_compile examples/*.py   # remote_backends.py needs LM Studio, Ollama or vLLM: compiled only
+      - run: python examples/quickstart.py
+      - run: python examples/support_triage.py
+      - run: python examples/agent_guardrail.py
+      - run: python examples/confident_automation.py --limit 10
+      - name: serve_client.py against opendecider serve
+        run: |
+          opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &
+          python examples/serve_client.py --wait 300 || { tail -50 serve.log; exit 1; }

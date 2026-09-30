@@ -375,7 +375,11 @@ def create_app(model=None, settings: Settings | None = None):
     @app.middleware("http")
     async def request_id(request: Request, call_next):
         rid = request.headers.get("x-request-id") or uuid.uuid4().hex
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception:   # noqa: BLE001 -- an unexpected error still gets the JSON body and the request id
+            log.exception("unhandled error on %s %s (request %s)", request.method, request.url.path, rid)
+            response = JSONResponse({"detail": "internal server error"}, status_code=500)
         response.headers["x-request-id"] = rid
         return response
 

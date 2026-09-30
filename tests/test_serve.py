@@ -31,7 +31,8 @@ class Fake:
                 raise ValueError("input is 99999 tokens, longer than this model's 32768-token context")
             names = list(opts)
             rest = 0.3 / (len(names) - 1)
-            out.append({k: 0.7 if i == 0 else rest for i, k in enumerate(names)})
+            # "malformed": a model bug (no probabilities), so building the answer fails after inference
+            out.append({} if state == "malformed" else {k: 0.7 if i == 0 else rest for i, k in enumerate(names)})
             if info is not None:
                 info.append({"input_tokens": 10, "truncated": state == "very long"})
         return out
@@ -120,6 +121,19 @@ def test_model_failure_is_isolated_and_logged():
     assert c.post("/v1/systemone", json={"state": "fine", "questions": {"team": QS["team"]}}).status_code == 200
     r = c.post("/v1/systemone", json={"state": "too long", "questions": {"team": QS["team"]}})
     assert r.status_code == 422 and "context" in r.json()["detail"]   # the client's input problem, named
+
+
+
+def test_unexpected_error_keeps_json_body_and_request_id(caplog):
+    app, _ = make()
+    c = client(app)
+    r = c.post("/v1/systemone", json={"state": "malformed", "questions": {"churn": QS["churn"]}},
+               headers={"x-request-id": "req-42"})
+    assert r.status_code == 500 and r.json() == {"detail": "internal server error"}   # no internals leaked
+    assert r.headers["x-request-id"] == "req-42"
+    assert "req-42" in caplog.text and "Traceback" in caplog.text   # the details go to the server log, with the id
+    assert c.post("/v1/systemone", json={"state": "fine", "questions": {"churn": QS["churn"]}}).status_code == 200
+    assert 'opendecider_requests_total{endpoint="systemone",code="500"} 1' in c.get("/metrics").text
 
 
 def test_health_ready_metrics():

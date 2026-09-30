@@ -12,6 +12,12 @@ format.
 
 ## [Unreleased]
 
+### Fixed
+
+- `opendecider serve`: an unexpected internal error now returns the JSON error body
+  (`{"detail": "internal server error"}`) and the `x-request-id` header like every other response, instead of a
+  plain-text 500 without the id; the traceback is logged with the request id.
+
 ### Documentation
 
 - Documentation site at https://manjunathshiva.github.io/opendecider/ (built with Zensical from `docs/`, published
