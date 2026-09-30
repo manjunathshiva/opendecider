@@ -50,6 +50,7 @@ r["answers"]["churn_risk"]["noul"]     # probability the answer is yes
 | copy a working script | [Examples and notebook](examples.md) |
 | see how it compares with Jev, Laya and frontier LLMs | [Benchmarks](benchmarks.md) |
 | know where it is weak | [Limitations](limitations.md) |
+| see what is coming, or help build it | [Roadmap](roadmap.md) |
 | look up a function, an endpoint or a flag | [Python API](reference/python-api.md) · [HTTP API](reference/http-api.md) · [Command line](reference/cli.md) |
 
 ## Why OpenDecider

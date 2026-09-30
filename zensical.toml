@@ -24,6 +24,7 @@ nav = [
   { "Examples and notebook" = "examples.md" },
   { "Benchmarks" = "benchmarks.md" },
   { "Limitations" = "limitations.md" },
+  { "Roadmap" = "roadmap.md" },
   { "Reference" = [
     { "Python API" = "reference/python-api.md" },
     { "HTTP API" = "reference/http-api.md" },

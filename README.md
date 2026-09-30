@@ -326,12 +326,32 @@ The checkpoints:
 | [`opendecider-small-GGUF`](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) | opendecider-small, GGUF Q8_0 / Q4_K_M | 4B | 768 (training inputs) | 4.3 / 2.5 GB | LM Studio and Ollama: typed-decisions 0.669 at Q8_0 (full precision 0.671) |
 | [`opendecider-small-td-GGUF`](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF) | opendecider-small-td, GGUF Q8_0 / Q4_K_M | 4B | 768 (training inputs) | 4.3 / 2.5 GB | LM Studio and Ollama, business workflows: 0.794 at Q8_0 (full precision 0.792) |
 
-### Coming next (in development)
+No Mac build of medium: a 4-bit MLX version (before the typed-decisions fine-tune) scored 0.725 on general decisions, no
+better than opendecider-small-mlx-8bit (0.730) at several times the memory, so it was not released.
 
-* **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed
-  exactly from rules, so it measures correctness rather than agreement with a teacher model.
-* **No Mac build of medium yet:** a 4-bit MLX version (before the typed-decisions fine-tune) scored 0.725 on general decisions, no better than
-  opendecider-small-mlx-8bit (0.730) at several times the memory, so it was not released.
+## Roadmap
+
+**In progress**
+
+* **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
+  typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
+  ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
+
+**Next**
+
+* **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
+  ships (0.3).
+* **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
+  from rules, so it measures correctness rather than agreement with a teacher model.
+* **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
+* **Agent frameworks:** LangChain / LangGraph and LlamaIndex tools.
+* **An MCP server,** so AI assistants and coding agents can call OpenDecider as a tool.
+* **A TypeScript client** for `opendecider serve`.
+* **ONNX export** of opendecider-nano for edge and in-browser use.
+* **Multilingual evaluation.**
+
+Want to help with one of these? See [where to help](https://github.com/manjunathshiva/opendecider/blob/main/CONTRIBUTING.md)
+and open an issue to agree on the approach first.
 
 ## Installation details
 
