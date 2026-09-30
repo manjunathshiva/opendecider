@@ -27,6 +27,7 @@ import json
 import logging
 import os
 import queue
+import re
 import threading
 import time
 import uuid
@@ -34,6 +35,8 @@ from concurrent.futures import Future
 from dataclasses import dataclass, field, fields
 
 log = logging.getLogger("opendecider.serve")
+# a client's x-request-id is echoed and logged only if it looks like one; otherwise the server makes its own
+_REQUEST_ID = re.compile(r"[A-Za-z0-9._:-]{1,128}")
 
 
 def _env(name: str, default, cast):
@@ -139,6 +142,7 @@ class _Metrics:
 class _Job:
     items: list
     future: Future = field(default_factory=Future)
+    request_id: str = ""   # for the log if inference fails
 
 
 class Batcher:
@@ -151,8 +155,8 @@ class Batcher:
         self.thread = threading.Thread(target=self._loop, name="opendecider-infer", daemon=True)
         self.thread.start()
 
-    def submit(self, items: list) -> Future:
-        job = _Job(items)
+    def submit(self, items: list, request_id: str = "") -> Future:
+        job = _Job(items, request_id=request_id)
         self.q.put(job)
         return job.future
 
@@ -194,9 +198,13 @@ class Batcher:
                 if isinstance(e, ValueError):   # the request's own fault (e.g. longer than the model's context): 422
                     jobs[0].future.set_exception(e)
                 else:                           # anything else: 500 without internals; traceback in the log
-                    log.exception("inference failed")
+                    log.exception("inference failed (request %s)", jobs[0].request_id or "-")
                     jobs[0].future.set_exception(_InferenceError())
                 return
+            # a merged batch failed: retry each request on its own. Log it, so a failure that only happens at this batch
+            # size (e.g. out of memory) is visible even when every retry succeeds.
+            log.warning("a batch of %d requests failed (%s); retrying each request on its own",
+                        len(jobs), type(e).__name__)
             for j in jobs:
                 self._run([j])
             return
@@ -294,8 +302,8 @@ def create_app(model=None, settings: Settings | None = None):
         if not _json_size_ok(state, s.max_state_chars):   # null is allowed, as in Jev's protocol
             raise HTTPException(422, f"'state' is longer than {s.max_state_chars} characters")
 
-    async def infer(items: list):
-        fut = batcher.submit(items)
+    async def infer(items: list, rid: str):
+        fut = batcher.submit(items, rid)
         try:
             return await asyncio.wait_for(asyncio.wrap_future(fut), timeout=s.request_timeout_s)
         except asyncio.TimeoutError:
@@ -318,7 +326,7 @@ def create_app(model=None, settings: Settings | None = None):
             metrics.in_flight = admitted
             try:
                 body = await read_body(request)
-                result = await handler(body)
+                result = await handler(body, request.state.request_id)
             finally:
                 admitted -= 1
                 metrics.in_flight = admitted
@@ -331,16 +339,16 @@ def create_app(model=None, settings: Settings | None = None):
         finally:
             metrics.request(endpoint, code, time.perf_counter() - t0)
 
-    async def one(body: dict) -> dict:
+    async def one(body: dict, rid: str) -> dict:
         qs = validate(body.get("questions"))
         state = body.get("state")
         if state is None:
             state = ""
         check_state(state)
-        probs, info = await infer(model.items(state, qs))
+        probs, info = await infer(model.items(state, qs), rid)
         return _jev_wire(model.assemble(qs, probs, info))
 
-    async def batch(body: dict) -> dict:
+    async def batch(body: dict, rid: str) -> dict:
         states = body.get("states")
         if not isinstance(states, list) or not states:
             raise HTTPException(422, "'states' must be a non-empty list")
@@ -351,7 +359,7 @@ def create_app(model=None, settings: Settings | None = None):
         for st in states:
             check_state(st)
         items = [it for st in states for it in model.items(st, qs)]
-        probs, info = await infer(items)
+        probs, info = await infer(items, rid)
         n = len(qs)
         results = [_jev_wire(model.assemble(qs, probs[i * n:(i + 1) * n], info[i * n:(i + 1) * n]))
                    for i in range(len(states))]
@@ -374,8 +382,16 @@ def create_app(model=None, settings: Settings | None = None):
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):
-        rid = request.headers.get("x-request-id") or uuid.uuid4().hex
-        response = await call_next(request)
+        rid = request.headers.get("x-request-id") or ""
+        if not _REQUEST_ID.fullmatch(rid):
+            rid = uuid.uuid4().hex
+        request.state.request_id = rid
+        try:
+            response = await call_next(request)
+        except Exception:   # noqa: BLE001 -- an unexpected error still gets the JSON body and the request id
+            # %r: the path is decoded from the URL, so it could hold control characters; the id is already validated
+            log.exception("unhandled error on %s %r (request %s)", request.method, request.url.path, rid)
+            response = JSONResponse({"detail": "internal server error"}, status_code=500)
         response.headers["x-request-id"] = rid
         return response
 

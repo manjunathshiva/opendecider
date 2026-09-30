@@ -78,7 +78,8 @@ your proxy's rules.
 | 504 | no answer in time | 30 s (`--request-timeout-s`) |
 | 500 | inference failed (no internals are returned) | |
 
-Errors the server reports itself (all the rows above) have the body `{"detail": "<a message naming the problem>"}`,
-and those responses and every success carry an `x-request-id` header (the client's, if it sent one). An unexpected
-internal error returns a plain `500 Internal Server Error` without them; it never includes a traceback or a path. A client should retry 503 after `Retry-After`; see
+Every error body is `{"detail": "<a message naming the problem>"}` (an unexpected internal error is
+`{"detail": "internal server error"}`, with the traceback and the request id only in the server log), and every
+response has an `x-request-id` header: the client's own, if it sent one of up to 128 letters, digits and `.` `_` `:` `-`,
+otherwise one the server generates. A client should retry 503 after `Retry-After`; see
 [examples/serve_client.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/serve_client.py).

@@ -31,7 +31,8 @@ class Fake:
                 raise ValueError("input is 99999 tokens, longer than this model's 32768-token context")
             names = list(opts)
             rest = 0.3 / (len(names) - 1)
-            out.append({k: 0.7 if i == 0 else rest for i, k in enumerate(names)})
+            # "malformed": a model bug (no probabilities), so building the answer fails after inference
+            out.append({} if state == "malformed" else {k: 0.7 if i == 0 else rest for i, k in enumerate(names)})
             if info is not None:
                 info.append({"input_tokens": 10, "truncated": state == "very long"})
         return out
@@ -112,14 +113,28 @@ def test_auth():
     assert c.get("/health").status_code == 200   # probes stay open
 
 
-def test_model_failure_is_isolated_and_logged():
+def test_model_failure_is_isolated_and_logged(caplog):
     app, _ = make()
     c = client(app)
-    r = c.post("/v1/systemone", json={"state": "boom", "questions": {"team": QS["team"]}})
+    r = c.post("/v1/systemone", json={"state": "boom", "questions": {"team": QS["team"]}},
+               headers={"x-request-id": "req-7"})
     assert r.status_code == 500 and r.json()["detail"] == "inference failed"   # no internals leaked
+    assert r.headers["x-request-id"] == "req-7" and "inference failed (request req-7)" in caplog.text
     assert c.post("/v1/systemone", json={"state": "fine", "questions": {"team": QS["team"]}}).status_code == 200
     r = c.post("/v1/systemone", json={"state": "too long", "questions": {"team": QS["team"]}})
     assert r.status_code == 422 and "context" in r.json()["detail"]   # the client's input problem, named
+
+
+def test_unexpected_error_keeps_json_body_and_request_id(caplog):
+    app, _ = make()
+    c = client(app)
+    r = c.post("/v1/systemone", json={"state": "malformed", "questions": {"churn": QS["churn"]}},
+               headers={"x-request-id": "req-42"})
+    assert r.status_code == 500 and r.json() == {"detail": "internal server error"}   # no internals leaked
+    assert r.headers["x-request-id"] == "req-42"
+    assert "req-42" in caplog.text and "Traceback" in caplog.text   # the details go to the server log, with the id
+    assert c.post("/v1/systemone", json={"state": "fine", "questions": {"churn": QS["churn"]}}).status_code == 200
+    assert 'opendecider_requests_total{endpoint="systemone",code="500"} 1' in c.get("/metrics").text
 
 
 def test_health_ready_metrics():
@@ -144,6 +159,35 @@ def test_batcher_merges_concurrent_requests():
     res = [f.result(timeout=5) for f in futs]
     assert all(len(p) == 3 for p, _ in res)
     assert sum(fake.batches) == 24 and len(fake.batches) < 8   # merged into fewer model calls
+
+
+
+def test_failed_merged_batch_logs_the_failing_request(caplog):
+    gate = threading.Event()
+    fake = Fake(gate=gate)
+    model = OpenDecider(fake, {"name": "t", "kind": "nano"})
+    b = Batcher(model, max_batch=64, wait_ms=200)
+    qs = model.prepare({"team": QS["team"]})
+    bad = b.submit(model.items("boom", qs), "req-bad")
+    ok = b.submit(model.items("fine", qs), "req-ok")
+    gate.set()
+    probs, _ = ok.result(timeout=5)   # the healthy request still gets its answer
+    assert len(probs) == 1 and fake.batches[0] == 2   # both were in one model call, which failed
+    with pytest.raises(RuntimeError):   # inference failed: a 500 without internals
+        bad.result(timeout=5)
+    failures = [r.getMessage() for r in caplog.records if r.getMessage().startswith("inference failed")]
+    assert failures == ["inference failed (request req-bad)"]
+    assert "a batch of 2 requests failed (RuntimeError)" in caplog.text   # the merged failure is visible too
+
+
+def test_request_id_is_echoed_only_when_it_looks_like_one():
+    c = client(make()[0])
+    body = {"state": "x", "questions": {"team": QS["team"]}}
+    good = "trace-01:a.b_c"
+    assert c.post("/v1/systemone", json=body, headers={"x-request-id": good}).headers["x-request-id"] == good
+    for bad in ("has spaces", "x" * 129, "semi;colon"):
+        rid = c.post("/v1/systemone", json=body, headers={"x-request-id": bad}).headers["x-request-id"]
+        assert rid != bad and len(rid) == 32   # replaced by a fresh id
 
 
 def test_batcher_splits_large_requests():
