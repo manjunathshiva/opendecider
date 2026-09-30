@@ -71,6 +71,7 @@ class Jev:
                     time.sleep(delay); delay *= 2
                     continue
                 raise
+        raise RuntimeError("Jev did not answer after 4 attempts")   # not reached: each attempt returns or raises
 
 
 def _from_native(a: dict, options: dict) -> dict:

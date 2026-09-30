@@ -1,6 +1,5 @@
 """HTTP server: Jev wire compatibility, limits, auth, batching and back-pressure, with a fake model (no download)."""
 import asyncio
-import json
 import threading
 import time
 

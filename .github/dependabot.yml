@@ -13,7 +13,7 @@ updates:
       serve-stack:
         patterns: ["fastapi", "uvicorn", "httpx"]
 
-  # Base images of the Docker images (python:3.12-slim, pytorch/pytorch CUDA)
+  # Base images of the Docker images (python slim, pytorch/pytorch CUDA)
   - package-ecosystem: "docker"
     directory: "/docker"
     schedule:
@@ -21,14 +21,18 @@ updates:
     open-pull-requests-limit: 2
     labels: ["dependencies", "docker"]
 
-  # GitHub Actions: workflows track floating MAJOR tags (actions/checkout@v7, ...), which already receive
-  # patches and security fixes, so only majors open a PR (they need a human). Same policy as turboquant-mlx.
+  # GitHub Actions (see the ignore rules below)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
     labels: ["dependencies", "github-actions"]
+    # GitHub's own actions track floating major tags (actions/checkout@v7, ...), which already receive patches: only
+    # majors open a PR. Third-party actions are pinned to a commit (pypa/gh-action-pypi-publish), so those get
+    # patch and minor PRs too, or the pin would never pick up a security fix.
     ignore:
-      - dependency-name: "*"
+      - dependency-name: "actions/*"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+      - dependency-name: "github/codeql-action*"
         update-types: ["version-update:semver-patch", "version-update:semver-minor"]
