@@ -3,7 +3,7 @@
 #   docker run -p 8000:8000 -v opendecider-models:/models opendecider:cpu
 # Bake a model into the image instead of downloading it at first start:
 #   docker build -f docker/Dockerfile --build-arg BAKE_MODEL=manjunathshiva/opendecider-nano -t opendecider:nano .
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
     HF_HOME=/models OPENDECIDER_HOST=0.0.0.0 OPENDECIDER_PORT=8000
