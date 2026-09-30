@@ -174,3 +174,11 @@ def test_backpressure_and_timeout():
     gate.set()
     assert busy.status_code == 503 and busy.headers["Retry-After"] == "1"
     assert [r.status_code for r in done] == [504, 504]                # model blocked past the timeout
+
+
+def test_ready_reflects_an_unreachable_upstream():
+    fake = Fake()
+    fake.ping = lambda: False          # e.g. LM Studio / Ollama not running behind `opendecider serve`
+    app, _ = make(fake)
+    r = client(app).get("/ready")
+    assert r.status_code == 503 and r.json()["upstream"] is False

@@ -30,6 +30,7 @@ pip install opendecider              # opendecider-nano
 pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td, -medium-td and -large-td
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
+# LM Studio / Ollama: the GGUF builds, see "Run it in LM Studio or Ollama" below (no extra packages)
 ```
 
 Python 3.10 or newer. Works on Linux, Windows and macOS, on CPU, NVIDIA (CUDA) and Apple Silicon (MPS), and picks the
@@ -62,6 +63,36 @@ print(result["answers"]["churn_risk"]["noul"])     # 0.922 = probability the ans
 
 A state can be plain text or any JSON-serialisable object: a ticket with subject, body and customer fields, a log
 record, an agent's tool-call trace. Questions can also be written with the helper classes `Choice`, `Score` and `Noul`.
+
+## Run it in LM Studio or Ollama
+
+The 4B models also come as GGUF builds for LM Studio, Ollama and other llama.cpp-based apps (tested: LM Studio and Ollama):
+[opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) and
+[opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF). The app runs the
+model; the opendecider package builds the prompt the model was trained on and reads the option probabilities from the
+server's token log-probabilities, so the answers match the full-precision model (typed-decisions: small 0.669 at Q8_0
+vs 0.671, small-td 0.794 vs 0.792).
+
+```bash
+pip install "opendecider[serve]"
+```
+
+```python
+from opendecider import load
+
+model = load("lmstudio:opendecider-small")    # LM Studio's server on :1234 (`lms load opendecider-small@q8_0 --identifier opendecider-small`)
+model = load("ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0")      # after `ollama pull hf.co/...`
+model = load("openai:opendecider-small", base_url="http://gpu-box:8000/v1")  # other OpenAI-compatible servers with top_logprobs
+```
+
+```bash
+opendecider serve --model lmstudio:opendecider-small     # Jev-compatible /v1/systemone on top of LM Studio
+```
+
+Use the GGUF build in LM Studio on a Mac too: its MLX engine returns no log-probabilities (for MLX, use
+`pip install "opendecider[mlx]"` with the MLX builds). Up to 26 options per question through a model server.
+Ollama's own `/v1/systemone` (0.35.1+) builds a different prompt, which costs about 9 points today; versions trained on
+Ollama's prompt as well are in preparation.
 
 ## Serve it: a drop-in for Jev's API
 

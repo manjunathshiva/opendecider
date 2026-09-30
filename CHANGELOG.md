@@ -10,6 +10,23 @@ format.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [0.2.1] - unreleased
+
+### Added
+- `load("lmstudio:<model>")`, `load("ollama:<model>")` and `load("openai:<model>", base_url=...)`: use a model served by
+  LM Studio, Ollama, llama.cpp's server, vLLM or any OpenAI-compatible server that returns token log-probabilities
+  (`opendecider.remote`). OpenDecider sends the prompt the model was trained on and reads the option probabilities
+  from `top_logprobs`, so the GGUF builds match the PyTorch model:
+  - typed-decisions for small: 0.669 at Q8_0 against 0.671;
+  - for small-td: 0.794 against 0.792.
+
+  `opendecider serve --model lmstudio:...` puts the Jev-compatible `/v1/systemone` in front of it. Up to 26 options per
+  question; the questions of a request run in parallel (4 at a time); transient upstream errors (429/5xx, reset
+  connections) are retried twice; `opendecider serve`'s `/ready` reports 503 while the upstream server is unreachable.
+  Credentials (`OPENDECIDER_REMOTE_API_KEY`) go only to the configured origin, never onto a redirect, and over plain
+  HTTP only to this machine (use https for another host, or set `OPENDECIDER_REMOTE_ALLOW_HTTP=1`). Under
+  `opendecider serve` the upstream timeout is capped at the server's request timeout.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added
