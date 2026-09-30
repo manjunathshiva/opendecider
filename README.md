@@ -168,6 +168,19 @@ these workflows, not as general superiority.
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
 
+## What's new in 0.2.0
+
+* **`opendecider serve`: a production server that speaks Jev's API.** Existing Jev clients work by changing the base
+  URL; tested with TypeSafe's own SDK. It adds dynamic batching, back-pressure, limits, auth, Prometheus metrics and
+  Docker images. See [Serve it](https://github.com/manjunathshiva/opendecider#serve-it-a-drop-in-for-jevs-api).
+* **Load-tested:** 100 concurrent users with 0 errors; nano serves 50 requests/s on one NVIDIA L4 and 24 on 8 CPU cores
+  with `--dtype bfloat16`.
+* **Nothing silent:** responses report token usage and mark truncated inputs.
+* **Production/Stable:** a [versioning policy](https://github.com/manjunathshiva/opendecider/blob/main/CHANGELOG.md) for the API and the wire
+  format (patch releases never break it; breaking changes only in a new minor release, after a deprecation), plus
+  CodeQL, Dependabot and a
+  [security policy](https://github.com/manjunathshiva/opendecider/blob/main/SECURITY.md).
+
 ## What's new in 0.1.2
 
 * **opendecider-medium-td** (Qwen3-30B-A3B + LoRA): 0.765 on 200 general decisions, the best of any model you can run
