@@ -162,6 +162,34 @@ def test_batcher_merges_concurrent_requests():
     assert sum(fake.batches) == 24 and len(fake.batches) < 8   # merged into fewer model calls
 
 
+
+def test_failed_merged_batch_logs_the_failing_request(caplog):
+    gate = threading.Event()
+    fake = Fake(gate=gate)
+    model = OpenDecider(fake, {"name": "t", "kind": "nano"})
+    b = Batcher(model, max_batch=64, wait_ms=200)
+    qs = model.prepare({"team": QS["team"]})
+    bad = b.submit(model.items("boom", qs), "req-bad")
+    ok = b.submit(model.items("fine", qs), "req-ok")
+    gate.set()
+    probs, _ = ok.result(timeout=5)   # the healthy request still gets its answer
+    assert len(probs) == 1 and fake.batches[0] == 2   # both were in one model call, which failed
+    with pytest.raises(Exception):
+        bad.result(timeout=5)
+    failures = [r.getMessage() for r in caplog.records if r.getMessage().startswith("inference failed")]
+    assert failures == ["inference failed (request req-bad)"]
+
+
+def test_request_id_is_echoed_only_when_it_looks_like_one():
+    c = client(make()[0])
+    body = {"state": "x", "questions": {"team": QS["team"]}}
+    good = "trace-01:a.b_c"
+    assert c.post("/v1/systemone", json=body, headers={"x-request-id": good}).headers["x-request-id"] == good
+    for bad in ("has spaces", "x" * 129, "semi;colon"):
+        rid = c.post("/v1/systemone", json=body, headers={"x-request-id": bad}).headers["x-request-id"]
+        assert rid != bad and len(rid) == 32   # replaced by a fresh id
+
+
 def test_batcher_splits_large_requests():
     fake = Fake()
     model = OpenDecider(fake, {"name": "t", "kind": "nano"})

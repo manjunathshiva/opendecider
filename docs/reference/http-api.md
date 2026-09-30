@@ -80,5 +80,6 @@ your proxy's rules.
 
 Every error body is `{"detail": "<a message naming the problem>"}` (an unexpected internal error is
 `{"detail": "internal server error"}`, with the traceback and the request id only in the server log), and every
-response has an `x-request-id` header (the client's, if it sent one). A client should retry 503 after `Retry-After`; see
+response has an `x-request-id` header: the client's own, if it sent one of up to 128 letters, digits and `.` `_` `:` `-`,
+otherwise one the server generates. A client should retry 503 after `Retry-After`; see
 [examples/serve_client.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/serve_client.py).

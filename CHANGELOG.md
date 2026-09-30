@@ -19,6 +19,9 @@ format.
   plain-text 500 without the id; the traceback is logged with the request id.
 - `opendecider serve`: an inference failure is now logged with the request id of the request that failed, as
   SECURITY.md describes; before, the log line did not say which request it was.
+- `opendecider serve`: a client's `x-request-id` is echoed and logged only if it is up to 128 letters, digits and
+  `.` `_` `:` `-`; any other value is replaced by a generated id, so a client cannot write arbitrary text into the
+  server log.
 
 ### Documentation
 

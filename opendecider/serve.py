@@ -27,6 +27,7 @@ import json
 import logging
 import os
 import queue
+import re
 import threading
 import time
 import uuid
@@ -34,6 +35,8 @@ from concurrent.futures import Future
 from dataclasses import dataclass, field, fields
 
 log = logging.getLogger("opendecider.serve")
+# a client's x-request-id is echoed and logged only if it looks like one; otherwise the server makes its own
+REQUEST_ID = re.compile(r"[A-Za-z0-9._:-]{1,128}")
 
 
 def _env(name: str, default, cast):
@@ -375,7 +378,9 @@ def create_app(model=None, settings: Settings | None = None):
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):
-        rid = request.headers.get("x-request-id") or uuid.uuid4().hex
+        rid = request.headers.get("x-request-id") or ""
+        if not REQUEST_ID.fullmatch(rid):
+            rid = uuid.uuid4().hex
         request.state.request_id = rid
         try:
             response = await call_next(request)
