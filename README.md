@@ -225,6 +225,15 @@ these workflows, not as general superiority.
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
 
+## What's new in 0.2.1
+
+* **Runs in LM Studio and Ollama.** New GGUF builds
+  ([opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF),
+  [opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF)) and a backend that uses
+  the app as the engine: `load("lmstudio:...")`, `load("ollama:...")`, or `opendecider serve` on top of either. The
+  answers match the full-precision model (typed-decisions 0.669 vs 0.671 for small, 0.794 vs 0.792 for small-td), because
+  OpenDecider sends the prompt the model was trained on. See [Run it in LM Studio or Ollama](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama).
+
 ## What's new in 0.2.0
 
 * **`opendecider serve`: a production server that speaks Jev's API.** Existing Jev clients work by changing the base

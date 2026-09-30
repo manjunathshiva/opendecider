@@ -10,12 +10,12 @@ format.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [0.2.1] - unreleased
+## [0.2.1] - 2026-09-30
 
 ### Added
 - `load("lmstudio:<model>")`, `load("ollama:<model>")` and `load("openai:<model>", base_url=...)`: use a model served by
-  LM Studio, Ollama, llama.cpp's server, vLLM or any OpenAI-compatible server that returns token log-probabilities
-  (`opendecider.remote`). OpenDecider sends the prompt the model was trained on and reads the option probabilities
+  LM Studio or Ollama (both tested), or another server with an OpenAI-compatible chat endpoint that returns token
+  log-probabilities (`opendecider.remote`). OpenDecider sends the prompt the model was trained on and reads the option probabilities
   from `top_logprobs`, so the GGUF builds match the PyTorch model:
   - typed-decisions for small: 0.669 at Q8_0 against 0.671;
   - for small-td: 0.794 against 0.792.
@@ -26,6 +26,10 @@ format.
   Credentials (`OPENDECIDER_REMOTE_API_KEY`) go only to the configured origin, never onto a redirect, and over plain
   HTTP only to this machine (use https for another host, or set `OPENDECIDER_REMOTE_ALLOW_HTTP=1`). Under
   `opendecider serve` the upstream timeout is capped at the server's request timeout.
+
+### Changed
+- The prompt the Qwen-based models were trained on now lives in the torch-free `opendecider.prompt`, so the LM Studio /
+  Ollama backend does not import torch; `opendecider.small.render` still works.
 
 ## [0.2.0] - 2026-09-30
 
