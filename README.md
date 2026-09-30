@@ -108,6 +108,34 @@ curl -s localhost:8000/v1/systemone -H 'content-type: application/json' -d '{
 - **Configuration:** every flag is also an environment variable (`OPENDECIDER_MODEL`, `OPENDECIDER_DEVICE`,
   `OPENDECIDER_MAX_BATCH`, `OPENDECIDER_THREADS`, …); see `opendecider serve --help`.
 
+**Performance under load** (`benchmarks/load_test.py`: 100 concurrent users, 20 s ramp, 40 s hold, three questions per
+request, one server process; raw results in [benchmarks/results/load/](https://github.com/manjunathshiva/opendecider/tree/main/benchmarks/results/load)):
+
+| model and hardware | requests / s | p50 | p95 | p99 | errors |
+|---|---|---|---|---|---|
+| nano, CPU only (8 cores, AWS c7i.4xlarge), `--dtype bfloat16` | **24** | 4.4 s | 4.9 s | 5.2 s | 0 |
+| nano, CPU only (same machine), default fp32 | 9 | 16.6 s | 17.2 s | 19.0 s | 0 |
+| nano, 1× NVIDIA L4 | **50** | 2.1 s | 2.3 s | 2.3 s | 0 |
+| small (4B), 1× NVIDIA L4, `--small-batch 16` | **20** | 5.8 s | 6.5 s | 6.6 s | 0 |
+| small (4B), 1× NVIDIA L4, default | 9 | 14.4 s | 14.7 s | 16.1 s | 0 |
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/load_test.png" alt="opendecider serve: latency percentiles and throughput at 100 concurrent users on CPU and on an NVIDIA L4" width="100%" />
+</p>
+
+With 100 users each waiting for their answer before sending the next, latency is roughly users ÷ throughput, so a
+single process is at its limit here. Fewer users or more processes bring it down. To serve more traffic, run more
+replicas behind a load balancer (one process per GPU; on CPU, one process per 8 or so physical cores).
+Recommended settings:
+
+- **CPU with bf16 units** (Intel Sapphire Rapids and newer, i.e. AMX): `--dtype bfloat16`, 2.8× the throughput. On
+  typed-decisions it has the same accuracy as fp32 (0.796) and the same top answer on 1,992 of 2,000 questions. On
+  CPUs without bf16 units keep the default.
+- **Qwen-based models on a GPU** (small, small-td, medium-td, large-td): `--small-batch 16`, 2.2× the throughput. The
+  top answer changes on about 1 question in 75 (bf16 arithmetic in padded batches), so leave it off where you need
+  exactly the published answers.
+- `--threads` at most the number of physical cores; oversubscribing hyperthreads slows CPU inference.
+
 On the wire a score answer follows Jev: `score` is the expected score (it can fall between levels) and `level` is the
 most likely level. In the Python library `score` is the most likely level and `expected` the expected score. Answers
 also carry `probabilities` and `confidence`, and `truncated` plus a top-level `warnings` list when a state was cut to

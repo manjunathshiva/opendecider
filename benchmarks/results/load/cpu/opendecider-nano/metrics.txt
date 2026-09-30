@@ -1,0 +1,36 @@
+# TYPE opendecider_requests_total counter
+opendecider_requests_total{endpoint="systemone",code="200"} 458
+# TYPE opendecider_request_seconds histogram
+opendecider_request_seconds_bucket{le="0.005"} 0
+opendecider_request_seconds_bucket{le="0.01"} 0
+opendecider_request_seconds_bucket{le="0.025"} 0
+opendecider_request_seconds_bucket{le="0.05"} 0
+opendecider_request_seconds_bucket{le="0.1"} 0
+opendecider_request_seconds_bucket{le="0.25"} 6
+opendecider_request_seconds_bucket{le="0.5"} 9
+opendecider_request_seconds_bucket{le="1.0"} 16
+opendecider_request_seconds_bucket{le="2.5"} 30
+opendecider_request_seconds_bucket{le="5.0"} 63
+opendecider_request_seconds_bucket{le="10.0"} 130
+opendecider_request_seconds_bucket{le="30.0"} 458
+opendecider_request_seconds_bucket{le="+Inf"} 458
+opendecider_request_seconds_sum 5925.571752584998
+opendecider_request_seconds_count 458
+# TYPE opendecider_batch_questions histogram
+opendecider_batch_questions_bucket{le="1"} 39
+opendecider_batch_questions_bucket{le="2"} 39
+opendecider_batch_questions_bucket{le="4"} 47
+opendecider_batch_questions_bucket{le="8"} 48
+opendecider_batch_questions_bucket{le="16"} 50
+opendecider_batch_questions_bucket{le="32"} 91
+opendecider_batch_questions_bucket{le="64"} 91
+opendecider_batch_questions_bucket{le="128"} 91
+opendecider_batch_questions_bucket{le="+Inf"} 91
+opendecider_batch_questions_sum 1374
+opendecider_batch_questions_count 91
+# TYPE opendecider_questions_total counter
+opendecider_questions_total 1374
+# TYPE opendecider_in_flight gauge
+opendecider_in_flight 0
+# TYPE opendecider_queue_depth gauge
+opendecider_queue_depth 0
