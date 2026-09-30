@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from .small import LETTERS, SYSTEM, render
+from .prompt import LETTERS, SYSTEM, render
 
 
 class MLXSmallModel:

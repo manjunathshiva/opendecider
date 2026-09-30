@@ -22,7 +22,7 @@ import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-from .small import LETTERS, SYSTEM, render
+from .prompt import LETTERS, SYSTEM, render
 
 DEFAULT_URLS = {"lmstudio": "http://127.0.0.1:1234/v1", "ollama": "http://127.0.0.1:11434/v1"}
 
