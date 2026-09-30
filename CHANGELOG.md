@@ -14,6 +14,9 @@ format.
 
 ### Documentation
 
+- Documentation site at https://manjunathshiva.github.io/opendecider/ (built with Zensical from `docs/`, published
+  by `.github/workflows/docs.yml`): getting started, choosing a model, guides for serving, LM Studio / Ollama / vLLM,
+  confident automation and agent guardrails, benchmarks, limitations, and Python, HTTP and command-line reference.
 - New [examples](examples/): support triage, an agent guardrail, automating only the confident decisions (measured
   on the typed-decisions test split), an HTTP client for `opendecider serve`, and LM Studio / Ollama / vLLM. CI runs
   them against opendecider-nano on CPU (`remote_backends.py`, which needs a model server, is compile-checked).
