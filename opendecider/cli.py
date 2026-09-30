@@ -25,6 +25,7 @@ def main(argv: list[str] | None = None) -> None:
     sv.add_argument("--max-in-flight", type=int, help="admitted requests before answering 503 (default 256)")
     sv.add_argument("--request-timeout-s", type=float, help="504 after this long (default 30)")
     sv.add_argument("--threads", type=int, help="torch CPU threads (default: torch's choice)")
+    sv.add_argument("--dtype", choices=["float32", "bfloat16"], help="nano: bfloat16 is faster on CPUs with bf16 units (default float32)")
     sv.add_argument("--small-batch", type=int, help="Qwen-based models: questions per forward pass (default 1 = exact)")
     sv.add_argument("--log-level")
 
@@ -41,7 +42,7 @@ def main(argv: list[str] | None = None) -> None:
         from .serve import Settings, run
         run(Settings.from_env(model=a.model, revision=a.revision, device=a.device, host=a.host, port=a.port, max_batch=a.max_batch,
                               batch_wait_ms=a.batch_wait_ms, max_in_flight=a.max_in_flight,
-                              request_timeout_s=a.request_timeout_s, threads=a.threads, small_batch=a.small_batch, log_level=a.log_level))
+                              request_timeout_s=a.request_timeout_s, threads=a.threads, small_batch=a.small_batch, dtype=a.dtype, log_level=a.log_level))
     elif a.cmd == "bench-speed":
         from .bench_speed import main as bench
         sys.argv = ["bench_speed", a.model]

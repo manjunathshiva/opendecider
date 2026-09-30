@@ -65,6 +65,7 @@ class Settings:
     max_state_chars: int = 200_000    # JSON-serialised state
     max_batch_states: int = 256       # states per /v1/systemone/batch request
     threads: int = 0                  # torch intra-op threads on CPU (0 = torch default)
+    dtype: str = ""                   # nano: float32 (default) or bfloat16
     small_batch: int = 1              # Qwen-based models: questions per forward pass (1 = exact published path)
     root_path: str = ""               # public URL prefix behind a reverse proxy
     log_level: str = "info"
@@ -236,7 +237,7 @@ def create_app(model=None, settings: Settings | None = None):
     if model is None:
         from . import load
         t0 = time.perf_counter()
-        model = load(s.model, device=s.device or None, revision=s.revision or None)
+        model = load(s.model, device=s.device or None, revision=s.revision or None, dtype=s.dtype or None)
         log.info("loaded %s in %.1f s", s.model, time.perf_counter() - t0)
     if s.small_batch > 1 and hasattr(model.impl, "batch"):
         model.impl.batch = s.small_batch

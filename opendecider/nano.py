@@ -15,17 +15,20 @@ import torch.nn as nn
 
 
 class NanoModel(nn.Module):
-    def __init__(self, path: str, device: str, max_len: int = 2048):
+    def __init__(self, path: str, device: str, max_len: int = 2048, dtype: str = "float32"):
         super().__init__()
         from safetensors.torch import load_file
         from transformers import AutoModel, AutoTokenizer
         path = Path(path)
         self.tok = AutoTokenizer.from_pretrained(path)
-        # weights are stored in bf16 to halve the download; inference runs in fp32, as evaluated
-        self.enc = AutoModel.from_pretrained(path, dtype=torch.float32)
+        # weights are stored in bf16 to halve the download; inference runs in fp32 by default, as evaluated.
+        # dtype="bfloat16" is faster on CPUs with bf16 units (e.g. Intel AMX) and on GPUs; see the README for its agreement.
+        dt = getattr(torch, dtype)
+        self.enc = AutoModel.from_pretrained(path, dtype=dt)
         d = self.enc.config.hidden_size
         self.head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.LayerNorm(d), nn.Linear(d, 1))
         self.head.load_state_dict({k: v.float() for k, v in load_file(path / "head.safetensors").items()})
+        self.head.to(dt)
         self.mask_id, self.max_len = self.tok.mask_token_id, max_len
         self.to(device).eval()
         self.device = device
@@ -62,6 +65,6 @@ class NanoModel(nn.Module):
         out = []
         for r, (row, (_, _, opts)) in enumerate(zip(ids, items)):
             pos = torch.tensor([i for i, t in enumerate(row) if t == self.mask_id], device=self.device)
-            p = torch.softmax(self.head(h[r, pos]).squeeze(-1), -1).tolist()
+            p = torch.softmax(self.head(h[r, pos]).squeeze(-1).float(), -1).tolist()
             out.append(dict(zip(opts, p)))
         return out

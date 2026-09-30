@@ -104,8 +104,9 @@ class OpenDecider:
 
 
 def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | None = None,
-         revision: str | None = None) -> OpenDecider:
-    """Load a model from the Hugging Face Hub or a local folder (anything with opendecider.json)."""
+         revision: str | None = None, dtype: str | None = None) -> OpenDecider:
+    """Load a model from the Hub or a local folder (anything with opendecider.json).
+    `dtype` (nano only): "float32" (default, as evaluated) or "bfloat16" (faster on CPUs with bf16 units and on GPUs)."""
     path = Path(name_or_path).expanduser()
     if not (path / "opendecider.json").exists():
         from huggingface_hub import snapshot_download
@@ -115,7 +116,7 @@ def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | No
         device = device or default_device()
     if meta["kind"] == "nano":
         from .nano import NanoModel
-        impl = NanoModel(str(path), device, meta.get("max_len", 2048))
+        impl = NanoModel(str(path), device, meta.get("max_len", 2048), dtype or "float32")
     elif meta["kind"] == "small":
         from .small import SmallModel
         impl = SmallModel(str(path), meta["base_model"], device,
