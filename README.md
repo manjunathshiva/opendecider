@@ -39,6 +39,8 @@ pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/syste
 Python 3.10 or newer. Works on Linux, Windows and macOS, on CPU, NVIDIA (CUDA) and Apple Silicon (MPS), and picks the
 device for you. Platform notes: [Installation details](https://github.com/manjunathshiva/opendecider#installation-details).
 Try it without installing: [live demo](https://huggingface.co/spaces/manjunathshiva/opendecider-demo), or on a free NVIDIA GPU in [Colab](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb).
+Runnable [examples](https://github.com/manjunathshiva/opendecider/tree/main/examples) for support triage, agent
+guardrails, automating only the confident decisions, calling `opendecider serve`, and LM Studio / Ollama / vLLM.
 
 ## Quickstart
 
@@ -341,6 +343,9 @@ pip install "opendecider[small]"
 
 * **Device:** CUDA, then MPS, then CPU, chosen automatically. Override with `load(..., device="cpu")`.
 * **Offline or air-gapped:** download a model folder once (`huggingface-cli download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
+* **Google Colab:** run `pip uninstall -y torchao` before loading small or small-td. Colab preinstalls torchao 0.10,
+  which recent peft refuses to load LoRA adapters next to ("Found an incompatible version of torchao"); OpenDecider
+  does not use torchao.
 * **CPU only:** nano runs fine on CPU for batch jobs. small needs ~17 GB of RAM in fp32 and is slow on CPU.
 * **Memory:** nano 2.0 GiB, small 8.9 GiB of GPU or unified memory, measured on a 16 GB Mac mini (M4), where the GPU budget is 11.8 GiB.
   medium-td has 61 GB and large-td 160 GB of bf16 weights, spread across all visible NVIDIA GPUs (both tested on 4× L40S,
