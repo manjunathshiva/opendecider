@@ -1,0 +1,52 @@
+# AGENTS.md
+
+Context for AI coding assistants (Claude Code, Codex, Cursor, Copilot, Gemini CLI) working in this repository. The
+rules mirror [CONTRIBUTING.md](CONTRIBUTING.md); coding agents read this file automatically.
+
+**OpenDecider** is a family of open decision models and the `opendecider` Python package: typed questions (`choice`,
+`score`, `noul`) about a state, answered with a calibrated probability for every option, plus `opendecider serve`, an
+HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
+
+## Do NOT
+
+- **Change published answers silently.** Anything that changes how a model reads or scores inputs
+  (`opendecider/prompt.py`, `nano.py`, `small.py`, `mlx_small.py`, `questions.py`) changes the published benchmark
+  numbers. Such a change needs before/after results from `benchmarks/` in the pull request.
+- **Break the wire format.** `opendecider/serve.py` must keep answering Jev's request and response shape (a score
+  answer's `score` is the expected score and `level` the most likely level). Keep auth comparisons constant-time, give
+  every limit a 4xx with a message, and never return tracebacks or paths to the client.
+- **Change the public API** (`load`, `system_one`, `system_one_batch`, `Choice` / `Score` / `Noul`, the answer fields)
+  outside the versioning policy in [CHANGELOG.md](CHANGELOG.md).
+- Add a dependency to the core package, or one that needs a hosted service. Optional features go in an extra in
+  `pyproject.toml` (`small`, `mlx`, `serve`).
+- Reformat files wholesale, reorder imports or "modernise" surrounding code. Match the style of the file being edited
+  (lines up to 120 characters).
+- Commit secrets, tokens, model weights or other large binaries.
+
+## Where to look
+
+| editing | check |
+|---|---|
+| `opendecider/` (any) | `python -m pytest -q tests` (torch-free; a fake model stands in, no download) |
+| `opendecider/serve.py` | `tests/test_serve.py` |
+| `opendecider/remote.py` (LM Studio / Ollama / vLLM backend) | `tests/test_remote.py` |
+| `opendecider/questions.py` | `tests/test_questions.py` |
+| `examples/` | run the script with opendecider-nano on CPU; CI runs them all |
+| `docs/`, `zensical.toml` | `pip install -r requirements-docs.txt && zensical build --strict --clean` |
+| `benchmarks/` | `python benchmarks/report.py` rebuilds every table from the committed results |
+
+Development setup:
+
+```bash
+pip install -e ".[small,serve,dev]"
+python -m pytest -q tests
+```
+
+## Commits and pull requests
+
+- Short imperative subjects with a scope prefix, as in the history: `docs: …`, `examples: …`, `serve: …`,
+  `chore: …`. One logical change per commit.
+- One focused change per pull request, rebased on the latest `main`.
+- If a change can move numbers (accuracy, probabilities, latency, memory), report the before and after.
+- Update `docs/`, `examples/` or `CHANGELOG.md` when behaviour or the public API changes.
+- Write in English.

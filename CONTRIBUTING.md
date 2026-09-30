@@ -3,6 +3,19 @@
 Thanks for helping. Issues and pull requests are welcome; for anything large, open an issue first so we can agree
 on the approach.
 
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). User documentation lives at
+[manjunathshiva.github.io/opendecider](https://manjunathshiva.github.io/opendecider/) (source in `docs/`), and
+[AGENTS.md](AGENTS.md) summarises these rules for AI coding assistants.
+
+## Where to help
+
+- **Integrations:** LangChain / LangGraph, LlamaIndex or CrewAI tools that call a model or `opendecider serve`.
+- **Clients:** a TypeScript or Go client for `opendecider serve` (the protocol is in the
+  [HTTP API reference](https://manjunathshiva.github.io/opendecider/reference/http-api/)).
+- **Examples:** a runnable script for a use case not covered in `examples/` (CI runs every script there).
+- **Benchmarks:** results on a public decision dataset we have not measured, through `benchmarks/`.
+- **Docs:** anything that was unclear or missing when you first used OpenDecider.
+
 ## Development setup
 
 ```bash

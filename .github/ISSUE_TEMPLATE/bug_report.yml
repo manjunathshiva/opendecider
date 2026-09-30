@@ -1,0 +1,97 @@
+name: Bug report
+description: Something is not working as expected.
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. A short, runnable reproduction is the fastest path to a fix.
+        Security issues go through [private vulnerability reporting](https://github.com/manjunathshiva/opendecider/security/advisories/new), not here.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what did you get instead?
+      placeholder: I expected X, but I got Y.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The smallest script, request or command that shows the problem.
+      render: python
+      placeholder: |
+        from opendecider import load
+
+        model = load("manjunathshiva/opendecider-nano")
+        print(model.system_one("...", {"q": {"type": "noul", "instructions": "?"}}))
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or traceback
+      description: Paste the full traceback if there is one.
+      render: shell
+
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: The model name (and revision, if pinned), or `lmstudio:` / `ollama:` / `openai:` name.
+      placeholder: manjunathshiva/opendecider-nano
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: opendecider version
+      description: The output of `python -c "import opendecider; print(opendecider.__version__)"`.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: how
+    attributes:
+      label: How you run it
+      options:
+        - Python library
+        - opendecider serve (pip)
+        - Docker image
+        - LM Studio / Ollama / vLLM backend
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - CPU
+        - NVIDIA (CUDA)
+        - Apple Silicon (MPS)
+        - Apple Silicon (MLX)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and Python version
+      placeholder: macOS 26, Python 3.12
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
