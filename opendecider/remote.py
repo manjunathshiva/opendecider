@@ -1,17 +1,20 @@
-"""OpenDecider through a model server: LM Studio, Ollama, or another server with an OpenAI-compatible
+"""OpenDecider through a model server: LM Studio, Ollama, vLLM, or another server with an OpenAI-compatible
 ``/v1/chat/completions`` that returns ``top_logprobs``.
 
-The server only runs the model (the GGUF build of opendecider-small or -small-td). OpenDecider builds the same prompt
-the model was trained on and reads the probability of each option letter from the next-token log-probabilities, so
-the answers match the PyTorch model (typed-decisions: 0.669 through a Q8_0 GGUF vs 0.671 in PyTorch).
+The server only runs the model (opendecider-small or -small-td: the GGUF build, or the base model with the LoRA
+adapter). OpenDecider builds the same prompt the model was trained on and reads the probability of each option letter
+from the next-token log-probabilities, so a Q8_0 GGUF build gives the same top answer as the PyTorch model on about 99%
+of typed-decisions questions (1,975 of 2,000 for opendecider-small, at 0.669 vs 0.671 accuracy).
 
-Tested with LM Studio (its llama.cpp engine) and Ollama. Other servers with an OpenAI-compatible chat endpoint that
-returns `top_logprobs` should work the same way. LM Studio's MLX engine returns no log-probabilities.
+Tested with LM Studio (its llama.cpp engine) and Ollama (the GGUF builds), and with vLLM serving the base model with
+the LoRA adapter (`--enable-lora --max-logprobs 20`): same accuracy as the PyTorch model on typed-decisions. Other
+servers with an OpenAI-compatible chat endpoint that returns `top_logprobs` should work the same way. LM Studio's MLX
+engine returns no log-probabilities.
 
     from opendecider import load
     model = load("lmstudio:opendecider-small")                 # LM Studio on http://127.0.0.1:1234
     model = load("ollama:opendecider-small")                   # Ollama on http://127.0.0.1:11434
-    model = load("openai:opendecider-small", base_url="http://gpu-box:8000/v1")
+    model = load("openai:opendecider-small", base_url="http://gpu-box:8000/v1")   # e.g. vLLM
 
     opendecider serve --model lmstudio:opendecider-small       # Jev-compatible /v1/systemone on top of LM Studio
 
@@ -111,8 +114,8 @@ class RemoteModel:
             top = r["choices"][0]["logprobs"]["content"][0]["top_logprobs"]
         except (KeyError, IndexError, TypeError):
             raise RuntimeError(f"{self.base_url} returned no token log-probabilities for {self.model!r}. Use a server "
-                               "and engine that supports them (LM Studio and Ollama with the GGUF build do; LM Studio's "
-                               "MLX engine does not)") from None
+                               "and engine that supports them (LM Studio and Ollama with the GGUF build, and vLLM, do; "
+                               "LM Studio's MLX engine does not)") from None
         # "A" and " A" are different tokens that both mean the letter A: add their probabilities
         prob: dict = {}
         for t in top:
@@ -121,7 +124,7 @@ class RemoteModel:
         wanted = LETTERS[:len(names)]
         if not any(c in prob for c in wanted):
             raise RuntimeError(f"none of the option letters {wanted[0]}-{wanted[-1]} is among the most likely next tokens "
-                               f"from {self.model!r}; is this an OpenDecider GGUF build (opendecider-small or -small-td)?")
+                               f"from {self.model!r}; is this an OpenDecider model (opendecider-small or -small-td)?")
         # a letter outside the top 20: well below the least likely token returned
         floor = min(math.exp(t["logprob"]) for t in top) * math.exp(-5.0)
         w = [prob.get(c, floor) for c in wanted]

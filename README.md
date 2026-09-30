@@ -21,6 +21,7 @@
 [![Platforms](https://img.shields.io/badge/runs%20on-CPU%20%C2%B7%20NVIDIA%20%C2%B7%20Apple%20Silicon-lightgrey)](https://github.com/manjunathshiva/opendecider#installation-details)
 [![LM Studio](https://img.shields.io/badge/LM%20Studio-GGUF-6f42c1)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
 [![Ollama](https://img.shields.io/badge/Ollama-GGUF-black)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
+[![vLLM](https://img.shields.io/badge/vLLM-LoRA-30A2FF)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 
 </div>
@@ -32,7 +33,7 @@ pip install opendecider              # opendecider-nano
 pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td, -medium-td and -large-td
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
-# LM Studio / Ollama: the GGUF builds, see "Run it in LM Studio or Ollama" below (no extra packages)
+# LM Studio / Ollama (GGUF builds) and vLLM: see "Run it in LM Studio or Ollama" below (no extra packages)
 ```
 
 Python 3.10 or newer. Works on Linux, Windows and macOS, on CPU, NVIDIA (CUDA) and Apple Silicon (MPS), and picks the
@@ -72,8 +73,9 @@ The 4B models also come as GGUF builds for LM Studio, Ollama and other llama.cpp
 [opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) and
 [opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF). The app runs the
 model; the opendecider package builds the prompt the model was trained on and reads the option probabilities from the
-server's token log-probabilities, so the answers match the full-precision model (typed-decisions: small 0.669 at Q8_0
-vs 0.671, small-td 0.794 vs 0.792).
+server's token log-probabilities. The Q8_0 builds give the same top answer as the full-precision model on about 99% of
+typed-decisions questions (small 1,975 and small-td 1,972 of 2,000), with the same accuracy (0.669 vs 0.671, 0.794 vs
+0.792). Q4_K_M agrees on about 93%, for machines with little memory.
 
 ```bash
 pip install "opendecider[serve]>=0.2.1"
@@ -112,7 +114,23 @@ opendecider serve --model lmstudio:opendecider-small
 opendecider serve --model ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0
 ```
 
-Other servers with an OpenAI-compatible chat endpoint that returns `top_logprobs` can be used with
+**vLLM** (NVIDIA): serve the base model with the LoRA adapter, no merge or GGUF needed
+
+```bash
+hf download manjunathshiva/opendecider-small --local-dir opendecider-small
+vllm serve Qwen/Qwen3-4B-Instruct-2507 --enable-lora --max-lora-rank 16 --max-logprobs 20 --max-model-len 4096 \
+  --lora-modules opendecider-small=./opendecider-small
+```
+
+```python
+model = load("openai:opendecider-small", base_url="http://localhost:8000/v1")
+```
+
+Tested with vLLM 0.30 on an NVIDIA L4, both adapters on one server (add `opendecider-small-td=...` to `--lora-modules`):
+typed-decisions 0.6735 (small) and 0.7945 (small-td) against 0.6715 and 0.792 for the PyTorch model, with the same top
+answer on 1,963 and 1,969 of 2,000 questions.
+
+Other servers with an OpenAI-compatible chat endpoint that returns `top_logprobs` can be used the same way, with
 `load("openai:<model>", base_url="http://host:port/v1")`. Swap `small` for `small-td` above for the business-workflow model.
 
 Use the GGUF build in LM Studio on a Mac too: its MLX engine returns no log-probabilities (for MLX, use
@@ -224,6 +242,17 @@ these workflows, not as general superiority.
 </p>
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
+
+## What's new in 0.2.1
+
+* **Runs in LM Studio and Ollama.** New GGUF builds
+  ([opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF),
+  [opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF)) and a backend that uses
+  the app as the engine: `load("lmstudio:...")`, `load("ollama:...")`, or `opendecider serve` on top of either. Because
+  OpenDecider sends the prompt the model was trained on, the Q8_0 builds give the same top answer as the full-precision
+  model on about 99% of typed-decisions questions (1,975 and 1,972 of 2,000), at the same accuracy. See [Run it in LM Studio or Ollama](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama).
+* **Runs on vLLM too:** `load("openai:...")` against vLLM serving Qwen3-4B-Instruct-2507 with the LoRA adapter gives the
+  same accuracy as the PyTorch model on typed-decisions (within 0.3 points).
 
 ## What's new in 0.2.0
 
