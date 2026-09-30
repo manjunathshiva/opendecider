@@ -27,7 +27,9 @@ class MLXSmallModel:
     def ids(self, prompt: str) -> list[int]:
         msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}]
         s = self.tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False)
-        return self.tok.encode(s, add_special_tokens=False)
+        ids = self.tok.encode(s, add_special_tokens=False)
+        self._last_tokens = len(ids)
+        return ids
 
     def decide(self, state, instructions: str, options: dict) -> dict:
         import mlx.core as mx
@@ -56,5 +58,10 @@ class MLXSmallModel:
         w = [math.exp(s - top) for s in scores]
         return {k: v / sum(w) for k, v in zip(names, w)}
 
-    def decide_many(self, items: list[tuple]) -> list[dict]:
-        return [self.decide(*it) for it in items]
+    def decide_many(self, items: list[tuple], info: list | None = None) -> list[dict]:
+        out = []
+        for it in items:
+            out.append(self.decide(*it))
+            if info is not None:
+                info.append({"input_tokens": self._last_tokens, "truncated": False})
+        return out

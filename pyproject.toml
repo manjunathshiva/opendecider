@@ -31,7 +31,12 @@ dependencies = [
 small = ["peft>=0.11", "accelerate"]
 # opendecider-small-mlx-*: Apple Silicon builds run through MLX
 mlx = ["mlx-lm>=0.28; sys_platform == 'darwin' and platform_machine == 'arm64'"]
-dev = ["pytest"]
+# `opendecider serve`: HTTP server speaking the Jev /v1/systemone protocol
+serve = ["fastapi>=0.110", "uvicorn>=0.27"]
+dev = ["pytest", "fastapi>=0.110", "httpx>=0.27"]
+
+[project.scripts]
+opendecider = "opendecider.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/manjunathshiva/opendecider"

@@ -47,11 +47,16 @@ class SmallModel:
             m = AutoModelForCausalLM.from_pretrained(base, dtype=dtype).to(device)
         self.m = PeftModel.from_pretrained(m, adapter_path).merge_and_unload().eval()
         self.letters = [self.tok.encode(c, add_special_tokens=False)[0] for c in LETTERS]
+        self.max_input_tokens = int(getattr(self.m.config, "max_position_embeddings", 32768))
 
     def ids(self, prompt: str) -> list[int]:
         msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}]
         s = self.tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False)
-        return self.tok.encode(s, add_special_tokens=False)
+        ids = self.tok.encode(s, add_special_tokens=False)
+        if len(ids) > getattr(self, "max_input_tokens", 1 << 30):
+            raise ValueError(f"input is {len(ids)} tokens, longer than this model's {self.max_input_tokens}-token context")
+        self._last_tokens = len(ids)
+        return ids
 
     @torch.no_grad()
     def decide(self, state, instructions: str, options: dict) -> dict:
@@ -80,5 +85,43 @@ class SmallModel:
         w = [math.exp(s - top) for s in scores]
         return {k: v / sum(w) for k, v in zip(names, w)}
 
-    def decide_many(self, items: list[tuple]) -> list[dict]:
-        return [self.decide(*it) for it in items]
+    @torch.no_grad()
+    def _letters_batch(self, rows: list[list[int]], n_opts: list[int]) -> list[list[float]]:
+        """Lettered questions in one right-padded forward pass: the causal mask means padding after a row's
+        last real token cannot change it, so each row's answer is read at its own last position."""
+        L, pad = max(len(r) for r in rows), (self.tok.pad_token_id or 0)
+        x = torch.tensor([r + [pad] * (L - len(r)) for r in rows], device=self.device)
+        att = torch.tensor([[1] * len(r) + [0] * (L - len(r)) for r in rows], device=self.device)
+        h = self.m.model(input_ids=x, attention_mask=att).last_hidden_state
+        last = torch.tensor([len(r) - 1 for r in rows], device=h.device)
+        h = h[torch.arange(len(rows), device=h.device), last]
+        logits = self.m.lm_head(h.to(self.m.lm_head.weight.device)).float()
+        return [torch.softmax(logits[i, self.letters[:k]], -1).tolist() for i, k in enumerate(n_opts)]
+
+    batch = 1   # questions per forward pass. 1 = the exact path every published number used; >1 trades exactness
+    #             (bf16 padding changes about 1 top answer in 75) for throughput. `opendecider serve --small-batch N`.
+
+    def decide_many(self, items: list[tuple], info: list | None = None, batch: int | None = None) -> list[dict]:
+        """Up to 26 options: `batch` questions per forward pass (default: self.batch). More options: one at a time."""
+        batch = batch or self.batch
+        out: list = [None] * len(items)
+        toks = [0] * len(items)
+        lettered = [i for i, it in enumerate(items) if len(it[2]) <= len(LETTERS)]
+        for j in range(0, len(lettered), batch):
+            idx = lettered[j:j + batch]
+            rows = [self.ids(render(*items[i])) for i in idx]
+            for i, r in zip(idx, rows):
+                toks[i] = len(r)
+            if len(rows) == 1:
+                out[idx[0]] = self.decide(*items[idx[0]])   # the exact single-question path
+                toks[idx[0]] = self._last_tokens
+                continue
+            for i, p in zip(idx, self._letters_batch(rows, [len(items[i][2]) for i in idx])):
+                out[i] = dict(zip(items[i][2], p))
+        for i, it in enumerate(items):
+            if out[i] is None:
+                out[i] = self.decide(*it)
+                toks[i] = self._last_tokens
+        if info is not None:
+            info.extend({"input_tokens": t, "truncated": False} for t in toks)
+        return out
