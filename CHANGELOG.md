@@ -14,11 +14,13 @@ format.
 
 ### Added
 - `load("lmstudio:<model>")`, `load("ollama:<model>")` and `load("openai:<model>", base_url=...)`: use a model served by
-  LM Studio or Ollama (both tested), or another server with an OpenAI-compatible chat endpoint that returns token
-  log-probabilities (`opendecider.remote`). OpenDecider sends the prompt the model was trained on and reads the option probabilities
+  LM Studio or Ollama (the GGUF builds), vLLM (the base model with the LoRA adapter), or another server with an
+  OpenAI-compatible chat endpoint that returns token log-probabilities (`opendecider.remote`). LM Studio, Ollama and
+  vLLM 0.30 are tested. OpenDecider sends the prompt the model was trained on and reads the option probabilities
   from `top_logprobs`. On typed-decisions (2,000 questions), the Q8_0 GGUF builds give the same top answer as the
   PyTorch model on 1,975 (small) and 1,972 (small-td), at the same accuracy (0.669 vs 0.671, 0.794 vs 0.792); the Q4_K_M
-  builds agree on 1,857 and 1,875.
+  builds agree on 1,857 and 1,875. Through vLLM (bf16, adapter not merged): 0.6735 and 0.7945 against 0.6715 and 0.792,
+  the same top answer on 1,963 and 1,969.
 
   `opendecider serve --model lmstudio:...` puts the Jev-compatible `/v1/systemone` in front of it. Up to 26 options per
   question; the questions of a request run in parallel (4 at a time); transient upstream errors (429/5xx, reset
