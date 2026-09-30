@@ -16,9 +16,9 @@ format.
 - `load("lmstudio:<model>")`, `load("ollama:<model>")` and `load("openai:<model>", base_url=...)`: use a model served by
   LM Studio or Ollama (both tested), or another server with an OpenAI-compatible chat endpoint that returns token
   log-probabilities (`opendecider.remote`). OpenDecider sends the prompt the model was trained on and reads the option probabilities
-  from `top_logprobs`, so the GGUF builds match the PyTorch model:
-  - typed-decisions for small: 0.669 at Q8_0 against 0.671;
-  - for small-td: 0.794 against 0.792.
+  from `top_logprobs`. On typed-decisions (2,000 questions), the Q8_0 GGUF builds give the same top answer as the
+  PyTorch model on 1,975 (small) and 1,972 (small-td), at the same accuracy (0.669 vs 0.671, 0.794 vs 0.792); the Q4_K_M
+  builds agree on 1,857 and 1,875.
 
   `opendecider serve --model lmstudio:...` puts the Jev-compatible `/v1/systemone` in front of it. Up to 26 options per
   question; the questions of a request run in parallel (4 at a time); transient upstream errors (429/5xx, reset

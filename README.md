@@ -72,8 +72,9 @@ The 4B models also come as GGUF builds for LM Studio, Ollama and other llama.cpp
 [opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) and
 [opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF). The app runs the
 model; the opendecider package builds the prompt the model was trained on and reads the option probabilities from the
-server's token log-probabilities, so the answers match the full-precision model (typed-decisions: small 0.669 at Q8_0
-vs 0.671, small-td 0.794 vs 0.792).
+server's token log-probabilities. The Q8_0 builds give the same top answer as the full-precision model on about 99% of
+typed-decisions questions (small 1,975 and small-td 1,972 of 2,000), with the same accuracy (0.669 vs 0.671, 0.794 vs
+0.792). Q4_K_M agrees on about 93%, for machines with little memory.
 
 ```bash
 pip install "opendecider[serve]>=0.2.1"
@@ -230,9 +231,9 @@ these workflows, not as general superiority.
 * **Runs in LM Studio and Ollama.** New GGUF builds
   ([opendecider-small-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-GGUF),
   [opendecider-small-td-GGUF](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF)) and a backend that uses
-  the app as the engine: `load("lmstudio:...")`, `load("ollama:...")`, or `opendecider serve` on top of either. The
-  answers match the full-precision model (typed-decisions 0.669 vs 0.671 for small, 0.794 vs 0.792 for small-td), because
-  OpenDecider sends the prompt the model was trained on. See [Run it in LM Studio or Ollama](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama).
+  the app as the engine: `load("lmstudio:...")`, `load("ollama:...")`, or `opendecider serve` on top of either. Because
+  OpenDecider sends the prompt the model was trained on, the Q8_0 builds give the same top answer as the full-precision
+  model on about 99% of typed-decisions questions (1,975 and 1,972 of 2,000), at the same accuracy. See [Run it in LM Studio or Ollama](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama).
 
 ## What's new in 0.2.0
 

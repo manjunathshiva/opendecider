@@ -3,7 +3,8 @@
 
 The server only runs the model (the GGUF build of opendecider-small or -small-td). OpenDecider builds the same prompt
 the model was trained on and reads the probability of each option letter from the next-token log-probabilities, so
-the answers match the PyTorch model (typed-decisions: 0.669 through a Q8_0 GGUF vs 0.671 in PyTorch).
+a Q8_0 GGUF build gives the same top answer as the PyTorch model on about 99% of typed-decisions questions (1,975 of
+2,000 for opendecider-small, at 0.669 vs 0.671 accuracy).
 
 Tested with LM Studio (its llama.cpp engine) and Ollama. Other servers with an OpenAI-compatible chat endpoint that
 returns `top_logprobs` should work the same way. LM Studio's MLX engine returns no log-probabilities.
