@@ -140,8 +140,8 @@ def main():
         (out / "requests.jsonl").write_text("".join(json.dumps(dict(zip(("start_s", "end_s", "ms", "code"), r))) + "\n" for r in log))
         try:
             charts(s, out, a.label or a.url)
-        except ImportError:
-            pass
+        except ImportError:   # charts are optional; the numbers are already saved
+            print("matplotlib is not installed: skipping load_test.png (pip install matplotlib)")
 
 
 if __name__ == "__main__":
