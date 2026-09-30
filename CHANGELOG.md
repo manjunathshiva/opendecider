@@ -10,6 +10,19 @@ format.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [0.2.1] - unreleased
+
+### Added
+- `load("lmstudio:<model>")`, `load("ollama:<model>")` and `load("openai:<model>", base_url=...)`: use a model served by
+  LM Studio, Ollama, llama.cpp's server, vLLM or any OpenAI-compatible server that returns token log-probabilities
+  (`opendecider.remote`). OpenDecider sends the prompt the model was trained on and reads the option probabilities
+  from `top_logprobs`, so the GGUF builds match the PyTorch model:
+  - typed-decisions for small: 0.669 at Q8_0 against 0.671;
+  - for small-td: 0.794 against 0.792.
+
+  `opendecider serve --model lmstudio:...` puts the Jev-compatible `/v1/systemone` in front of it. Up to 26 options per
+  question; the server's model runs the questions of a request in parallel (4 at a time).
+
 ## [0.2.0] - 2026-09-30
 
 ### Added

@@ -104,9 +104,16 @@ class OpenDecider:
 
 
 def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | None = None,
-         revision: str | None = None, dtype: str | None = None) -> OpenDecider:
+         revision: str | None = None, dtype: str | None = None, base_url: str | None = None) -> OpenDecider:
     """Load a model from the Hub or a local folder (anything with opendecider.json).
-    `dtype` (nano only): "float32" (default, as evaluated) or "bfloat16" (faster on CPUs with bf16 units and on GPUs)."""
+    `dtype` (nano only): "float32" (default, as evaluated) or "bfloat16" (faster on CPUs with bf16 units and on GPUs).
+    "lmstudio:<model>", "ollama:<model>" or "openai:<model>" (with `base_url`) uses a model served by LM Studio,
+    Ollama or any OpenAI-compatible server that returns token log-probabilities (see opendecider.remote)."""
+    from . import remote
+    target = remote.parse(name_or_path, base_url)
+    if target:   # a model served by LM Studio / Ollama / any OpenAI-compatible server with logprobs
+        impl = remote.RemoteModel(target[0], target[1])
+        return OpenDecider(impl, {"name": target[0], "kind": "remote", "base_url": target[1]})
     path = Path(name_or_path).expanduser()
     if not (path / "opendecider.json").exists():
         from huggingface_hub import snapshot_download
