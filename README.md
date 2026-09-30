@@ -19,6 +19,8 @@
 [![Live demo](https://img.shields.io/badge/%F0%9F%A4%97%20Space-live%20demo-orange)](https://huggingface.co/spaces/manjunathshiva/opendecider-demo)
 [![Full comparison](https://img.shields.io/badge/benchmarks-COMPARISON.md-2ea44f)](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md)
 [![Platforms](https://img.shields.io/badge/runs%20on-CPU%20%C2%B7%20NVIDIA%20%C2%B7%20Apple%20Silicon-lightgrey)](https://github.com/manjunathshiva/opendecider#installation-details)
+[![LM Studio](https://img.shields.io/badge/LM%20Studio-GGUF-6f42c1)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
+[![Ollama](https://img.shields.io/badge/Ollama-GGUF-black)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 
 </div>
@@ -74,20 +76,44 @@ server's token log-probabilities, so the answers match the full-precision model 
 vs 0.671, small-td 0.794 vs 0.792).
 
 ```bash
-pip install "opendecider[serve]"
+pip install "opendecider[serve]>=0.2.1"
+```
+
+**LM Studio**
+
+```bash
+lms get https://huggingface.co/manjunathshiva/opendecider-small-GGUF --select   # choose Q8_0 (or search "opendecider" in the app)
+lms load opendecider-small@q8_0 --identifier opendecider-small
+lms server start
 ```
 
 ```python
 from opendecider import load
-
-model = load("lmstudio:opendecider-small")    # LM Studio's server on :1234 (`lms load opendecider-small@q8_0 --identifier opendecider-small`)
-model = load("ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0")      # after `ollama pull hf.co/...`
-model = load("openai:opendecider-small", base_url="http://gpu-box:8000/v1")  # other OpenAI-compatible servers with top_logprobs
+model = load("lmstudio:opendecider-small")
+print(model.system_one("I was charged twice. Please refund the extra payment.",
+                       {"team": {"type": "choice", "instructions": "Which team?",
+                                 "criteria": {"billing": "payments, refunds", "technical": "bugs"}}})["answers"])
 ```
+
+**Ollama**
 
 ```bash
-opendecider serve --model lmstudio:opendecider-small     # Jev-compatible /v1/systemone on top of LM Studio
+ollama pull hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0
 ```
+
+```python
+model = load("ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0")
+```
+
+**Serve Jev's `/v1/systemone` API on top of either** (works with Jev clients and TypeSafe's SDK):
+
+```bash
+opendecider serve --model lmstudio:opendecider-small
+opendecider serve --model ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0
+```
+
+Other servers with an OpenAI-compatible chat endpoint that returns `top_logprobs` can be used with
+`load("openai:<model>", base_url="http://host:port/v1")`. Swap `small` for `small-td` above for the business-workflow model.
 
 Use the GGUF build in LM Studio on a Mac too: its MLX engine returns no log-probabilities (for MLX, use
 `pip install "opendecider[mlx]"` with the MLX builds). Up to 26 options per question through a model server.
@@ -259,6 +285,8 @@ The checkpoints:
 | [`opendecider-large-td`](https://huggingface.co/manjunathshiva/opendecider-large-td) | Qwen3-Next-80B-A3B-Instruct + LoRA | 80B (3B active) | 768 (training inputs) | 160 GB bf16, across several GPUs (tested on 4× L40S) | probabilities you can threshold on: best calibration and agreement with people; NVIDIA only |
 | [`opendecider-small-mlx-8bit`](https://huggingface.co/manjunathshiva/opendecider-small-mlx-8bit) | opendecider-small, MLX 8-bit | 4B | 768 (training inputs) | 4.5 GB | Macs: same answers as full precision (1,955/2,000 on typed-decisions), 66 ms per question |
 | [`opendecider-small-mlx-4bit`](https://huggingface.co/manjunathshiva/opendecider-small-mlx-4bit) | opendecider-small, MLX 4-bit | 4B | 768 (training inputs) | 2.6 GB | Macs with little memory; about 2 points lower on typed-decisions (0.651) |
+| [`opendecider-small-GGUF`](https://huggingface.co/manjunathshiva/opendecider-small-GGUF) | opendecider-small, GGUF Q8_0 / Q4_K_M | 4B | 768 (training inputs) | 4.3 / 2.5 GB | LM Studio and Ollama: typed-decisions 0.669 at Q8_0 (full precision 0.671) |
+| [`opendecider-small-td-GGUF`](https://huggingface.co/manjunathshiva/opendecider-small-td-GGUF) | opendecider-small-td, GGUF Q8_0 / Q4_K_M | 4B | 768 (training inputs) | 4.3 / 2.5 GB | LM Studio and Ollama, business workflows: 0.794 at Q8_0 (full precision 0.792) |
 
 ### Coming next (in development)
 
