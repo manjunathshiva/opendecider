@@ -51,7 +51,7 @@ jobs:
       - name: Build the CUDA image (no GPU on CI runners; the image is exercised on AWS before a release)
         run: docker build -f docker/Dockerfile.cuda -t opendecider:ci-cuda .
       - name: Check the entry point imports
-        run: docker run --rm --entrypoint python opendecider:ci-cuda -c "import opendecider.serve, opendecider.cli, fastapi, uvicorn, peft; print('ok')"
+        run: docker run --rm --entrypoint python3 opendecider:ci-cuda -c "import torch, opendecider.serve, opendecider.cli, fastapi, uvicorn, peft; print('torch', torch.__version__, 'cuda build', torch.version.cuda)"
       - name: Publish to GHCR (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
         run: |

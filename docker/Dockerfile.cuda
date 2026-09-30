@@ -4,19 +4,20 @@
 #     -e OPENDECIDER_MODEL=manjunathshiva/opendecider-small opendecider:cuda
 FROM pytorch/pytorch:2.10.0-cuda12.8-cudnn9-runtime
 
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
+# the base image uses the system Python (PEP 668); inside a container installing into it is the intended use
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_BREAK_SYSTEM_PACKAGES=1 \
     HF_HOME=/models OPENDECIDER_HOST=0.0.0.0 OPENDECIDER_PORT=8000 \
     OPENDECIDER_MODEL=manjunathshiva/opendecider-nano
 
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE NOTICE ./
 COPY opendecider ./opendecider
-RUN pip install ".[serve,small]"
+RUN python3 -m pip install ".[serve,small]" && python3 -c "import torch, opendecider.serve; print(torch.__version__)"
 
 RUN useradd --create-home --uid 10001 app && mkdir -p /models && chown app /models
 USER app
 
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=300s --retries=3 \
-  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4).status == 200 else 1)"
+  CMD python3 -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4).status == 200 else 1)"
 ENTRYPOINT ["opendecider", "serve"]
