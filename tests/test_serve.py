@@ -113,11 +113,13 @@ def test_auth():
     assert c.get("/health").status_code == 200   # probes stay open
 
 
-def test_model_failure_is_isolated_and_logged():
+def test_model_failure_is_isolated_and_logged(caplog):
     app, _ = make()
     c = client(app)
-    r = c.post("/v1/systemone", json={"state": "boom", "questions": {"team": QS["team"]}})
+    r = c.post("/v1/systemone", json={"state": "boom", "questions": {"team": QS["team"]}},
+               headers={"x-request-id": "req-7"})
     assert r.status_code == 500 and r.json()["detail"] == "inference failed"   # no internals leaked
+    assert r.headers["x-request-id"] == "req-7" and "inference failed (request req-7)" in caplog.text
     assert c.post("/v1/systemone", json={"state": "fine", "questions": {"team": QS["team"]}}).status_code == 200
     r = c.post("/v1/systemone", json={"state": "too long", "questions": {"team": QS["team"]}})
     assert r.status_code == 422 and "context" in r.json()["detail"]   # the client's input problem, named

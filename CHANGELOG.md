@@ -17,6 +17,8 @@ format.
 - `opendecider serve`: an unexpected internal error now returns the JSON error body
   (`{"detail": "internal server error"}`) and the `x-request-id` header like every other response, instead of a
   plain-text 500 without the id; the traceback is logged with the request id.
+- `opendecider serve`: an inference failure is now logged with the request id of the request that failed, as
+  SECURITY.md describes; before, the log line did not say which request it was.
 
 ### Documentation
 
