@@ -48,7 +48,7 @@ r["answers"]["churn_risk"]["noul"]     # probability the answer is yes
 | automate the decisions the model is sure about and send the rest to a person | [Automate the confident decisions](guides/confident-automation.md) |
 | check an AI agent's next step before it runs | [Agent guardrails](guides/agent-guardrails.md) |
 | let Claude, Cursor or another AI assistant call it as a tool | [AI assistants (MCP)](guides/mcp.md) |
-| route a LangGraph graph or a LlamaIndex query engine, or give an agent decision tools | [LangChain, LangGraph, LlamaIndex](guides/agent-frameworks.md) |
+| route an agent workflow (LangGraph, Agno, CrewAI, Microsoft Agent Framework, Google ADK, LlamaIndex, …) or give an agent decision tools | [Agent frameworks](guides/agent-frameworks.md) |
 | copy a working script | [Examples and notebook](examples.md) |
 | see how it compares with Jev, Laya and frontier LLMs | [Benchmarks](benchmarks.md) |
 | know where it is weak | [Limitations](limitations.md) |

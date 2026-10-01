@@ -238,7 +238,7 @@ number of typed questions, and the shortcuts `choose`, `yes_no` and `score`. The
 option instead of reasoning a classification out in text, and can ask you when the confidence is low. Any model works
 (`--model`), including one served by Ollama or LM Studio. Setup for each client: [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
 
-## LangChain, LangGraph and LlamaIndex
+## Agent frameworks: LangGraph, Agno, CrewAI, Microsoft Agent Framework, Google ADK and more
 
 ```python
 from opendecider.integrations.langchain import DecisionRouter
@@ -249,10 +249,24 @@ route = DecisionRouter({"billing_agent": "invoices, refunds", "tech_support": "e
 graph.add_conditional_edges("triage", route, route.path_map)     # LangGraph: route on confidence
 ```
 
-`DecisionRouter` routes a LangGraph graph in milliseconds and sends unsure cases to a fallback; `DecisionSelector`
-picks a LlamaIndex RouterQueryEngine's engine without an LLM call; `decision_tools()` gives LangChain and LlamaIndex
-agents the same four tools as the MCP server. Install with `opendecider[langchain]` or `opendecider[llamaindex]`; see
-[LangChain, LangGraph and LlamaIndex](https://manjunathshiva.github.io/opendecider/guides/agent-frameworks/).
+A router picks the next step of an agent workflow in milliseconds, with no LLM call, and sends unsure cases to a
+fallback; `decision_tools()` gives an agent the same four tools as the MCP server.
+
+| framework | install | router |
+|---|---|---|
+| LangGraph / LangChain | `opendecider[langchain]` | `DecisionRouter`: a conditional edge |
+| LlamaIndex | `opendecider[llamaindex]` | `DecisionSelector`: a RouterQueryEngine selector |
+| Agno | `opendecider[agno]` | `DecisionRouter.selector()`: a workflow Router's selector |
+| CrewAI | `opendecider[crewai]` | `DecisionRouter`: a Flow `@router` label |
+| Microsoft Agent Framework | `opendecider[agent-framework]` | `DecisionRouter.cases()`: a switch-case edge group |
+| Google ADK | `opendecider[google-adk]` | `DecisionRouterAgent`: hands over to a sub-agent |
+| PydanticAI | `opendecider[pydantic-ai]` | `decision_toolset()`, and `DecisionRouter` for your code |
+| Strands Agents | `opendecider[strands]` | `decision_tools()`, and `DecisionRouter` for your code |
+| Mastra (TypeScript) | `opendecider[mcp]` + `@mastra/mcp` | the MCP server's tools |
+
+A runnable example for each, without an LLM API key, is in
+[examples/agent_frameworks](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks); see
+[Agent frameworks](https://manjunathshiva.github.io/opendecider/guides/agent-frameworks/).
 
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
