@@ -86,8 +86,10 @@ class DecisionRouter(core.Router):
     """
 
     def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = core.DEFAULT_MODEL,
-                 fallback: str | None = None, min_confidence: float = 0.0, state: Callable | None = None):
-        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence)
+                 fallback: str | None = None, min_confidence: float = 0.0, state: Callable | None = None,
+                 on_error: str = "raise", on_decision=None):
+        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence,
+                         on_error=on_error, on_decision=on_decision)
         self.state = state or _text
         self._memo: tuple[Any, str | None] = (object(), None)   # (message, route): every case reuses one decision
 
@@ -98,15 +100,19 @@ class DecisionRouter(core.Router):
         if seen is message:
             return choice
         try:
-            choice = self.route(self.state(message))
+            decision = self._decide_from(message, self.state)
+            # a failed decision goes to the default executor under either on_error policy; only a decision that
+            # was made (top choice or low confidence) follows its route
+            choice = None if decision.reason == "error" else decision.route
         except Exception as e:   # the switch would swallow it case by case; say why once, then take the default
-            log.error("routing failed, sending the message to the default executor: %s", e)
+            core._log_once(log, logging.ERROR, "routing failed, sending the message to the default executor: %s", e)
             choice = None
         self._memo = (message, choice)
         return choice
 
     def cases(self, targets: dict[str, Any], default: Any = None) -> list:
-        """The `Case`s (one per route, by name) and the `Default` for `add_switch_case_edge_group`."""
+        """The `Case`s (one per route, by name, and one for the fallback when it has a target) and the `Default` for
+        `add_switch_case_edge_group`. The default (by default the fallback's target) takes failed decisions."""
         from agent_framework import Case, Default
         missing = [n for n in self.routes if n not in targets]
         if missing:
@@ -115,6 +121,9 @@ class DecisionRouter(core.Router):
             default = targets.get(self.fallback) if self.fallback is not None else None
         if default is None:
             raise ValueError("a switch-case edge group needs a default target (the fallback route's executor)")
-        cases = [Case(condition=lambda m, name=name: self.pick(m) == name, target=targets[name])
-                 for name in self.routes]
+        names = list(self.routes)
+        if (self.fallback is not None and self.fallback not in names and self.fallback in targets
+                and targets[self.fallback] is not default):   # the framework allows one edge per target
+            names.append(self.fallback)   # low-confidence messages go to the fallback's own target
+        cases = [Case(condition=lambda m, name=name: self.pick(m) == name, target=targets[name]) for name in names]
         return cases + [Default(target=default)]

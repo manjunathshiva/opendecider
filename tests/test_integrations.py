@@ -65,7 +65,7 @@ def test_langchain_router_routes_and_falls_back():
     routes = {"billing": "charges, refunds", "tech": "bugs, outages"}
     route = DecisionRouter(routes, "Which team?", model=decider(), state_key="input")
     assert route({"input": "the tech dashboard is down"}) == "tech"
-    assert route.last["confidence"] == 0.8
+    assert route.last.confidence == 0.8
     assert route.path_map == ["billing", "tech"]
 
     unsure = DecisionRouter(routes, "Which team?", model=decider(), state_key="input", fallback="human",
@@ -147,7 +147,7 @@ def test_llamaindex_selector_in_a_router_query_engine():
     engine = RouterQueryEngine(selector=selector, query_engine_tools=[sql, docs], llm=MockLLM())   # no LLM call made
     assert str(engine.query("what do the docs say about setup?")) == "docs"
     assert str(engine.query("sql: total sales last month")) == "sql"
-    assert selector.last["confidence"] == 0.8
+    assert selector.last.confidence == 0.8
     r = selector.select([sql.metadata, docs.metadata], "manuals for the docs")
     assert r.ind == 1 and "probability" in r.reason
 
@@ -247,10 +247,27 @@ def test_selector_picks_from_its_own_answer_under_concurrency():
     class Racing(DecisionSelector):
         def __setattr__(self, name, value):
             object.__setattr__(self, name, value)
-            if name == "last" and value and value["choice"] == "sql" and not self.__dict__.get("raced"):
+            if name == "last" and value and value.choice == "sql" and not self.__dict__.get("raced"):
                 object.__setattr__(self, "raced", True)
                 self.select(tools, "what do the docs say?")   # another query lands mid-call
 
     sel = Racing(model=decider())
     assert sel.select(tools, "sql: total sales").ind == 0
-    assert sel.last["choice"] == "docs"   # the race happened
+    assert sel.last.choice == "docs"   # the race happened
+
+
+def test_selector_labels_never_collide():
+    pytest.importorskip("llama_index.core")
+    from llama_index.core.tools import ToolMetadata
+    from opendecider.integrations.llamaindex import DecisionSelector
+
+    class Recording(Fake):
+        def decide_many(self, items, info=None):
+            self.opts = list(items[0][2])
+            return super().decide_many(items, info)
+
+    fake = Recording()
+    tools = [ToolMetadata(name="tech", description="a"), ToolMetadata(name="tech (3)", description="b"),
+             ToolMetadata(name="tech", description="c")]
+    DecisionSelector(model=decider(fake)).select(tools, "q")
+    assert fake.opts == ["tech", "tech (3)", "tech (4)"]   # three options, none lost

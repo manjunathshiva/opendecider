@@ -30,7 +30,7 @@ TICKETS = [
 for ticket in TICKETS:
     handled_by = route(ticket)
     top = route.last
-    print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top['choice']}, p = {top['confidence']:.2f})")
+    print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top.choice}, p = {top.confidence:.2f})")
 
 tools = {t.tool_name: t for t in decision_tools(MODEL)}   # the same model, loaded once
 print("yes_no:", tools["yes_no"](state=TICKETS[1], question="Does the customer ask for money back?"))

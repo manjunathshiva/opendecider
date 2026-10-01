@@ -19,6 +19,7 @@ import sys
 from typing import Any
 
 from . import tools
+from .remote import ServerError
 from .tools import MAX_OPTIONS, MAX_QUESTIONS, MAX_STATE_CHARS, ModelError
 
 __all__ = ["Decider", "build_server", "run", "INSTRUCTIONS",
@@ -43,7 +44,7 @@ class Decider(tools.Decider):
 
 
 def build_server(decider: Decider):
-    """The MCP server with the four tools, around `decider` (tests pass a fake model through it)."""
+    """The MCP server with its six tools, around `decider` (tests pass a fake model through it)."""
     import anyio
     from mcp.server.mcpserver import MCPServer
     from mcp.server.mcpserver.exceptions import ToolError
@@ -58,7 +59,7 @@ def build_server(decider: Decider):
     async def ask(fn, *args) -> dict:   # off the event loop: inference blocks
         try:
             return await anyio.to_thread.run_sync(fn, decider, *args)
-        except (ValueError, ModelError) as e:   # the caller's input, or why the model is unavailable
+        except (ValueError, ModelError, ServerError) as e:   # the caller's input, or why the model is unavailable
             raise ToolError(str(e)) from None
         except Exception as e:   # noqa: BLE001 -- an inference failure: say what failed; the traceback goes to stderr
             log.exception("inference failed")
@@ -79,6 +80,14 @@ def build_server(decider: Decider):
     @server.tool(annotations=pure, description=tools.DESCRIPTIONS["score"])
     async def score(state: str | dict | list, question: str, levels: list[str]) -> dict[str, Any]:
         return await ask(tools.score, state, question, levels)
+
+    @server.tool(annotations=pure, description=tools.DESCRIPTIONS["decide_batch"])
+    async def decide_batch(states: list[str | dict | list], questions: dict[str, dict]) -> dict[str, Any]:
+        return await ask(tools.decide_batch, states, questions)
+
+    @server.tool(annotations=pure, description=tools.DESCRIPTIONS["status"])
+    async def status() -> dict[str, Any]:
+        return tools.status(decider)
 
     return server
 

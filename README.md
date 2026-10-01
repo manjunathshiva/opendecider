@@ -234,7 +234,8 @@ claude mcp add opendecider -- opendecider mcp      # Claude Code; Claude Desktop
 ```
 
 `opendecider mcp` runs OpenDecider as an MCP server, so an AI assistant or agent calls it as a tool: `decide` for any
-number of typed questions, and the shortcuts `choose`, `yes_no` and `score`. The agent gets a probability for every
+number of typed questions, the shortcuts `choose`, `yes_no` and `score`, `decide_batch` for many states at once, and
+`status`. The agent gets a probability for every
 option instead of reasoning a classification out in text, and can ask you when the confidence is low. Any model works
 (`--model`), including one served by Ollama or LM Studio. Setup for each client: [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
 
@@ -266,6 +267,11 @@ fallback; `decision_tools()` gives an agent the same four tools as the MCP serve
 | PydanticAI | `opendecider[pydantic-ai]` | `decision_toolset()`, and `DecisionRouter` for your code |
 | Strands Agents | `opendecider[strands]` | `decision_tools()`, and `DecisionRouter` for your code |
 | Mastra (TypeScript) | `opendecider[mcp]` + `@mastra/mcp` | the MCP server's tools |
+
+For production, every router takes an `opendecider serve` URL as its model (the routing process holds no model),
+records each decision (`on_decision`, with the route, reason, confidence and latency), emits OpenTelemetry spans, and
+can take the fallback when the decision fails (`on_error="fallback"`). CrewAI also gets `TaskAssigner`, which picks
+the crew member for each task.
 
 A runnable example for each, without an LLM API key, is in
 [examples/agent_frameworks](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks); see

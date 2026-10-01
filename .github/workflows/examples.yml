@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install -e ".[serve,mcp,langchain,llamaindex,agno,agent-framework,google-adk,pydantic-ai]" langgraph pandas pyarrow
+      - run: python -m pip install -e ".[serve,mcp,langchain,llamaindex,agno,agent-framework,google-adk,pydantic-ai,otel]" langgraph pandas pyarrow opentelemetry-sdk
       - run: python -m py_compile examples/*.py examples/agent_frameworks/*.py   # remote_backends.py: compiled only
       - run: python examples/quickstart.py
       - run: python examples/support_triage.py
@@ -50,6 +50,7 @@ jobs:
           python -m venv --system-site-packages mcp1
           mcp1/bin/python -m pip install -e ".[crewai,strands]"
           mcp1/bin/python examples/agent_frameworks/crewai_flow.py
+          mcp1/bin/python examples/agent_frameworks/crewai_crew.py
           mcp1/bin/python examples/agent_frameworks/strands_agent.py
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
@@ -61,3 +62,4 @@ jobs:
         run: |
           opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &
           python examples/serve_client.py --wait 300 || { tail -50 serve.log; exit 1; }
+          python examples/production_router.py http://127.0.0.1:8000 --otel || { tail -50 serve.log; exit 1; }

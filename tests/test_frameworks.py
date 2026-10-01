@@ -91,8 +91,9 @@ def test_crewai_tools():
     assert set(tools["choose"].args_schema.model_fields) == {"state", "question", "options"}
     bad = tools["choose"].run(state="x", question="Which?", options=["only"])
     assert "at least 2 options" in bad["error"]   # returned to the agent, not raised
-    r = asyncio.run(tools["yes_no"].arun(state="refund my billing", question="Refund?"))   # async crews
-    assert r["answer"] in ("yes", "no")
+    if hasattr(tools["yes_no"], "arun"):   # async crews (CrewAI 1.0 has no async tool path)
+        r = asyncio.run(tools["yes_no"].arun(state="refund my billing", question="Refund?"))
+        assert r["answer"] in ("yes", "no")
 
 
 def test_crewai_flow_router():
@@ -245,7 +246,7 @@ def test_google_adk_router_agent_hands_over_to_a_sub_agent():
                                  routes=ROUTES, instructions="Which team?", fallback="human", min_confidence=0.5,
                                  decision_model=decider())
     assert ask(router, "please refund my billing error") == ["billing"]
-    assert router.last["choice"] == "billing"
+    assert router.last.choice == "billing"
     with pytest.raises(ValueError, match="no sub-agent named"):
         DecisionRouterAgent(name="t2", sub_agents=[Team(name="billing")], routes=ROUTES, instructions="Which team?",
                             decision_model=decider())
@@ -302,7 +303,7 @@ def test_an_empty_state_takes_the_fallback_without_a_decision():
     fake = Fake()
     route = Router(ROUTES, "Which team?", model=decider(fake), fallback="human")
     assert [route(s) for s in ("", "  \n", {}, [], None)] == ["human"] * 5
-    assert fake.calls == 0 and route.last is None   # the model never guessed
+    assert fake.calls == 0 and route.last.reason == "empty_input" and route.last.choice is None   # no guess
     with pytest.raises(ValueError, match="nothing to route on"):
         Router(ROUTES, "Which team?", model=decider())("")
 
@@ -315,10 +316,189 @@ def test_concurrent_routes_never_take_each_others_answer():
     class Racing(Router):
         def __setattr__(self, name, value):
             object.__setattr__(self, name, value)
-            if name == "last" and value and value["choice"] == "billing" and not self.__dict__.get("raced"):
+            if name == "last" and value and value.choice == "billing" and not self.__dict__.get("raced"):
                 self.raced = True
                 self.route("the tech stack is down")   # another request lands mid-call and overwrites .last
 
     route = Racing(ROUTES, "Which team?", model=decider(), fallback="human", min_confidence=0.5)
     assert route("refund my billing") == "billing"
-    assert route.last["choice"] == "tech"   # the race happened: .last is the other request's answer
+    assert route.last.choice == "tech"   # the race happened: .last is the other request's answer
+
+
+def test_google_adk_on_error_fallback_hands_the_request_to_the_fallback_agent():
+    pytest.importorskip("google.adk")
+    from google.adk.agents import BaseAgent
+    from google.adk.events import Event
+    from google.adk.runners import Runner
+    from google.adk.sessions import InMemorySessionService
+    from google.genai import types
+    from opendecider.integrations.google_adk import DecisionRouterAgent
+
+    class Broken(Fake):
+        def decide_many(self, items, info=None):
+            raise RuntimeError("model gone")
+
+    class Team(BaseAgent):
+        async def _run_async_impl(self, ctx):
+            yield Event(author=self.name, content=types.Content(role="model", parts=[types.Part(text=self.name)]))
+
+    seen = []
+    router = DecisionRouterAgent(name="triage", sub_agents=[Team(name="billing"), Team(name="tech"),
+                                                            Team(name="human")],
+                                 routes=ROUTES, instructions="Which team?", fallback="human", on_error="fallback",
+                                 on_decision=seen.append, decision_model=decider(Broken()))
+    sessions = InMemorySessionService()
+    runner = Runner(agent=router, app_name="t", session_service=sessions)
+
+    async def go():
+        await sessions.create_session(app_name="t", user_id="u", session_id="s")
+        msg = types.Content(role="user", parts=[types.Part(text="refund my billing")])
+        return [e.author async for e in runner.run_async(user_id="u", session_id="s", new_message=msg)]
+
+    assert asyncio.run(go()) == ["human"]
+    assert seen[0].reason == "error" and router.last is seen[0]
+
+
+def test_agent_framework_reports_a_failed_decision_to_hooks():
+    pytest.importorskip("agent_framework")
+    from opendecider.integrations.agent_framework import DecisionRouter
+
+    class Broken(Fake):
+        def decide_many(self, items, info=None):
+            raise RuntimeError("model gone")
+
+    seen = []
+    route = DecisionRouter(ROUTES, "Which team?", model=decider(Broken()), fallback="human", on_decision=seen.append)
+    cases = route.cases({"billing": "B", "tech": "T"}, default="H")
+    assert [c.condition("refund") for c in cases[:-1]] == [False, False]   # the Default takes it
+    assert len(seen) == 1 and seen[0].reason == "error"                   # one decision for all the cases
+
+
+def test_crewai_task_assigner_assigns_each_task_from_roles_and_goals():
+    pytest.importorskip("crewai")
+    from types import SimpleNamespace as NS
+    from opendecider.integrations.crewai import TaskAssigner
+
+    billing = NS(role="billing", goal="charges and refunds")
+    tech = NS(role="tech", goal="bugs and outages")
+    tech2 = NS(role="tech", goal="mobile apps")         # a duplicate role gets its own label
+    lead = NS(role="team lead", goal="anything unclear")
+    seen = []
+    assigner = TaskAssigner([billing, tech, tech2], fallback=lead, min_confidence=0.5, model=decider(),
+                            on_decision=seen.append)
+    assert list(assigner.members) == ["billing", "tech", "tech (3)", "team lead"]
+    t1 = NS(description="refund the billing error", expected_output="a refund", agent=None)
+    t2 = NS(description="the tech stack is down", expected_output="a fix", agent=None)
+    assert assigner.assign_all([t1, t2]) == [billing, tech] and t1.agent is billing and t2.agent is tech
+    assert seen[0].route == "billing" and assigner.last.route == "tech"
+    states = []
+
+    class Recording(Fake):
+        def decide_many(self, items, info=None):
+            states.extend(state for state, _, _ in items)
+            return super().decide_many(items, info)
+
+    TaskAssigner([billing, tech], model=decider(Recording())).assign(t2)
+    assert states == ["the tech stack is down\n\nExpected output: a fix"]   # the task's description and output
+    unsure = TaskAssigner([billing, tech], fallback=lead, min_confidence=0.9, model=decider())
+    assert unsure.assign("refund the billing error") is lead              # below 0.9: the fallback member
+    assert asyncio.run(assigner.aassign({"description": "tech outage"})) is tech
+    with pytest.raises(ValueError, match="at least 2 crew members"):
+        TaskAssigner([billing], model=decider())
+
+
+def test_crewai_task_assigner_never_lets_a_generated_label_overwrite_a_member():
+    pytest.importorskip("crewai")
+    from types import SimpleNamespace as NS
+    from opendecider.integrations.crewai import TaskAssigner
+    crew = [NS(role="tech", goal="a"), NS(role="tech (3)", goal="b"), NS(role="tech", goal="c")]
+    members = TaskAssigner(crew, model=decider()).members
+    assert list(members) == ["tech", "tech (3)", "tech (4)"] and list(members.values()) == crew
+
+
+def test_crewai_task_assigner_sets_a_real_crewai_tasks_agent():
+    pytest.importorskip("crewai")
+    from crewai import Agent, Task
+    from opendecider.integrations.crewai import TaskAssigner
+    def build():
+        try:
+            return (Agent(role="billing", goal="charges and refunds", backstory="finance"),
+                    Agent(role="tech", goal="bugs and outages", backstory="sre"))
+        except Exception:   # noqa: BLE001 -- CrewAI 1.0 builds the agent's LLM eagerly and needs a key
+            return None
+
+    agents = build()
+    if agents is None:
+        pytest.skip("this CrewAI version needs an LLM key to build an Agent")
+    billing, tech = agents
+    task = Task(description="the tech stack is down", expected_output="a fix")
+    assert TaskAssigner([billing, tech], model=decider()).assign(task) is tech and task.agent is tech
+
+
+def test_unique_labels():
+    from opendecider.tools import _unique_labels as unique_labels
+    assert unique_labels(["a", "b"]) == ["a", "b"]
+    assert unique_labels(["tech", "tech (3)", "tech"]) == ["tech", "tech (3)", "tech (4)"]
+    assert unique_labels(["x", "x", "x (2)"]) == ["x", "x (2)", "x (2) (3)"]
+    assert len(set(unique_labels(["a"] * 50))) == 50
+
+
+def test_agno_unreadable_step_input_takes_the_fallback_step():
+    pytest.importorskip("agno")
+    from agno.workflow.types import StepInput
+    from opendecider.integrations.agno import DecisionRouter
+    steps = {n: n for n in ("billing", "tech", "human")}
+    route = DecisionRouter(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback",
+                           state="previous")
+    assert route.selector(steps)(StepInput(input="x")) == ["human"]   # no previous step content
+    assert route.last.reason == "error" and "no previous step content" in route.last.error
+
+
+def test_agent_framework_low_confidence_goes_to_the_fallback_target_and_failures_to_the_default():
+    """Built into real workflows: the framework allows one edge per target, so the fallback gets its own case only
+    when its executor is not the default."""
+    pytest.importorskip("agent_framework")
+    from agent_framework import WorkflowBuilder, WorkflowContext, executor
+    from opendecider.integrations.agent_framework import DecisionRouter
+
+    class Broken(Fake):
+        def decide_many(self, items, info=None):
+            raise RuntimeError("model gone")
+
+    def run(router, default, text):
+        @executor(id="triage")
+        async def triage(t: str, ctx: WorkflowContext[str]) -> None:
+            await ctx.send_message(t)
+
+        def team(name):
+            @executor(id=name)
+            async def handle(t: str, ctx: WorkflowContext[str, str]) -> None:
+                await ctx.yield_output(name)
+            return handle
+
+        targets = {n: team(n) for n in ("billing", "tech", "human")}
+        on_call = team("on_call") if default == "on_call" else None
+        wf = (WorkflowBuilder(start_executor=triage)
+              .add_switch_case_edge_group(triage, router.cases(targets, default=on_call)).build())
+        return asyncio.run(wf.run(text)).get_outputs()
+
+    unsure = DecisionRouter(ROUTES, "Which team?", model=decider(), fallback="human", min_confidence=0.9)
+    assert run(unsure, None, "refund my billing") == ["human"]           # the fallback is the default
+    assert run(unsure, "on_call", "refund my billing") == ["human"]      # its own target, apart from the default
+    failing = DecisionRouter(ROUTES, "Which team?", model=decider(Broken()), fallback="human")
+    assert run(failing, "on_call", "refund") == ["on_call"]              # a failed decision: the default
+
+
+def test_agent_framework_failures_go_to_the_default_under_either_error_policy():
+    pytest.importorskip("agent_framework")
+    from opendecider.integrations.agent_framework import DecisionRouter
+
+    class Broken(Fake):
+        def decide_many(self, items, info=None):
+            raise RuntimeError("model gone")
+
+    for policy in ("raise", "fallback"):
+        route = DecisionRouter(ROUTES, "Which team?", model=decider(Broken()), fallback="human", on_error=policy)
+        cases = route.cases({"billing": "B", "tech": "T", "human": "H"}, default="ON_CALL")
+        assert [c.target for c in cases[:-1]] == ["B", "T", "H"]
+        assert not any(c.condition("refund") for c in cases[:-1]), policy   # only the Default (ON_CALL) matches

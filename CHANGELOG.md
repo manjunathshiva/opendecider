@@ -33,11 +33,25 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
   them.
 - Strands Agents (`opendecider[strands]`): `decision_tools()` and `DecisionRouter`.
 - Mastra and other TypeScript or MCP-capable frameworks use `opendecider mcp`; an example shows Mastra's `MCPClient`.
+- Production routing, in every integration: the model can be an `opendecider serve` URL (`load("https://...")`,
+  `model="https://..."`), so the routing process holds no model and answers are the server model's own;
+  `router.decide()` returns a `tools.Decision` (route, reason, choice, confidence, probabilities, model, latency,
+  error); `on_decision=` receives every decision, failed ones included; `on_error="fallback"` takes the fallback
+  route when the decision fails; OpenTelemetry spans for every decision (`pip install "opendecider[otel]"`).
+- CrewAI `TaskAssigner`: picks the crew member for each task from the members' roles and goals, in place of a
+  hierarchical crew's manager LLM, with a fallback member for tasks no one fits confidently.
+- MCP server: `decide_batch` (the same questions about up to 256 states in one call) and `status` (the model, whether
+  it is loaded, the version and the limits, without loading it).
+- `load(..., api_key=, timeout=)` for served models; a busy server's `Retry-After` is honoured.
 - `opendecider.tools`: the shared core of the MCP server and every integration (validation, lazy loading, the
   agent-facing answer format, and `Router`, the routing logic every router builds on), so all of them answer alike.
 
 ### Changed
 
+- A model that fails to load is retried after 5 seconds instead of on every call (`tools.LOAD_RETRY_S`), so a server
+  outage costs one slow call rather than one per request; calls in between fail at once with the same reason. The
+  same holds for a served model (`opendecider serve`, LM Studio, Ollama, vLLM) that times out or cannot be reached
+  after loading (`remote.DOWN_RETRY_S`).
 - Versioning: the agent-facing surfaces (the MCP server's tool names, arguments and answers, `opendecider.tools` and
   the public names in `opendecider.integrations`) are now part of the public API, under the same versioning policy.
 

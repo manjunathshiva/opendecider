@@ -30,9 +30,9 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 |---|---|
 | `opendecider/` (any) | `python -m pytest -q tests` (torch-free; a fake model stands in, no download) |
 | `opendecider/serve.py` | `tests/test_serve.py` |
-| `opendecider/remote.py` (LM Studio / Ollama / vLLM backend) | `tests/test_remote.py` |
+| `opendecider/remote.py` (LM Studio / Ollama / vLLM backend; `opendecider serve` by URL) | `tests/test_remote.py`, `tests/test_served.py` |
 | `opendecider/questions.py` | `tests/test_questions.py` |
-| `opendecider/tools.py`, `mcp_server.py` | `tests/test_mcp.py` |
+| `opendecider/tools.py`, `mcp_server.py` | `tests/test_mcp.py`, `tests/test_decisions.py` (Decision, hooks, `on_error`, spans) |
 | `opendecider/integrations/` (LangChain, LangGraph, LlamaIndex) | `tests/test_integrations.py` |
 | `opendecider/integrations/` (Agno, CrewAI, Agent Framework, Google ADK, PydanticAI, Strands) | `tests/test_frameworks.py`; CrewAI and Strands pin `mcp` 1.x, so run them in a separate venv (`pip install crewai strands-agents`) |
 | `examples/` | run the script with opendecider-nano on CPU; CI runs them all |

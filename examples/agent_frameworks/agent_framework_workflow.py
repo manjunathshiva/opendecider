@@ -54,7 +54,7 @@ async def main():
     for ticket in TICKETS:
         handled_by = (await workflow.run(ticket)).get_outputs()[0]
         top = route.last
-        print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top['choice']}, p = {top['confidence']:.2f})")
+        print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top.choice}, p = {top.confidence:.2f})")
 
 
 asyncio.run(main())

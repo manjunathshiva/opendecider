@@ -85,8 +85,10 @@ class DecisionRouter(core.Router):
     """
 
     def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = core.DEFAULT_MODEL,
-                 state_key: str | None = None, fallback: str | None = None, min_confidence: float = 0.0):
-        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence)
+                 state_key: str | None = None, fallback: str | None = None, min_confidence: float = 0.0,
+                 on_error: str = "raise", on_decision=None):
+        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence,
+                         on_error=on_error, on_decision=on_decision)
         self.state_key = state_key
 
     def _state(self, state):
@@ -99,7 +101,7 @@ class DecisionRouter(core.Router):
         return state
 
     def __call__(self, state) -> str:
-        return self.route(self._state(state))
+        return self._decide_from(state, self._state).route
 
     @property
     def path_map(self) -> list[str]:
