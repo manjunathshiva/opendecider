@@ -1,5 +1,7 @@
 """MCP server: the tools, their answers and errors, through a real in-process MCP client, with a fake model."""
 import asyncio
+import sys
+import textwrap
 
 import pytest
 
@@ -122,3 +124,36 @@ def test_a_model_that_cannot_load_says_why_and_is_retried():
         assert r.is_error
         assert "could not load model 'typo/model': OSError: no such model on the Hub" in r.content[0].text
     assert attempts == ["typo/model", "typo/model"]   # a failed load is not cached
+
+
+NOISY_SERVER = textwrap.dedent("""
+    import os
+    from opendecider import OpenDecider
+    from opendecider.mcp_server import Decider, build_server
+
+    class Noisy:
+        def decide_many(self, items, info=None):
+            print("library output during inference")      # Python-level stdout
+            os.write(1, b"native output on fd 1\\n")       # C-level stdout
+            info.extend({"input_tokens": 1, "truncated": False} for _ in items)
+            return [{k: 0.7 if i == 0 else 0.3 for i, k in enumerate(o)} for _, _, o in items]
+
+    def loader(name, **kw):
+        print("library output while loading")
+        return OpenDecider(Noisy(), {"name": "noisy", "kind": "nano"})
+
+    build_server(Decider("noisy", loader=loader)).run("stdio")
+""")
+
+
+def test_library_output_never_reaches_the_protocol(tmp_path, caplog):
+    from mcp import StdioServerParameters
+    script = tmp_path / "noisy_server.py"
+    script.write_text(NOISY_SERVER)
+
+    async def go():
+        async with Client(StdioServerParameters(command=sys.executable, args=[str(script)])) as c:
+            return [await c.call_tool("yes_no", {"state": "x", "question": "?"}) for _ in range(2)]
+    results = asyncio.run(go())
+    assert all(not r.is_error and r.structured_content["answer"] == "yes" for r in results)
+    assert "Invalid JSON" not in caplog.text and "library output" not in caplog.text   # nothing leaked onto stdout

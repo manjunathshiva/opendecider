@@ -13,8 +13,10 @@ The server speaks MCP over stdio: stdout carries the protocol, and logs and down
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
+import sys
 import threading
 from typing import Any
 
@@ -53,7 +55,8 @@ class Decider:
                     from . import load
                     self._loader = load
                 try:
-                    self._model = self._loader(self.name, **self.load_kw)
+                    with _stdout_to_stderr():
+                        self._model = self._loader(self.name, **self.load_kw)
                 except Exception as e:   # noqa: BLE001 -- not cached: the next call tries again
                     log.exception("could not load %s", self.name)
                     raise ModelError(f"could not load model {self.name!r}: {type(e).__name__}: {e}") from None
@@ -62,8 +65,14 @@ class Decider:
     def system_one(self, state, questions: dict) -> dict:
         _check(state, questions)
         model = self.model()
-        with self._run_lock:
+        with self._run_lock, _stdout_to_stderr():
             return model.system_one(state, questions)
+
+
+def _stdout_to_stderr():
+    """Library output during load and inference goes to stderr: on stdio, stdout is the protocol. (The MCP SDK moves
+    fd 1 to stderr, but Python's own stdout buffer would still be flushed onto the protocol at exit.)"""
+    return contextlib.redirect_stdout(sys.stderr)
 
 
 class ModelError(RuntimeError):
