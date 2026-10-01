@@ -68,7 +68,7 @@ tool over stdio.
 | `choose` | `state`, `question`, `options` (a list of labels, or `{"label": "description"}`) | `choice`, `probabilities`, `confidence` |
 | `yes_no` | `state`, `question` | `answer` (yes / no), `probability_yes`, `confidence` |
 | `score` | `state`, `question`, `levels` (lowest first) | `level`, `label`, `expected_level`, `probabilities`, `confidence` |
-| `decide_batch` | `states` (up to 256), `questions` | one result per state, in order: faster than one call per state |
+| `decide_batch` | `states` (up to 256, and at most 1,024 questions in all), `questions` | one result per state, in order: faster than one call per state |
 | `status` | none | the model, whether it is loaded, where it runs, the version and the input limits (does not load the model) |
 
 Every tool is read-only and idempotent. Answers carry `truncated: true` when the state was cut to fit the model.

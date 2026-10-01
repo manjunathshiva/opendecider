@@ -46,6 +46,7 @@ from .prompt import LETTERS, SYSTEM, render
 DEFAULT_URLS = {"lmstudio": "http://127.0.0.1:1234/v1", "ollama": "http://127.0.0.1:11434/v1"}
 RETRY_STATUS = {429, 500, 502, 503, 504}   # a busy or restarting server: try again before failing the request
 DOWN_RETRY_S = 5.0   # after a server times out or cannot be reached, calls fail at once for this long
+_clock = time.monotonic   # the time source for the fail-fast window (tests replace it, not time.monotonic)
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
 
 
@@ -74,13 +75,13 @@ class _Client:
 
     def _post(self, path: str, body: dict) -> dict:
         down = self._down
-        if down and time.monotonic() < down[0]:   # a hung server costs one timeout, not one per request
+        if down and _clock() < down[0]:   # a hung server costs one timeout, not one per request
             raise ServerError(down[1])
         try:
             out = self._send(path, body)
         except ServerError as e:
             if getattr(e, "unreachable", False):
-                self._down = (time.monotonic() + DOWN_RETRY_S, f"{e} (calls fail at once for {DOWN_RETRY_S:g} s)")
+                self._down = (_clock() + DOWN_RETRY_S, f"{e} (calls fail at once for {DOWN_RETRY_S:g} s)")
             raise
         self._down = None
         return out

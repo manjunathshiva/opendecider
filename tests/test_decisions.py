@@ -172,7 +172,7 @@ def test_a_failed_load_fails_fast_then_is_retried(monkeypatch):
     from opendecider import tools
     from opendecider.tools import ModelError, yes_no
     calls, now = [], [100.0]
-    monkeypatch.setattr(tools.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(tools, "_clock", lambda: now[0])
 
     def loader(name, **kw):
         calls.append(name)
@@ -227,12 +227,12 @@ def test_an_exception_is_recorded_once_on_the_route_span(spans):
 def test_an_outage_logs_once_per_window_not_once_per_request(caplog, monkeypatch):
     from opendecider import tools
     now = [500.0]
-    monkeypatch.setattr(tools.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(tools, "_clock", lambda: now[0])
     route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback")
     with caplog.at_level(logging.DEBUG, logger="opendecider.tools"):
         for _ in range(50):
             route("boom")
-        now[0] += tools.LOG_REPEAT_S + 0.1
+        now[0] += tools._LOG_REPEAT_S + 0.1
         route("boom")
     levels = [r.levelno for r in caplog.records if "routing failed" in r.getMessage()]
     assert levels.count(logging.ERROR) == 2 and levels.count(logging.DEBUG) == 49   # first, then after the window

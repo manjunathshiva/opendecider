@@ -54,11 +54,11 @@ def serve():
         app = create_app(model=local(), settings=Settings(**kw))
         srv = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="error"))
         threading.Thread(target=srv.run, daemon=True).start()
-        for _ in range(200):
-            if srv.started:
-                break
-            time.sleep(0.02)
         servers.append(srv)
+        deadline = time.monotonic() + 15   # a slow CI runner can take a few seconds
+        while not srv.started:
+            assert time.monotonic() < deadline, "opendecider serve did not start within 15 s"
+            time.sleep(0.02)
         return f"http://127.0.0.1:{port}"
 
     yield start
@@ -212,7 +212,7 @@ def test_a_server_that_times_out_fails_fast_for_a_while(serve, monkeypatch):
     from opendecider import remote
     m = ServedModel(serve())
     calls, now, real = [], [1000.0], remote.urllib.request.urlopen
-    monkeypatch.setattr(remote.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(remote, "_clock", lambda: now[0])
 
     def hung(req, timeout):
         calls.append(1)

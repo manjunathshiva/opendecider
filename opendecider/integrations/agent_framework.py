@@ -102,7 +102,7 @@ class DecisionRouter(core.Router):
         try:
             choice = self._decide_from(message, self.state).route
         except Exception as e:   # the switch would swallow it case by case; say why once, then take the default
-            core.log_once(log, logging.ERROR, "routing failed, sending the message to the default executor: %s", e)
+            core._log_once(log, logging.ERROR, "routing failed, sending the message to the default executor: %s", e)
             choice = None
         self._memo = (message, choice)
         return choice

@@ -119,7 +119,8 @@ fallback when the top route's probability is below `min_confidence`); `.decide(s
 `ValueError` without one). `on_error="fallback"` takes the fallback when the decision fails. See
 [Production](../guides/agent-frameworks.md#production).
 
-`tools.decide_batch(decider, states, questions)` answers the same questions about up to 256 states in one batch;
+`tools.decide_batch(decider, states, questions)` answers the same questions about up to 256 states in one batch
+(1,024 questions in all, states times questions);
 `tools.status(decider)` reports the model, whether it is loaded, the version and the limits, without loading it.
 
 Invalid input raises `ValueError`, a model that cannot load raises `tools.ModelError`, and a model server that cannot

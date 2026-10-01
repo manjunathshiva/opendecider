@@ -436,7 +436,7 @@ def test_crewai_task_assigner_sets_a_real_crewai_tasks_agent():
 
 
 def test_unique_labels():
-    from opendecider.tools import unique_labels
+    from opendecider.tools import _unique_labels as unique_labels
     assert unique_labels(["a", "b"]) == ["a", "b"]
     assert unique_labels(["tech", "tech (3)", "tech"]) == ["tech", "tech (3)", "tech (4)"]
     assert unique_labels(["x", "x", "x (2)"]) == ["x", "x (2)", "x (2) (3)"]

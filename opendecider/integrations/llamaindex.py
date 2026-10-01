@@ -86,7 +86,7 @@ class DecisionSelector(BaseSelector):
         if not choices:
             raise ValueError("no choices to select from")
         # a readable, unique label per choice; the description explains it
-        labels = core.unique_labels([(c.name or "").strip() or f"option {i + 1}" for i, c in enumerate(choices)])
+        labels = core._unique_labels([(c.name or "").strip() or f"option {i + 1}" for i, c in enumerate(choices)])
         if len(choices) == 1:
             return SelectorResult(selections=[SingleSelection(index=0, reason="the only choice")])
         cap = self.max_description_chars

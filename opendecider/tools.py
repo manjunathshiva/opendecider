@@ -30,6 +30,7 @@ MAX_STATE_CHARS = 200_000
 MAX_BATCH_STATES = 256
 MAX_BATCH_ITEMS = 1024   # states x questions per batch call: bounds the work one call can queue
 LOAD_RETRY_S = 5.0   # after a failed load, calls fail at once for this long before the next attempt
+_clock = time.monotonic   # the time source for back-off and log windows (tests replace it, not time.monotonic)
 
 DEFAULT_MODEL = "manjunathshiva/opendecider-nano"
 
@@ -108,12 +109,12 @@ class Decider:
 
     def model(self):
         failed = self._failed
-        if self._model is None and failed and time.monotonic() < failed[0]:   # fail fast: a hung server costs once
+        if self._model is None and failed and _clock() < failed[0]:   # fail fast: a hung server costs once
             raise ModelError(failed[1])
         with self._load_lock:
             if self._model is None:
                 failed = self._failed
-                if failed and time.monotonic() < failed[0]:   # another caller just failed while this one waited
+                if failed and _clock() < failed[0]:   # another caller just failed while this one waited
                     raise ModelError(failed[1])
                 log.info("loading %s", self.name)
                 if self._loader is None:
@@ -129,7 +130,7 @@ class Decider:
                     else:
                         log.exception("could not load %s", self.name)
                     message = f"could not load model {self.name!r}: {type(e).__name__}: {e}"
-                    self._failed = (time.monotonic() + LOAD_RETRY_S, message)
+                    self._failed = (_clock() + LOAD_RETRY_S, message)
                     raise ModelError(message) from None
                 self._failed = None
             return self._model
@@ -209,7 +210,7 @@ def shared(model: Any = DEFAULT_MODEL) -> Decider:
         return _shared[model]
 
 
-def unique_labels(names: list[str]) -> list[str]:
+def _unique_labels(names: list[str]) -> list[str]:
     """One readable label per name, made unique with a position suffix ("tech", "tech (3)"); a generated label is
     checked too, so it never takes a label already in use."""
     out, seen = [], set()
@@ -397,7 +398,7 @@ class Router:
                 self._report(decision, span)
                 if self.on_error == "raise":
                     raise
-                log_once(log, logging.ERROR, "routing failed, taking the fallback route %r: %s", self.fallback,
+                _log_once(log, logging.ERROR, "routing failed, taking the fallback route %r: %s", self.fallback,
                          decision.error)
                 return decision
             self._report(decision, span)
@@ -408,12 +409,12 @@ class Router:
                                                                                and not state.strip()):
             if self.fallback is None:
                 raise ValueError("nothing to route on: the state is empty")
-            log_once(log, logging.WARNING, "nothing to route on (the state is empty): taking the fallback route %r",
+            _log_once(log, logging.WARNING, "nothing to route on (the state is empty): taking the fallback route %r",
                      self.fallback)
             return Decision(route=self.fallback, reason="empty_input", model=self.decider.label, latency_ms=_ms(t0))
         answer = choose(self.decider, state, self.instructions, self.routes)
         if answer.get("truncated"):
-            log_once(log, logging.WARNING, "the routing input was shortened to fit the model's input; route on a "
+            _log_once(log, logging.WARNING, "the routing input was shortened to fit the model's input; route on a "
                      "shorter field")
         low = self.fallback is not None and answer["confidence"] < self.min_confidence
         return Decision(route=self.fallback if low else answer["choice"],
@@ -456,16 +457,16 @@ class Router:
 
 _LOGGED: dict = {}
 _LOGGED_LOCK = threading.Lock()
-LOG_REPEAT_S = 5.0   # the same warning or error is logged once per this window; repeats go to DEBUG
+_LOG_REPEAT_S = 5.0   # the same warning or error is logged once per this window; repeats go to DEBUG
 
 
-def log_once(logger: logging.Logger, level: int, message: str, *args) -> None:
-    """`logger.log(level, ...)`, but a message repeated within LOG_REPEAT_S goes to DEBUG: an outage that fails
+def _log_once(logger: logging.Logger, level: int, message: str, *args) -> None:
+    """`logger.log(level, ...)`, but a message repeated within _LOG_REPEAT_S goes to DEBUG: an outage that fails
     every request at once must not write one error line per request."""
     key = (logger.name, level, message % args if args else message)
-    now = time.monotonic()
+    now = _clock()
     with _LOGGED_LOCK:
-        quiet = now - _LOGGED.get(key, -LOG_REPEAT_S) < LOG_REPEAT_S
+        quiet = now - _LOGGED.get(key, -_LOG_REPEAT_S) < _LOG_REPEAT_S
         if not quiet:
             _LOGGED[key] = now
             if len(_LOGGED) > 1000:   # bounded: drop the oldest entries

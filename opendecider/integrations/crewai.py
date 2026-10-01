@@ -124,7 +124,7 @@ class TaskAssigner:
             raise ValueError("TaskAssigner needs at least 2 crew members to choose from")
         # a readable, unique label per member; the goal describes it
         roles = [str(getattr(a, "role", "") or "").strip() or f"member {i + 1}" for i, a in enumerate(agents)]
-        self.members: dict[str, Any] = dict(zip(core.unique_labels(roles), agents))
+        self.members: dict[str, Any] = dict(zip(core._unique_labels(roles), agents))
         options = {label: (str(getattr(a, "goal", "") or "").strip() or None) for label, a in self.members.items()}
         fallback_label = None
         if fallback is not None:
