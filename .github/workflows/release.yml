@@ -61,7 +61,8 @@ jobs:
           need = ["opendecider/__init__.py", "opendecider/questions.py", "opendecider/nano.py",
                   "opendecider/small.py", "opendecider/bench_speed.py", "opendecider/mlx_small.py",
                   "opendecider/serve.py", "opendecider/cli.py", "opendecider/prompt.py", "opendecider/remote.py",
-                  "opendecider/mcp_server.py"]
+                  "opendecider/mcp_server.py", "opendecider/tools.py", "opendecider/integrations/__init__.py",
+                  "opendecider/integrations/langchain.py", "opendecider/integrations/llamaindex.py"]
           missing = [n for n in need if n not in names]
           if missing:
               sys.exit(f"{whl} is missing {missing}")

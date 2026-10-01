@@ -48,4 +48,4 @@ Homepage = "https://github.com/manjunathshiva/opendecider"
 Models = "https://huggingface.co/manjunathshiva/opendecider-nano"
 
 [tool.setuptools]
-packages = ["opendecider"]
+packages = ["opendecider", "opendecider.integrations"]
