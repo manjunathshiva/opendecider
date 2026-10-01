@@ -34,6 +34,7 @@ pip install opendecider              # opendecider-nano
 pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td, -medium-td and -large-td
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
+pip install "opendecider[mcp]"       # the MCP server, for AI assistants (Claude Code, Claude Desktop, Cursor)
 # LM Studio / Ollama (GGUF builds) and vLLM: see "Run it in LM Studio or Ollama" below (no extra packages)
 ```
 
@@ -225,6 +226,18 @@ most likely level. In the Python library `score` is the most likely level and `e
 also carry `probabilities` and `confidence`, and `truncated` plus a top-level `warnings` list when a state was cut to
 fit the model's input length.
 
+## Use it from AI assistants (MCP)
+
+```bash
+pip install "opendecider[mcp]"
+claude mcp add opendecider -- opendecider mcp      # Claude Code; Claude Desktop and Cursor: see the guide
+```
+
+`opendecider mcp` runs OpenDecider as an MCP server, so an AI assistant or agent calls it as a tool: `decide` for any
+number of typed questions, and the shortcuts `choose`, `yes_no` and `score`. The agent gets a probability for every
+option instead of reasoning a classification out in text, and can ask you when the confidence is low. Any model works
+(`--model`), including one served by Ollama or LM Studio. Setup for each client: [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
+
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
 **On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for
@@ -345,7 +358,6 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
 * **Agent frameworks:** LangChain / LangGraph and LlamaIndex tools.
-* **An MCP server,** so AI assistants and coding agents can call OpenDecider as a tool.
 * **A TypeScript client** for `opendecider serve`.
 * **ONNX export** of opendecider-nano for edge and in-browser use.
 * **Multilingual evaluation.**
