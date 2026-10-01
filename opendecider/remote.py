@@ -198,9 +198,11 @@ class ServedModel(_Client):
     def _http_error(self, e: "urllib.error.HTTPError"):
         detail = e.read()[:300].decode(errors="replace")
         try:
-            detail = json.loads(detail).get("detail", detail)
-        except (ValueError, AttributeError):
-            pass
+            body = json.loads(detail)
+        except ValueError:   # not JSON (a proxy's HTML page, say): report the text as it came
+            body = None
+        if isinstance(body, dict) and body.get("detail"):   # the server's own message, e.g. FastAPI's {"detail": ...}
+            detail = body["detail"]
         if e.code in (400, 413, 422):   # the request itself: a caller's input error, as with a local model
             raise ValueError(f"{self.base_url} rejected the request: {detail}") from None
         if e.code in (401, 403):

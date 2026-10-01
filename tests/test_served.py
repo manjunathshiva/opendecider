@@ -188,3 +188,21 @@ def test_a_server_timeout_is_not_retried(serve, monkeypatch):
     with pytest.raises(ServerError, match="HTTP 504"):
         OpenDecider(m, {"name": "x", "kind": "served"}).system_one("s", QUESTIONS)
     assert len(calls) == 1
+
+
+def test_server_error_bodies_become_readable_messages(monkeypatch):
+    """FastAPI's {"detail": ...}, a proxy's HTML page and a JSON list all give a readable message."""
+    import io
+    from opendecider import remote
+    m = ServedModel.__new__(ServedModel)
+    m.base_url = "http://decider:8000"
+
+    def err(code, body):
+        return remote.urllib.error.HTTPError("u", code, "x", {}, io.BytesIO(body))
+
+    with pytest.raises(ValueError, match="rejected the request: at most 2 questions"):
+        m._http_error(err(422, b'{"detail": "at most 2 questions"}'))
+    with pytest.raises(ServerError, match="HTTP 502: <html>bad gateway</html>"):
+        m._http_error(err(502, b"<html>bad gateway</html>"))
+    with pytest.raises(ServerError, match=r"HTTP 500: \[1, 2\]"):
+        m._http_error(err(500, b"[1, 2]"))

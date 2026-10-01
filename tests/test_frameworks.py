@@ -411,10 +411,16 @@ def test_crewai_task_assigner_sets_a_real_crewai_tasks_agent():
     pytest.importorskip("crewai")
     from crewai import Agent, Task
     from opendecider.integrations.crewai import TaskAssigner
-    try:
-        billing = Agent(role="billing", goal="charges and refunds", backstory="finance")
-        tech = Agent(role="tech", goal="bugs and outages", backstory="sre")
-    except Exception:   # noqa: BLE001 -- CrewAI 1.0 builds the agent's LLM eagerly and needs a key
+    def build():
+        try:
+            return (Agent(role="billing", goal="charges and refunds", backstory="finance"),
+                    Agent(role="tech", goal="bugs and outages", backstory="sre"))
+        except Exception:   # noqa: BLE001 -- CrewAI 1.0 builds the agent's LLM eagerly and needs a key
+            return None
+
+    agents = build()
+    if agents is None:
         pytest.skip("this CrewAI version needs an LLM key to build an Agent")
+    billing, tech = agents
     task = Task(description="the tech stack is down", expected_output="a fix")
     assert TaskAssigner([billing, tech], model=decider()).assign(task) is tech and task.agent is tech
