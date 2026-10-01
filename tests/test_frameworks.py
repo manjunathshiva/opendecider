@@ -407,6 +407,15 @@ def test_crewai_task_assigner_assigns_each_task_from_roles_and_goals():
         TaskAssigner([billing], model=decider())
 
 
+def test_crewai_task_assigner_never_lets_a_generated_label_overwrite_a_member():
+    pytest.importorskip("crewai")
+    from types import SimpleNamespace as NS
+    from opendecider.integrations.crewai import TaskAssigner
+    crew = [NS(role="tech", goal="a"), NS(role="tech (3)", goal="b"), NS(role="tech", goal="c")]
+    members = TaskAssigner(crew, model=decider()).members
+    assert list(members) == ["tech", "tech (3)", "tech (4)"] and list(members.values()) == crew
+
+
 def test_crewai_task_assigner_sets_a_real_crewai_tasks_agent():
     pytest.importorskip("crewai")
     from crewai import Agent, Task
@@ -424,3 +433,11 @@ def test_crewai_task_assigner_sets_a_real_crewai_tasks_agent():
     billing, tech = agents
     task = Task(description="the tech stack is down", expected_output="a fix")
     assert TaskAssigner([billing, tech], model=decider()).assign(task) is tech and task.agent is tech
+
+
+def test_unique_labels():
+    from opendecider.tools import unique_labels
+    assert unique_labels(["a", "b"]) == ["a", "b"]
+    assert unique_labels(["tech", "tech (3)", "tech"]) == ["tech", "tech (3)", "tech (4)"]
+    assert unique_labels(["x", "x", "x (2)"]) == ["x", "x (2)", "x (2) (3)"]
+    assert len(set(unique_labels(["a"] * 50))) == 50

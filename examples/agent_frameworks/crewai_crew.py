@@ -9,11 +9,16 @@ member's probability is below `min_confidence`, the task goes to the fallback me
 `agent`, so the crew then runs as a sequential crew. This script stops before `kickoff()`, so it runs without an API
 key: the agents' LLMs are only needed to do the work.
 """
+import os
 import sys
 
-from crewai import Agent, Task
+# CrewAI 1.0 and 1.1 build each agent's LLM as the agent is created, and fail without a key. This script never calls
+# the LLM (assignment needs none), so a placeholder is enough; set your real key to kickoff() the crew.
+os.environ.setdefault("OPENAI_API_KEY", "not-used-to-assign-tasks")
 
-from opendecider.integrations.crewai import TaskAssigner
+from crewai import Agent, Task  # noqa: E402
+
+from opendecider.integrations.crewai import TaskAssigner  # noqa: E402
 
 billing = Agent(role="Billing specialist", goal="Resolve invoices, duplicate charges and refunds",
                 backstory="Five years in finance operations.")

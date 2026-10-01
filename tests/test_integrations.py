@@ -254,3 +254,20 @@ def test_selector_picks_from_its_own_answer_under_concurrency():
     sel = Racing(model=decider())
     assert sel.select(tools, "sql: total sales").ind == 0
     assert sel.last.choice == "docs"   # the race happened
+
+
+def test_selector_labels_never_collide():
+    pytest.importorskip("llama_index.core")
+    from llama_index.core.tools import ToolMetadata
+    from opendecider.integrations.llamaindex import DecisionSelector
+
+    class Recording(Fake):
+        def decide_many(self, items, info=None):
+            self.opts = list(items[0][2])
+            return super().decide_many(items, info)
+
+    fake = Recording()
+    tools = [ToolMetadata(name="tech", description="a"), ToolMetadata(name="tech (3)", description="b"),
+             ToolMetadata(name="tech", description="c")]
+    DecisionSelector(model=decider(fake)).select(tools, "q")
+    assert fake.opts == ["tech", "tech (3)", "tech (4)"]   # three options, none lost

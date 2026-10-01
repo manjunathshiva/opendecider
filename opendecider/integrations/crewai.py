@@ -121,10 +121,9 @@ class TaskAssigner:
                  on_error: str = "raise", on_decision=None):
         if len(agents) < 2:
             raise ValueError("TaskAssigner needs at least 2 crew members to choose from")
-        self.members: dict[str, Any] = {}
-        for i, agent in enumerate(agents):   # a readable, unique label per member; the goal describes it
-            role = str(getattr(agent, "role", "") or f"member {i + 1}").strip()
-            self.members[role if role not in self.members else f"{role} ({i + 1})"] = agent
+        # a readable, unique label per member; the goal describes it
+        roles = [str(getattr(a, "role", "") or "").strip() or f"member {i + 1}" for i, a in enumerate(agents)]
+        self.members: dict[str, Any] = dict(zip(core.unique_labels(roles), agents))
         options = {label: (str(getattr(a, "goal", "") or "").strip() or None) for label, a in self.members.items()}
         fallback_label = None
         if fallback is not None:

@@ -28,6 +28,7 @@ MAX_QUESTIONS = 64
 MAX_OPTIONS = 256
 MAX_STATE_CHARS = 200_000
 MAX_BATCH_STATES = 256
+MAX_BATCH_ITEMS = 1024   # states x questions per batch call: bounds the work one call can queue
 LOAD_RETRY_S = 5.0   # after a failed load, calls fail at once for this long before the next attempt
 
 DEFAULT_MODEL = "manjunathshiva/opendecider-nano"
@@ -72,7 +73,8 @@ DESCRIPTIONS = {
     "decide_batch": (
         "Answer the same typed questions about many states in one call (faster than one call per state), with a "
         "probability for every option.\n\n"
-        f"states: up to {MAX_BATCH_STATES} states, each plain text or any JSON.\n"
+        f"states: up to {MAX_BATCH_STATES} states, each plain text or any JSON, and at most {MAX_BATCH_ITEMS} "
+        "questions in all (states x questions).\n"
         "questions: as for `decide`.\n"
         "Returns one result per state, in order, each with its answers."),
     "status": "The model behind these tools: its name, whether it is loaded, where it runs, and the input limits.",
@@ -139,6 +141,9 @@ class Decider:
         if len(states) > MAX_BATCH_STATES:
             raise ValueError(f"at most {MAX_BATCH_STATES} states per call (got {len(states)})")
         questions = OpenDecider.prepare(questions)
+        if len(states) * len(questions) > MAX_BATCH_ITEMS:
+            raise ValueError(f"at most {MAX_BATCH_ITEMS} questions in all per call (states x questions; got "
+                             f"{len(states)} x {len(questions)} = {len(states) * len(questions)}); split the batch")
         for i, state in enumerate(states):
             try:
                 check(state, questions)
@@ -196,6 +201,19 @@ def shared(model: Any = DEFAULT_MODEL) -> Decider:
         if model not in _shared:
             _shared[model] = Decider(model)
         return _shared[model]
+
+
+def unique_labels(names: list[str]) -> list[str]:
+    """One readable label per name, made unique with a position suffix ("tech", "tech (3)"); a generated label is
+    checked too, so it never takes a label already in use."""
+    out, seen = [], set()
+    for i, name in enumerate(names):
+        label, n = name, i + 1
+        while label in seen:
+            label, n = f"{name} ({n})", n + 1
+        seen.add(label)
+        out.append(label)
+    return out
 
 
 def check(state, questions: dict) -> None:
@@ -269,7 +287,7 @@ def status(decider: Decider) -> dict[str, Any]:
     from . import __version__
     return {**decider.status(), "version": __version__,
             "limits": {"questions": MAX_QUESTIONS, "options": MAX_OPTIONS, "state_chars": MAX_STATE_CHARS,
-                       "batch_states": MAX_BATCH_STATES}}
+                       "batch_states": MAX_BATCH_STATES, "batch_items": MAX_BATCH_ITEMS}}
 
 
 def choose(decider: Decider, state, question: str, options) -> dict[str, Any]:

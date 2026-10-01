@@ -85,10 +85,8 @@ class DecisionSelector(BaseSelector):
     def _select(self, choices: Sequence, query) -> SelectorResult:
         if not choices:
             raise ValueError("no choices to select from")
-        labels = []
-        for i, c in enumerate(choices):   # a readable, unique label per choice; the description explains it
-            label = (c.name or f"option {i + 1}").strip() or f"option {i + 1}"
-            labels.append(label if label not in labels else f"{label} ({i + 1})")
+        # a readable, unique label per choice; the description explains it
+        labels = core.unique_labels([(c.name or "").strip() or f"option {i + 1}" for i, c in enumerate(choices)])
         if len(choices) == 1:
             return SelectorResult(selections=[SingleSelection(index=0, reason="the only choice")])
         cap = self.max_description_chars
