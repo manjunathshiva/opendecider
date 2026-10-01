@@ -17,6 +17,7 @@ already loaded). Answers are the same as the MCP server's: a probability for eve
 """
 from __future__ import annotations
 
+import asyncio
 from typing import Any, AsyncGenerator
 
 from pydantic import ConfigDict, Field, PrivateAttr
@@ -96,7 +97,6 @@ class DecisionRouterAgent(BaseAgent):
         return self._router.last
 
     async def _run_async_impl(self, ctx) -> AsyncGenerator:
-        import asyncio
         name = await asyncio.to_thread(self._router.route, _user_text(ctx))   # inference blocks: off the event loop
         target = next(a for a in self.sub_agents if a.name == name)
         async for event in target.run_async(ctx):

@@ -19,8 +19,8 @@ cases can go to a fallback (a person, a slower model) instead of the wrong branc
 | [Mastra](#mastra-typescript-through-mcp) (TypeScript) | `opendecider[mcp]` + `@mastra/mcp` | the MCP server's tools | (route with the `choose` tool) | [mastra/index.mjs](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/mastra/index.mjs) |
 
 Every example runs on a laptop with opendecider-nano, without an LLM API key, and CI runs each of them against the
-released model. They route the same four support tickets, and every framework routes them the same way, since the
-decision is the model's:
+released model. The routing examples (LangGraph, Agno, CrewAI, Agent Framework, Google ADK, Strands) route the same
+four support tickets, and every framework routes them the same way, since the decision is the model's:
 
 | ticket | routed to | top route, probability |
 |---|---|---|
@@ -39,8 +39,11 @@ from opendecider.tools import Decider
 nano_cpu = Decider("manjunathshiva/opendecider-nano", device="cpu")
 ```
 
-Every router has the same arguments: `routes` (names, or {"name": "when to take it"}), the routing question,
-`fallback` and `min_confidence`; `router.last` holds the last answer (probabilities and confidence), for logging.
+Every `DecisionRouter` takes the same arguments: `routes` (names, or {"name": "when to take it"}), the routing
+question, `model`, `fallback` and `min_confidence` (Google ADK's `DecisionRouterAgent` takes them as fields, with
+`instructions=` for the question and `decision_model=` for the model). `.last` holds the last answer (probabilities
+and confidence), for logging. An empty input (blank text, `{}` or `[]`, such as an image-only message) takes the
+fallback without asking the model, which would otherwise guess; without a fallback it raises `ValueError`.
 
 ## LangGraph: route on confidence
 
@@ -282,7 +285,8 @@ SPECIALISTS[route(ticket)](ticket)          # call the chosen specialist agent
 
 ## Mastra (TypeScript): through MCP
 
-Mastra connects to OpenDecider's [MCP server](mcp.md); nothing to install on the TypeScript side beyond `@mastra/mcp`.
+Mastra connects to OpenDecider's [MCP server](mcp.md) through its MCP client; there is no TypeScript package to install
+from OpenDecider.
 
 ```bash
 pip install "opendecider[mcp]"
@@ -303,7 +307,7 @@ client connect the same way.
 
 ## Other frameworks
 
-`opendecider.tools.Router` is the router every integration builds on: `Router(routes, question, fallback=...,
+`opendecider.tools.Router` is the router every integration builds on: `Router(routes, instructions, fallback=...,
 min_confidence=...)(state)` returns a route name for any text or JSON, so it drops into any framework's branching. The
 plain functions in `opendecider.tools` (`decide`, `choose`, `yes_no`, `score`) are what every tool wraps.
 
@@ -315,7 +319,7 @@ to the model with a message saying what to fix, in each framework's own way:
 | framework | the model sees |
 |---|---|
 | LangChain, LlamaIndex, Agno, MCP (and Mastra) | the error message, as the tool's result |
-| CrewAI, Microsoft Agent Framework, Google ADK, Strands | `{"error": "<what to fix>"}` as the tool's result (these frameworks hide exception text from the model, or report it generically) |
+| CrewAI, Microsoft Agent Framework, Google ADK, Strands | `{"error": "<what to fix>"}` as the tool's result, not an exception: Agent Framework hides exception text from the model by default, Google ADK ends the run when a tool raises, and CrewAI and Strands follow suit |
 | PydanticAI | a retry prompt with the message (`ModelRetry`); a model that cannot load raises `ModelError` instead |
 
 ## Notes
@@ -323,6 +327,10 @@ to the model with a message saying what to fix, in each framework's own way:
 - Write the routes' descriptions the way you would brief a person; descriptions matter more than the labels.
 - One model serves every component that names it; calls run one at a time. For high request rates from
   services, use [`opendecider serve`](serve.md).
+- Routers decide in the thread that calls them. In async workflows (Agno's `arun`, CrewAI's async flows, Agent
+  Framework switches) that is the event loop, which waits for the decision: milliseconds with opendecider-nano, longer
+  with a 4B model on CPU. Google ADK's router agent, and the LangChain, LlamaIndex and CrewAI tools when called
+  asynchronously, run the model off the event loop.
 - CrewAI and Strands require `mcp` 1.x, and the MCP server needs 2.2 or later: install `opendecider[mcp]` in its own
   environment (`uvx --from "opendecider[mcp]" opendecider mcp`). The CrewAI and Strands integrations do not need it.
 - `DecisionSelector` returns a single selection; for multi-engine fan-out, keep an LLM multi-selector.

@@ -18,6 +18,7 @@ permissions:
 env:   # agent frameworks report usage by default; the examples send nothing
   AGNO_TELEMETRY: 'false'
   CREWAI_DISABLE_TELEMETRY: 'true'
+  CREWAI_TRACING_ENABLED: 'false'
   OTEL_SDK_DISABLED: 'true'
   PYDANTIC_AI_NO_BANNER: '1'
 
@@ -55,7 +56,7 @@ jobs:
           node-version: '22'
       - name: Mastra (TypeScript) through opendecider mcp
         working-directory: examples/agent_frameworks/mastra
-        run: npm ci --no-audit --no-fund && node index.mjs
+        run: npm ci --ignore-scripts --no-audit --no-fund && node index.mjs   # no dependency runs install scripts
       - name: serve_client.py against opendecider serve
         run: |
           opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &

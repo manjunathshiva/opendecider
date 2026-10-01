@@ -103,9 +103,10 @@ score(d, state, "How urgent?", ["low", "medium", "high"])   # {'level', 'label',
 | `opendecider.integrations.pydantic_ai` | `opendecider[pydantic-ai]` | `decision_toolset()`, `DecisionRouter` |
 | `opendecider.integrations.strands` | `opendecider[strands]` | `decision_tools()`, `DecisionRouter` |
 
-`tools.Router(routes, question, *, model, fallback=None, min_confidence=0.0)` is the router every integration builds
+`tools.Router(routes, instructions, *, model=..., fallback=None, min_confidence=0.0)` is the router every integration builds
 on: calling it with a state returns a route name (the fallback when the top route's probability is below
-`min_confidence`), and `.last` holds the full answer.
+`min_confidence`), and `.last` holds the full answer. An empty state takes the fallback without a decision (or
+raises `ValueError` without one).
 
 Invalid input raises `ValueError` and a model that cannot load raises `tools.ModelError`, each naming the problem.
 `tools.as_result(fn, *args)` returns those as `{"error": "..."}` instead, for frameworks that hide a tool's exception

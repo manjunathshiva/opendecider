@@ -21,6 +21,17 @@ updates:
     open-pull-requests-limit: 2
     labels: ["dependencies", "docker"]
 
+  # The Mastra example's npm lockfile
+  - package-ecosystem: "npm"
+    directory: "/examples/agent_frameworks/mastra"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    labels: ["dependencies"]
+    groups:
+      mastra:
+        patterns: ["@mastra/*"]
+
   # GitHub Actions (see the ignore rules below)
   - package-ecosystem: "github-actions"
     directory: "/"

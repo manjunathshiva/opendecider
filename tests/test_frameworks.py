@@ -8,7 +8,8 @@ import pytest
 from opendecider import OpenDecider
 from opendecider.tools import Decider
 
-for var, off in (("AGNO_TELEMETRY", "false"), ("CREWAI_DISABLE_TELEMETRY", "true"), ("OTEL_SDK_DISABLED", "true")):
+for var, off in (("AGNO_TELEMETRY", "false"), ("CREWAI_DISABLE_TELEMETRY", "true"), ("CREWAI_TRACING_ENABLED", "false"),
+                 ("OTEL_SDK_DISABLED", "true")):
     os.environ.setdefault(var, off)   # the frameworks report usage by default; tests send nothing
 
 
@@ -171,6 +172,20 @@ def test_agent_framework_switch_case_runs_the_model_once_per_message():
         DecisionRouter(ROUTES, "Which team?", model=decider()).cases({"billing": billing, "tech": tech})
 
 
+def test_agent_framework_routes_on_an_agents_reply():
+    pytest.importorskip("agent_framework")
+    from agent_framework import AgentExecutorResponse, AgentResponse, Message
+    from opendecider.integrations.agent_framework import DecisionRouter, _text
+
+    reply = AgentExecutorResponse(executor_id="triage_agent",
+                                  agent_response=AgentResponse(messages=[Message("assistant", ["a billing dispute"])]),
+                                  full_conversation=[Message("user", ["long history that must not be routed on"])])
+    assert _text(reply) == "a billing dispute"   # the agent's reply, not the whole conversation
+    assert _text(Message("user", ["the tech stack is down"])) == "the tech stack is down"
+    route = DecisionRouter(ROUTES, "Which team?", model=decider())
+    assert route.pick(reply) == "billing"
+
+
 def test_agent_framework_failed_decision_takes_the_default_once(caplog):
     pytest.importorskip("agent_framework")
     from opendecider.integrations.agent_framework import DecisionRouter
@@ -280,3 +295,13 @@ def test_strands_tools():
     assert "at least 2 options" in tools["choose"](state="x", question="Which?", options=["only"])["error"]
     props = tools["choose"].tool_spec["inputSchema"]["json"]["properties"]
     assert set(props) == {"state", "question", "options"}
+
+
+def test_an_empty_state_takes_the_fallback_without_a_decision():
+    from opendecider.tools import Router
+    fake = Fake()
+    route = Router(ROUTES, "Which team?", model=decider(fake), fallback="human")
+    assert [route(s) for s in ("", "  \n", {}, [], None)] == ["human"] * 5
+    assert fake.calls == 0 and route.last is None   # the model never guessed
+    with pytest.raises(ValueError, match="nothing to route on"):
+        Router(ROUTES, "Which team?", model=decider())("")

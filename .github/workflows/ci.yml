@@ -11,6 +11,7 @@ permissions:
 env:   # agent frameworks report usage by default; the tests send nothing
   AGNO_TELEMETRY: 'false'
   CREWAI_DISABLE_TELEMETRY: 'true'
+  CREWAI_TRACING_ENABLED: 'false'
   OTEL_SDK_DISABLED: 'true'
 
 jobs:

@@ -204,7 +204,14 @@ class Router:
         self.last: dict | None = None   # the last answer, for logging
 
     def route(self, state) -> str:
-        """The route name for `state` (text or JSON); `self.last` keeps the full answer."""
+        """The route name for `state` (text or JSON); `self.last` keeps the full answer. An empty state (blank text,
+        {} or []) has nothing to decide on: it takes the fallback, or raises ValueError without one."""
+        if state is None or state in ({}, []) or (isinstance(state, str) and not state.strip()):
+            if self.fallback is None:
+                raise ValueError("nothing to route on: the state is empty")
+            log.warning("nothing to route on (the state is empty): taking the fallback route %r", self.fallback)
+            self.last = None
+            return self.fallback
         self.last = choose(self.decider, state, self.instructions, self.routes)
         if self.last.get("truncated"):
             log.warning("the routing input was shortened to fit the model's input; route on a shorter field")
