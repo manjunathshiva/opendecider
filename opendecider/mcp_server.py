@@ -23,12 +23,7 @@ from .tools import MAX_OPTIONS, MAX_QUESTIONS, MAX_STATE_CHARS, ModelError  # no
 
 log = logging.getLogger("opendecider.mcp")
 
-INSTRUCTIONS = (
-    "OpenDecider answers typed questions about a state (text or JSON) with a calibrated probability for every option. "
-    "Use it for classification, routing, triage, yes/no checks and ratings instead of reasoning them out in text. "
-    "`confidence` is the probability of the top answer: act on confident answers, and ask the user when it is low. "
-    "Give each option a short description when the labels alone are terse."
-)
+INSTRUCTIONS = tools.INSTRUCTIONS
 
 
 def _stdout_to_stderr():

@@ -28,6 +28,13 @@ MAX_STATE_CHARS = 200_000
 
 DEFAULT_MODEL = "manjunathshiva/opendecider-nano"
 
+INSTRUCTIONS = (
+    "OpenDecider answers typed questions about a state (text or JSON) with a calibrated probability for every option. "
+    "Use it for classification, routing, triage, yes/no checks and ratings instead of reasoning them out in text. "
+    "`confidence` is the probability of the top answer: act on confident answers, and ask the user when it is low. "
+    "Give each option a short description when the labels alone are terse."
+)
+
 DESCRIPTIONS = {
     "decide": (
         "Answer typed questions about one state, with a probability for every option.\n\n"
@@ -142,6 +149,15 @@ def answer(a: dict) -> dict:
     return out
 
 
+def as_result(fn, *args) -> dict[str, Any]:
+    """`fn(*args)`, with the caller's input errors and a model that cannot load returned as {"error": "<what to fix>"}:
+    for frameworks that hide a tool's exception text from the model by default."""
+    try:
+        return fn(*args)
+    except (ValueError, ModelError) as e:
+        return {"error": str(e)}
+
+
 def decide(decider: Decider, state, questions: dict) -> dict[str, Any]:
     r = decider.system_one(state, questions)
     out = {"model": r["model"], "answers": {k: answer(a) for k, a in r["answers"].items()}}
@@ -163,3 +179,43 @@ def yes_no(decider: Decider, state, question: str) -> dict[str, Any]:
 def score(decider: Decider, state, question: str, levels: list) -> dict[str, Any]:
     r = decider.system_one(state, {question: Score(question, levels)})
     return answer(r["answers"][question])
+
+
+class Router:
+    """Picks one route for a state: the most likely route, or `fallback` when its probability is below
+    `min_confidence`. The framework integrations build on it (a LangGraph edge, an Agent Framework switch, an Agno
+    selector, a CrewAI flow router).
+
+    routes: the route names, as a list or as {"route": "when to take it"} (descriptions help).
+    instructions: the routing question, e.g. "Which agent should handle this request?".
+    """
+
+    def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = DEFAULT_MODEL,
+                 fallback: str | None = None, min_confidence: float = 0.0):
+        if not 0 <= min_confidence <= 1:
+            raise ValueError(f"min_confidence is a probability, between 0 and 1 (got {min_confidence})")
+        if fallback is None and min_confidence > 0:
+            raise ValueError("min_confidence needs a fallback route")
+        from . import OpenDecider
+        OpenDecider.prepare({"routes": Choice(instructions, routes)})   # at least 2 routes and an instruction, now
+        self.routes, self.instructions = routes, instructions
+        self.fallback, self.min_confidence = fallback, min_confidence
+        self.decider = shared(model)
+        self.last: dict | None = None   # the last answer, for logging
+
+    def route(self, state) -> str:
+        """The route name for `state` (text or JSON); `self.last` keeps the full answer."""
+        self.last = choose(self.decider, state, self.instructions, self.routes)
+        if self.last.get("truncated"):
+            log.warning("the routing input was shortened to fit the model's input; route on a shorter field")
+        if self.fallback is not None and self.last["confidence"] < self.min_confidence:
+            return self.fallback
+        return self.last["choice"]
+
+    __call__ = route
+
+    @property
+    def names(self) -> list[str]:
+        """Every name the router can return: the routes, then the fallback."""
+        names = list(self.routes)
+        return names + ([self.fallback] if self.fallback is not None and self.fallback not in names else [])

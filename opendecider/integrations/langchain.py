@@ -17,12 +17,9 @@ from __future__ import annotations
 
 import asyncio
 import functools
-import logging
 from typing import Any, Callable
 
 from .. import tools as core
-
-log = logging.getLogger("opendecider.integrations.langchain")
 
 
 def _text(content):
@@ -77,7 +74,7 @@ def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
     return [tool(decide), tool(choose), tool(yes_no), tool(score)]
 
 
-class DecisionRouter:
+class DecisionRouter(core.Router):
     """A LangGraph conditional edge (or any router): picks the next node from `routes`, or `fallback` when unsure.
 
     routes: the node names, as a list or as {"node": "when to go there"} (descriptions help).
@@ -89,17 +86,8 @@ class DecisionRouter:
 
     def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = core.DEFAULT_MODEL,
                  state_key: str | None = None, fallback: str | None = None, min_confidence: float = 0.0):
-        if not 0 <= min_confidence <= 1:
-            raise ValueError(f"min_confidence is a probability, between 0 and 1 (got {min_confidence})")
-        if fallback is None and min_confidence > 0:
-            raise ValueError("min_confidence needs a fallback route")
-        from .. import OpenDecider
-        from ..questions import Choice
-        OpenDecider.prepare({"routes": Choice(instructions, routes)})   # at least 2 routes and an instruction, now
-        self.routes, self.instructions = routes, instructions
-        self.state_key, self.fallback, self.min_confidence = state_key, fallback, min_confidence
-        self.decider = core.shared(model)
-        self.last: dict | None = None   # the last answer, for logging
+        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence)
+        self.state_key = state_key
 
     def _state(self, state):
         if self.state_key is not None:
@@ -111,15 +99,9 @@ class DecisionRouter:
         return state
 
     def __call__(self, state) -> str:
-        self.last = core.choose(self.decider, self._state(state), self.instructions, self.routes)
-        if self.last.get("truncated"):
-            log.warning("the routing input was shortened to fit the model's input; set state_key to a shorter field")
-        if self.fallback is not None and self.last["confidence"] < self.min_confidence:
-            return self.fallback
-        return self.last["choice"]
+        return self.route(self._state(state))
 
     @property
     def path_map(self) -> list[str]:
         """Every node the router can return, for `add_conditional_edges(..., path_map=router.path_map)`."""
-        names = list(self.routes)
-        return names + ([self.fallback] if self.fallback is not None and self.fallback not in names else [])
+        return self.names
