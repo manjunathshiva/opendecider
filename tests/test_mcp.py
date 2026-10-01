@@ -124,7 +124,7 @@ def test_a_model_that_cannot_load_says_why_and_is_retried():
         r = call(server, "yes_no", {"state": "x", "question": "?"})
         assert r.is_error
         assert "could not load model 'typo/model': OSError: no such model on the Hub" in r.content[0].text
-    assert attempts == ["typo/model", "typo/model"]   # a failed load is not cached
+    assert attempts == ["typo/model"]   # within LOAD_RETRY_S the second call fails fast with the same reason
 
 
 NOISY_SERVER = textwrap.dedent("""

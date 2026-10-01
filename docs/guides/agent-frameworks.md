@@ -341,7 +341,9 @@ route = DecisionRouter(routes, "Which specialist?", model="https://decider.inter
                        fallback="human_agent", min_confidence=0.6)
 ```
 
-A failed load (the server down, a wrong key) is not cached: the next call tries again.
+Each request waits at most 30 seconds by default; for routing, set a limit you can afford with
+`tools.Decider(url, timeout=5)` and pass that as the model. After a failed load (the server down, a wrong key), calls
+fail at once for 5 seconds and then try again, so an outage costs one slow call rather than one per request.
 
 **Every decision, recorded.** `router.decide(state)` returns a `Decision`, and `on_decision=` receives every one,
 failed ones included, for logs, metrics or audits:
@@ -349,7 +351,7 @@ failed ones included, for logs, metrics or audits:
 | field | meaning |
 |---|---|
 | `route` | the route taken (`None` when the decision failed and the error was raised) |
-| `reason` | `confident`, `low_confidence` (below `min_confidence`: the fallback), `empty_input` (nothing to decide on: the fallback) or `error` |
+| `reason` | `top_choice` (the model's top route), `low_confidence` (below `min_confidence`: the fallback), `empty_input` (nothing to decide on: the fallback) or `error` |
 | `choice`, `confidence`, `probabilities` | the model's top route, its probability, and every route's probability |
 | `model`, `latency_ms`, `truncated`, `error` | the model that answered, the time taken, whether the input was cut to fit, and what failed |
 
@@ -360,7 +362,9 @@ def audit(d):
 route = DecisionRouter(routes, "Which specialist?", fallback="human_agent", on_decision=audit)
 ```
 
-A hook that raises is logged and never breaks routing.
+A hook that raises is logged and never breaks routing. Hooks run inline, in the routing call, so keep them fast
+(hand slow work to a queue). A `Decision` holds no input text, so audit logs and spans carry no ticket or message
+contents.
 
 **Traces.** With `opentelemetry-api` installed (`pip install "opendecider[otel]"`), every decision is an
 `opendecider.route` span with the route, choice, confidence, reason and latency as attributes, and the model call an

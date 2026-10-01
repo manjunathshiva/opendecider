@@ -28,6 +28,7 @@ MAX_QUESTIONS = 64
 MAX_OPTIONS = 256
 MAX_STATE_CHARS = 200_000
 MAX_BATCH_STATES = 256
+LOAD_RETRY_S = 5.0   # after a failed load, calls fail at once for this long before the next attempt
 
 DEFAULT_MODEL = "manjunathshiva/opendecider-nano"
 
@@ -95,10 +96,17 @@ class Decider:
         self._guard = guard or contextlib.nullcontext
         self._load_lock = threading.Lock()
         self._run_lock = threading.Lock()   # torch models are not safe to call from several threads at once
+        self._failed: tuple[float, str] | None = None   # (retry after, message) for the last failed load
 
     def model(self):
+        failed = self._failed
+        if self._model is None and failed and time.monotonic() < failed[0]:   # fail fast: a hung server costs once
+            raise ModelError(failed[1])
         with self._load_lock:
             if self._model is None:
+                failed = self._failed
+                if failed and time.monotonic() < failed[0]:   # another caller just failed while this one waited
+                    raise ModelError(failed[1])
                 log.info("loading %s", self.name)
                 if self._loader is None:
                     from . import load
@@ -106,14 +114,22 @@ class Decider:
                 try:
                     with self._guard():
                         self._model = self._loader(self.name, **self.load_kw)
-                except Exception as e:   # noqa: BLE001 -- not cached: the next call tries again
+                except Exception as e:   # noqa: BLE001 -- remembered for LOAD_RETRY_S, then tried again
                     from .remote import ServerError
                     if isinstance(e, ServerError):   # a server that is down or refusing: the message says it all
                         log.error("could not load %s: %s", self.name, e)
                     else:
                         log.exception("could not load %s", self.name)
-                    raise ModelError(f"could not load model {self.name!r}: {type(e).__name__}: {e}") from None
+                    message = f"could not load model {self.name!r}: {type(e).__name__}: {e}"
+                    self._failed = (time.monotonic() + LOAD_RETRY_S, message)
+                    raise ModelError(message) from None
+                self._failed = None
             return self._model
+
+    def _lock(self, model):
+        """The one-inference-at-a-time lock, for in-process models only: a model server takes concurrent requests."""
+        return contextlib.nullcontext() if getattr(getattr(model, "impl", None), "thread_safe", False) \
+            else self._run_lock
 
     def system_one_batch(self, states: list, questions: dict) -> list[dict]:
         """`system_one` for many states and the same questions, as one batch."""
@@ -129,7 +145,7 @@ class Decider:
             except ValueError as e:
                 raise ValueError(f"state {i}: {e}") from None
         model = self.model()
-        with _span("opendecider.decide_batch") as span, self._run_lock, self._guard():
+        with _span("opendecider.decide_batch") as span, self._lock(model), self._guard():
             out = model.system_one_batch(states, questions)
             if span is not None:
                 span.set_attribute("opendecider.model", self.name)
@@ -156,7 +172,7 @@ class Decider:
         questions = OpenDecider.prepare(questions)   # validates without a model: a bad call never triggers a download
         check(state, questions)
         model = self.model()
-        with _span("opendecider.decide") as span, self._run_lock, self._guard():
+        with _span("opendecider.decide") as span, self._lock(model), self._guard():
             out = model.system_one(state, questions)
             if span is not None:
                 span.set_attribute("opendecider.model", str(out.get("model", self.name)))
@@ -271,7 +287,7 @@ def score(decider: Decider, state, question: str, levels: list) -> dict[str, Any
     return answer(r["answers"][question])
 
 
-REASONS = ("confident", "low_confidence", "empty_input", "error")
+REASONS = ("top_choice", "low_confidence", "empty_input", "error")
 
 
 @dataclass(frozen=True)
@@ -279,7 +295,7 @@ class Decision:
     """One routing decision: what the router returned and why.
 
     route: the route taken (None when the decision failed and the error was raised).
-    reason: "confident" (the top route), "low_confidence" (below `min_confidence`: the fallback), "empty_input"
+    reason: "top_choice" (the model's top route), "low_confidence" (below `min_confidence`: the fallback), "empty_input"
       (nothing to decide on: the fallback), or "error" (the decision failed: the fallback, or raised).
     choice, confidence, probabilities: the model's top route, its probability, and every route's probability (empty
       when no decision was made).
@@ -358,7 +374,8 @@ class Router:
             return decision
 
     def _decide(self, state, t0: float) -> Decision:
-        if state is None or state in ({}, []) or (isinstance(state, str) and not state.strip()):
+        if state is None or (isinstance(state, (dict, list)) and not state) or (isinstance(state, str)
+                                                                               and not state.strip()):
             if self.fallback is None:
                 raise ValueError("nothing to route on: the state is empty")
             log.warning("nothing to route on (the state is empty): taking the fallback route %r", self.fallback)
@@ -368,7 +385,7 @@ class Router:
             log.warning("the routing input was shortened to fit the model's input; route on a shorter field")
         low = self.fallback is not None and answer["confidence"] < self.min_confidence
         return Decision(route=self.fallback if low else answer["choice"],
-                        reason="low_confidence" if low else "confident", choice=answer["choice"],
+                        reason="low_confidence" if low else "top_choice", choice=answer["choice"],
                         confidence=answer["confidence"], probabilities=answer["probabilities"],
                         model=self.decider.label, latency_ms=_ms(t0), truncated=bool(answer.get("truncated")))
 

@@ -36,7 +36,7 @@ def test_a_decision_says_what_was_taken_and_why():
     assert d.probabilities == {"billing": pytest.approx(0.2), "tech": pytest.approx(0.8)}
     assert d.model == "opendecider-test" and d.latency_ms >= 0 and d.error is None
     route.min_confidence = 0.5
-    assert route.decide("refund my billing").reason == "confident" and route("refund my billing") == "billing"
+    assert route.decide("refund my billing").reason == "top_choice" and route("refund my billing") == "billing"
     empty = route.decide("  ")
     assert (empty.route, empty.reason, empty.choice, empty.probabilities) == ("human", "empty_input", None, {})
     assert set(d.to_dict()) == {"route", "reason", "choice", "confidence", "probabilities", "model", "latency_ms",
@@ -121,7 +121,7 @@ def test_each_decision_is_an_opentelemetry_span(spans):
     r, d = by_name["opendecider.route"], by_name["opendecider.decide"]
     assert d.parent.span_id == r.context.span_id   # the model call nests inside the routing decision
     assert {k: r.attributes[k] for k in ("opendecider.route", "opendecider.choice", "opendecider.reason")} == \
-        {"opendecider.route": "tech", "opendecider.choice": "tech", "opendecider.reason": "confident"}
+        {"opendecider.route": "tech", "opendecider.choice": "tech", "opendecider.reason": "top_choice"}
     assert r.attributes["opendecider.confidence"] == pytest.approx(0.8)
     assert d.attributes["opendecider.model"] == "opendecider-test" and d.attributes["opendecider.questions"] == 1
 
@@ -138,3 +138,63 @@ def test_a_failed_decision_is_an_error_span(spans):
 
 def test_decision_is_importable_from_every_router_module():
     assert Decision.__module__ == "opendecider.tools"
+
+
+def test_a_model_server_takes_concurrent_calls_but_a_local_model_takes_turns():
+    """A served model answers concurrent calls at once (the server batches them); a local torch model is one at a
+    time. Two calls must meet inside the model to pass the barrier, which the lock would prevent."""
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    from opendecider.tools import yes_no
+
+    def meeting(thread_safe):
+        gate = threading.Barrier(2, timeout=2)
+
+        class Model(Fake):
+            def decide_many(self, items, info=None):
+                gate.wait()
+                return super().decide_many(items, info)
+
+        Model.thread_safe = thread_safe
+        d = Decider(OpenDecider(Model(), {"name": "m", "kind": "served"}))
+        with ThreadPoolExecutor(2) as pool:
+            futures = [pool.submit(yes_no, d, "s", "q?") for _ in range(2)]
+            try:
+                return all(f.result()["answer"] for f in futures)
+            except threading.BrokenBarrierError:
+                return False
+
+    assert meeting(thread_safe=True) is True     # served: both calls in flight together
+    assert meeting(thread_safe=False) is False   # local: the second call waits its turn
+
+
+def test_a_failed_load_fails_fast_then_is_retried(monkeypatch):
+    from opendecider import tools
+    from opendecider.tools import ModelError, yes_no
+    calls, now = [], [100.0]
+    monkeypatch.setattr(tools.time, "monotonic", lambda: now[0])
+
+    def loader(name, **kw):
+        calls.append(name)
+        if len(calls) < 3:
+            raise ConnectionError("server down")
+        return OpenDecider(Fake(), {"name": "m", "kind": "nano"})
+
+    d = Decider("http://decider:8000", loader=loader)
+    for _ in range(3):   # one real attempt, then fast failures with the same message
+        with pytest.raises(ModelError, match="server down"):
+            yes_no(d, "s", "q?")
+    assert len(calls) == 1
+    now[0] += tools.LOAD_RETRY_S + 0.1
+    with pytest.raises(ModelError):
+        yes_no(d, "s", "q?")                    # the second real attempt, after the wait
+    now[0] += tools.LOAD_RETRY_S + 0.1
+    assert yes_no(d, "s", "q?")["answer"]       # the third succeeds and clears the failure
+    assert len(calls) == 3 and d._failed is None
+
+
+def test_an_input_that_is_neither_text_nor_json_is_a_reported_error():
+    seen = []
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback",
+                   on_decision=seen.append)
+    assert route(object()) == "human" and "text or JSON" in seen[0].error

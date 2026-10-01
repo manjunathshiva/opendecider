@@ -172,3 +172,19 @@ def test_busy_server_is_retried_after_its_retry_after(serve, monkeypatch):
     monkeypatch.setattr(remote.urllib.request, "urlopen", busy_once)
     assert OpenDecider(m, {"name": "x", "kind": "served"}).system_one("billing", QUESTIONS)["answers"]
     assert len(calls) == 2
+
+
+def test_a_server_timeout_is_not_retried(serve, monkeypatch):
+    """The server answers 504 after its own request timeout: retrying would multiply the wait."""
+    from opendecider import remote
+    m = ServedModel(serve())
+    calls = []
+
+    def timed_out(req, timeout):
+        calls.append(req.full_url)
+        raise remote.urllib.error.HTTPError(req.full_url, 504, "timeout", {}, None)
+
+    monkeypatch.setattr(remote.urllib.request, "urlopen", timed_out)
+    with pytest.raises(ServerError, match="HTTP 504"):
+        OpenDecider(m, {"name": "x", "kind": "served"}).system_one("s", QUESTIONS)
+    assert len(calls) == 1

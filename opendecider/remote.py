@@ -55,6 +55,9 @@ class ServerError(RuntimeError):
 class _Client:
     """HTTP to one server: the URL and credential rules, and retries for a busy or restarting server."""
 
+    thread_safe = True        # each request is independent: callers need not take turns
+    retry_status = RETRY_STATUS
+
     def __init__(self, base_url: str, api_key: str | None, timeout: float):
         self.base_url = base_url.rstrip("/")
         url = urllib.parse.urlsplit(self.base_url)
@@ -81,7 +84,7 @@ class _Client:
             except TimeoutError:
                 raise ServerError(f"{self.base_url} gave no answer within {self.timeout:g} s") from None
             except urllib.error.HTTPError as e:
-                if e.code in RETRY_STATUS and attempt < 2:
+                if e.code in self.retry_status and attempt < 2:
                     time.sleep(_retry_after(e, 0.5 * 2 ** attempt))
                     continue
                 self._http_error(e)
@@ -176,7 +179,9 @@ class ServedModel(_Client):
     model would see, so answers match the server model's own exactly. Questions about one state go in one request
     (up to `max_questions`, the server's default limit); several states go out in parallel (`workers`)."""
 
-    def __init__(self, base_url: str, api_key: str | None = None, timeout: float = 60.0, workers: int = 4,
+    retry_status = {429, 502, 503}   # not 504: the server already waited its own request timeout
+
+    def __init__(self, base_url: str, api_key: str | None = None, timeout: float = 30.0, workers: int = 4,
                  max_questions: int = 64):
         super().__init__(base_url, api_key, timeout)
         self.workers, self.max_questions = max(1, workers), max(1, max_questions)

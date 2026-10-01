@@ -21,7 +21,7 @@ load(name_or_path="manjunathshiva/opendecider-nano", device=None, revision=None,
 | `dtype` | nano only: `"float32"` (default, as evaluated) or `"bfloat16"` (faster on CPUs with bf16 units and on GPUs) |
 | `base_url` | the server URL for `openai:` models (or set `OPENDECIDER_REMOTE_URL`) |
 | `api_key` | served models: the server's bearer token (default: `OPENDECIDER_REMOTE_API_KEY`) |
-| `timeout` | served models: seconds to wait for each request (default 60 for `opendecider serve`, 120 for the apps) |
+| `timeout` | served models: seconds to wait for each request (default 30 for `opendecider serve`, 120 for the apps) |
 
 Which package extra a model needs: nano none; small, small-td, medium-td and large-td `opendecider[small]`; the MLX
 builds `opendecider[mlx]`; served models none.
