@@ -20,6 +20,7 @@ nav = [
     { "LM Studio, Ollama and vLLM" = "guides/model-servers.md" },
     { "Automate the confident decisions" = "guides/confident-automation.md" },
     { "Agent guardrails" = "guides/agent-guardrails.md" },
+    { "AI assistants (MCP)" = "guides/mcp.md" },
   ] },
   { "Examples and notebook" = "examples.md" },
   { "Benchmarks" = "benchmarks.md" },

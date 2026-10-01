@@ -47,6 +47,7 @@ r["answers"]["churn_risk"]["noul"]     # probability the answer is yes
 | use LM Studio, Ollama or vLLM as the engine | [LM Studio, Ollama and vLLM](guides/model-servers.md) |
 | automate the decisions the model is sure about and send the rest to a person | [Automate the confident decisions](guides/confident-automation.md) |
 | check an AI agent's next step before it runs | [Agent guardrails](guides/agent-guardrails.md) |
+| let Claude, Cursor or another AI assistant call it as a tool | [AI assistants (MCP)](guides/mcp.md) |
 | copy a working script | [Examples and notebook](examples.md) |
 | see how it compares with Jev, Laya and frontier LLMs | [Benchmarks](benchmarks.md) |
 | know where it is weak | [Limitations](limitations.md) |

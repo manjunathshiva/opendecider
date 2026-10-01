@@ -12,6 +12,13 @@ format.
 
 ## [Unreleased]
 
+### Added
+
+- `opendecider mcp`: an MCP server, so AI assistants and agents (Claude Code, Claude Desktop, Cursor, …) can call
+  OpenDecider as a tool (`pip install "opendecider[mcp]"`). Tools: `decide` (any number of typed questions) and the
+  shortcuts `choose`, `yes_no` and `score`, all read-only, with a probability for every option. The model loads on
+  the first call; invalid input is a tool error that names the problem; the same limits as `opendecider serve`.
+
 ### Fixed
 
 - `opendecider serve`: an unexpected internal error now returns the JSON error body

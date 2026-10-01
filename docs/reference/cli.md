@@ -38,6 +38,16 @@ Settings with no flag (environment only):
 | `OPENDECIDER_ROOT_PATH` | none | public URL prefix behind a reverse proxy |
 | `OPENDECIDER_REMOTE_URL` | none | server URL for `openai:` models |
 
+## `opendecider mcp`
+
+```bash
+pip install "opendecider[mcp]"
+opendecider mcp [--model NAME] [--revision REV] [--device DEV] [--dtype DTYPE]
+```
+
+An MCP server over stdio for AI assistants and agents; see [AI assistants (MCP)](../guides/mcp.md). `--model` defaults to
+`OPENDECIDER_MODEL`, else opendecider-nano; the other flags work as for `opendecider serve`.
+
 ## `opendecider bench-speed`
 
 ```bash
