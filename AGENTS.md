@@ -31,6 +31,8 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 | `opendecider/serve.py` | `tests/test_serve.py` |
 | `opendecider/remote.py` (LM Studio / Ollama / vLLM backend) | `tests/test_remote.py` |
 | `opendecider/questions.py` | `tests/test_questions.py` |
+| `opendecider/tools.py`, `mcp_server.py` | `tests/test_mcp.py` |
+| `opendecider/integrations/` (LangChain, LangGraph, LlamaIndex) | `tests/test_integrations.py` |
 | `examples/` | run the script with opendecider-nano on CPU; CI runs them all |
 | `docs/`, `zensical.toml` | `pip install -r requirements-docs.txt && zensical build --strict --clean` |
 | `benchmarks/` | `python benchmarks/report.py` rebuilds every table from the committed results |

@@ -13,7 +13,6 @@
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
-* **Agent frameworks:** LangChain / LangGraph and LlamaIndex tools.
 * **A TypeScript client** for `opendecider serve`.
 * **ONNX export** of opendecider-nano for edge and in-browser use.
 * **Multilingual evaluation.**

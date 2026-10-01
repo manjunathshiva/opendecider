@@ -20,5 +20,5 @@ jobs:
         with:
           python-version: '3.12'
       # question/answer logic and the HTTP server (with a fake model) are torch-free; real-model tests run in docker.yml and the release checks
-      - run: python -m pip install --no-deps -e . && python -m pip install pytest fastapi httpx "mcp>=2.2,<3"
+      - run: python -m pip install --no-deps -e . && python -m pip install pytest fastapi httpx "mcp>=2.2,<3" langchain-core langgraph llama-index-core
       - run: python -m pytest -q tests

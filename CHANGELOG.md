@@ -10,6 +10,23 @@ format.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [Unreleased]
+
+### Added
+
+- `opendecider.integrations.langchain` (`pip install "opendecider[langchain]"`): `decision_tools()` gives LangChain
+  agents the `decide`, `choose`, `yes_no` and `score` tools, and `DecisionRouter` is a LangGraph conditional edge that
+  routes to a fallback node when the top route's probability is below `min_confidence`.
+- `opendecider.integrations.llamaindex` (`pip install "opendecider[llamaindex]"`): `DecisionSelector` picks a
+  RouterQueryEngine's query engine in one forward pass, in place of an LLM selector; `decision_tools()` gives the same
+  four tools as `FunctionTool`s.
+- `opendecider.tools`: the shared core of the MCP server and both integrations (validation, lazy loading and the
+  agent-facing answer format), so all three answer alike.
+
+### Documentation
+
+- Model servers: PyTorch is installed with the package but not used when LM Studio, Ollama or vLLM runs the model.
+
 ## [0.3.0] - 2026-10-01
 
 ### Added

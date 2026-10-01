@@ -238,6 +238,22 @@ number of typed questions, and the shortcuts `choose`, `yes_no` and `score`. The
 option instead of reasoning a classification out in text, and can ask you when the confidence is low. Any model works
 (`--model`), including one served by Ollama or LM Studio. Setup for each client: [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
 
+## LangChain, LangGraph and LlamaIndex
+
+```python
+from opendecider.integrations.langchain import DecisionRouter
+
+route = DecisionRouter({"billing_agent": "invoices, refunds", "tech_support": "errors, outages"},
+                       "Which specialist agent should answer this?", state_key="input",
+                       fallback="human_agent", min_confidence=0.6)
+graph.add_conditional_edges("triage", route, route.path_map)     # LangGraph: route on confidence
+```
+
+`DecisionRouter` routes a LangGraph graph in milliseconds and sends unsure cases to a fallback; `DecisionSelector`
+picks a LlamaIndex RouterQueryEngine's engine without an LLM call; `decision_tools()` gives LangChain and LlamaIndex
+agents the same four tools as the MCP server. Install with `opendecider[langchain]` or `opendecider[llamaindex]`; see
+[LangChain, LangGraph and LlamaIndex](https://manjunathshiva.github.io/opendecider/guides/agent-frameworks/).
+
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
 **On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for
@@ -369,7 +385,6 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
-* **Agent frameworks:** LangChain / LangGraph and LlamaIndex tools.
 * **A TypeScript client** for `opendecider serve`.
 * **ONNX export** of opendecider-nano for edge and in-browser use.
 * **Multilingual evaluation.**
