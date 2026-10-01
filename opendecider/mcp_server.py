@@ -19,7 +19,10 @@ import sys
 from typing import Any
 
 from . import tools
-from .tools import MAX_OPTIONS, MAX_QUESTIONS, MAX_STATE_CHARS, ModelError  # noqa: F401 -- re-exported
+from .tools import MAX_OPTIONS, MAX_QUESTIONS, MAX_STATE_CHARS, ModelError
+
+__all__ = ["Decider", "build_server", "run", "INSTRUCTIONS",
+           "MAX_OPTIONS", "MAX_QUESTIONS", "MAX_STATE_CHARS", "ModelError"]   # the limits lived here up to 0.3.0
 
 log = logging.getLogger("opendecider.mcp")
 
