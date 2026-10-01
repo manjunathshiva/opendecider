@@ -26,7 +26,8 @@ python examples/support_triage.py
 
 One script per framework, in
 [examples/agent_frameworks/](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks). Each
-runs without an LLM API key; [Agent frameworks](guides/agent-frameworks.md) explains each integration.
+runs without an LLM API key; [Agent frameworks](guides/agent-frameworks.md) explains each integration. They ship in
+0.4.0, which is not on PyPI yet: from a clone, install with `pip install -e ".[agno]"` (the extra each script needs).
 
 | script | framework | what it shows |
 |---|---|---|

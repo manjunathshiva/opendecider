@@ -94,6 +94,9 @@ yes_no(d, state, "Is this spam?")   # {'answer': 'yes' or 'no', 'probability_yes
 score(d, state, "How urgent?", ["low", "medium", "high"])   # {'level', 'label', 'expected_level', ...}
 ```
 
+The integrations ship in 0.4.0 (not on PyPI yet; install from GitHub until then, see
+[Agent frameworks](../guides/agent-frameworks.md)).
+
 | integration | install | provides |
 |---|---|---|
 | `opendecider.integrations.langchain` | `opendecider[langchain]` | `decision_tools()`, `DecisionRouter` |

@@ -240,6 +240,9 @@ option instead of reasoning a classification out in text, and can ask you when t
 
 ## Agent frameworks: LangGraph, Agno, CrewAI, Microsoft Agent Framework, Google ADK and more
 
+> Not on PyPI yet: these integrations ship in 0.4.0. Until then, install from GitHub:
+> `pip install "opendecider[agno] @ git+https://github.com/manjunathshiva/opendecider"` (any extra in place of `agno`).
+
 ```python
 from opendecider.integrations.langchain import DecisionRouter
 
