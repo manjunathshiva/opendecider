@@ -1,0 +1,140 @@
+"""Routing decisions: the Decision record, on_decision hooks, the on_error policy and OpenTelemetry spans."""
+import logging
+
+import pytest
+
+from opendecider import OpenDecider
+from opendecider.tools import Decider, Decision, Router
+
+ROUTES = {"billing": "charges, refunds", "tech": "bugs, outages"}
+
+
+class Fake:
+    """The option whose name appears in the state gets 0.8 (else the first option); 'boom' fails inference."""
+
+    def decide_many(self, items, info=None):
+        out = []
+        for state, _, opts in items:
+            if state == "boom":
+                raise RuntimeError("model gone")
+            names = list(opts)
+            top = next((n for n in names if n in str(state)), names[0])
+            out.append({n: 0.8 if n == top else 0.2 / (len(names) - 1) for n in names})
+            if info is not None:
+                info.append({"input_tokens": 5, "truncated": False})
+        return out
+
+
+def decider():
+    return Decider(OpenDecider(Fake(), {"name": "opendecider-test", "kind": "nano"}))
+
+
+def test_a_decision_says_what_was_taken_and_why():
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", min_confidence=0.9)
+    d = route.decide("the tech stack is down")
+    assert (d.route, d.reason, d.choice, d.confidence) == ("human", "low_confidence", "tech", 0.8)
+    assert d.probabilities == {"billing": pytest.approx(0.2), "tech": pytest.approx(0.8)}
+    assert d.model == "opendecider-test" and d.latency_ms >= 0 and d.error is None
+    route.min_confidence = 0.5
+    assert route.decide("refund my billing").reason == "confident" and route("refund my billing") == "billing"
+    empty = route.decide("  ")
+    assert (empty.route, empty.reason, empty.choice, empty.probabilities) == ("human", "empty_input", None, {})
+    assert set(d.to_dict()) == {"route", "reason", "choice", "confidence", "probabilities", "model", "latency_ms",
+                                "truncated", "error"}
+
+
+def test_hooks_see_every_decision_and_never_break_routing(caplog):
+    seen, also = [], []
+
+    def broken(d):
+        raise RuntimeError("hook bug")
+
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_decision=[seen.append, broken,
+                                                                                          also.append])
+    assert route("refund my billing") == "billing"
+    assert [d.route for d in seen] == ["billing"] == [d.route for d in also]   # the broken hook stopped nothing
+    assert "on_decision hook failed" in caplog.text
+    single = []
+    Router(ROUTES, "Which team?", model=decider(), on_decision=single.append)("tech")
+    assert single[0].route == "tech"
+    with pytest.raises(ValueError, match="on_decision"):
+        Router(ROUTES, "Which team?", model=decider(), on_decision="not callable")
+
+
+def test_on_error_fallback_takes_the_fallback_and_reports_the_error(caplog):
+    seen = []
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback",
+                   on_decision=seen.append)
+    with caplog.at_level(logging.ERROR):
+        assert route("boom") == "human"
+    d = seen[0]
+    assert (d.route, d.reason, d.choice) == ("human", "error", None) and "model gone" in d.error
+    assert "routing failed, taking the fallback route 'human'" in caplog.text
+    assert route.last is d
+
+
+def test_on_error_raise_still_reports_the_failure():
+    seen = []
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_decision=seen.append)
+    with pytest.raises(RuntimeError, match="model gone"):
+        route("boom")
+    assert (seen[0].route, seen[0].reason) == (None, "error") and "RuntimeError" in seen[0].error
+
+
+def test_on_error_is_validated():
+    with pytest.raises(ValueError, match='"raise" or "fallback"'):
+        Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="ignore")
+    with pytest.raises(ValueError, match="needs a fallback"):
+        Router(ROUTES, "Which team?", model=decider(), on_error="fallback")
+
+
+def test_every_framework_router_takes_the_options():
+    pytest.importorskip("langchain_core")
+    from opendecider.integrations.langchain import DecisionRouter
+    seen = []
+    route = DecisionRouter(ROUTES, "Which team?", model=decider(), state_key="t", fallback="human",
+                           on_error="fallback", on_decision=seen.append)
+    assert route({"t": "boom"}) == "human" and seen[0].reason == "error"
+
+
+@pytest.fixture()
+def spans(monkeypatch):
+    """OpenDecider's spans into an in-memory exporter. The tracer is swapped directly, since frameworks loaded by other
+    tests can install their own global provider, which OpenTelemetry lets be set only once. OTEL_SDK_DISABLED (set to
+    keep framework telemetry off in CI) would make this provider a no-op too, so it is cleared for this test."""
+    monkeypatch.delenv("OTEL_SDK_DISABLED", raising=False)
+    otel = pytest.importorskip("opentelemetry.sdk.trace")
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+    from opendecider import tools
+    exporter = InMemorySpanExporter()
+    provider = otel.TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    monkeypatch.setattr(tools, "_TRACER", provider.get_tracer("opendecider"))
+    return exporter
+
+
+def test_each_decision_is_an_opentelemetry_span(spans):
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", min_confidence=0.5)
+    route("the tech stack is down")
+    by_name = {s.name: s for s in spans.get_finished_spans()}
+    r, d = by_name["opendecider.route"], by_name["opendecider.decide"]
+    assert d.parent.span_id == r.context.span_id   # the model call nests inside the routing decision
+    assert {k: r.attributes[k] for k in ("opendecider.route", "opendecider.choice", "opendecider.reason")} == \
+        {"opendecider.route": "tech", "opendecider.choice": "tech", "opendecider.reason": "confident"}
+    assert r.attributes["opendecider.confidence"] == pytest.approx(0.8)
+    assert d.attributes["opendecider.model"] == "opendecider-test" and d.attributes["opendecider.questions"] == 1
+
+
+def test_a_failed_decision_is_an_error_span(spans):
+    from opentelemetry.trace import StatusCode
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback")
+    route("boom")
+    r = next(s for s in spans.get_finished_spans() if s.name == "opendecider.route")
+    assert r.status.status_code == StatusCode.ERROR and r.attributes["opendecider.reason"] == "error"
+    assert r.attributes["opendecider.route"] == "human"
+    assert any(e.name == "exception" for e in r.events)
+
+
+def test_decision_is_importable_from_every_router_module():
+    assert Decision.__module__ == "opendecider.tools"

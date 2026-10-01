@@ -86,8 +86,10 @@ class DecisionRouter(core.Router):
     """
 
     def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = core.DEFAULT_MODEL,
-                 fallback: str | None = None, min_confidence: float = 0.0, state: Callable | None = None):
-        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence)
+                 fallback: str | None = None, min_confidence: float = 0.0, state: Callable | None = None,
+                 on_error: str = "raise", on_decision=None):
+        super().__init__(routes, instructions, model=model, fallback=fallback, min_confidence=min_confidence,
+                         on_error=on_error, on_decision=on_decision)
         self.state = state or _text
         self._memo: tuple[Any, str | None] = (object(), None)   # (message, route): every case reuses one decision
 

@@ -69,15 +69,18 @@ class DecisionSelector(BaseSelector):
     max_description_chars: each choice's description is cut to this length, so long tool descriptions cannot push the
       query itself out of the model's input (opendecider-nano reads 2,048 tokens and shortens the query first).
     The selection's `reason` gives the probability, so it shows up in LlamaIndex's traces.
+    on_decision: a function (or list) called with every `tools.Decision`, as for the routers; `.last` holds the last
+      one.
     """
 
     def __init__(self, model: Any = core.DEFAULT_MODEL,
                  instructions: str = "Which of these sources is best suited to answer the query?",
-                 max_description_chars: int = 400):
+                 max_description_chars: int = 400, on_decision=None):
         self.decider = core.shared(model)
         self.instructions = instructions
         self.max_description_chars = max_description_chars
-        self.last: dict | None = None   # the last answer, for logging
+        self.on_decision = on_decision
+        self.last: core.Decision | None = None   # the last decision, for logging; concurrent queries overwrite it
 
     def _select(self, choices: Sequence, query) -> SelectorResult:
         if not choices:
@@ -91,13 +94,12 @@ class DecisionSelector(BaseSelector):
         cap = self.max_description_chars
         options = {label: (c.description or "")[:cap] or None for label, c in zip(labels, choices)}
         text = query.query_str if hasattr(query, "query_str") else str(query)
-        answer = core.choose(self.decider, text, self.instructions, options)
-        self.last = answer   # for logging only: concurrent queries overwrite it, so the selection comes from `answer`
-        if answer.get("truncated"):
-            log.warning("the query was shortened to fit the model's input; shorten the tool descriptions")
-        index = labels.index(answer["choice"])
+        decision = core.Router(options, self.instructions, model=self.decider,
+                               on_decision=self.on_decision).decide(text)
+        self.last = decision   # for logging only: the selection comes from `decision`
+        index = labels.index(decision.route)
         return SelectorResult(selections=[SingleSelection(
-            index=index, reason=f"OpenDecider: {labels[index]!r} with probability {answer['confidence']:.3f}")])
+            index=index, reason=f"OpenDecider: {labels[index]!r} with probability {decision.confidence:.3f}")])
 
     async def _aselect(self, choices: Sequence, query) -> SelectorResult:
         return await asyncio.to_thread(self._select, choices, query)

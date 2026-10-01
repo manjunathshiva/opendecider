@@ -55,7 +55,7 @@ def test_tools_are_listed_read_only():
         async with Client(server) as c:
             return (await c.list_tools()).tools
     tools = {t.name: t for t in asyncio.run(go())}
-    assert set(tools) == {"decide", "choose", "yes_no", "score"}
+    assert set(tools) == {"decide", "choose", "yes_no", "score", "decide_batch", "status"}
     assert all(t.annotations.read_only_hint and t.annotations.idempotent_hint for t in tools.values())
     assert loads == []   # listing tools does not load the model
 
@@ -158,3 +158,29 @@ def test_library_output_never_reaches_the_protocol(tmp_path, caplog):
     results = asyncio.run(go())
     assert all(not r.is_error and r.structured_content["answer"] == "yes" for r in results)
     assert "Invalid JSON" not in caplog.text and "library output" not in caplog.text   # nothing leaked onto stdout
+
+
+def test_decide_batch_answers_each_state_in_one_model_call():
+    server, fake, _ = setup()
+    qs = {"team": {"type": "choice", "instructions": "Which team?", "criteria": ["billing", "tech"]},
+          "churn": {"type": "noul", "instructions": "Will they leave?"}}
+    r = call(server, "decide_batch", {"states": ["one", {"ticket": "two"}, "very long"], "questions": qs})
+    out = r.structured_content
+    assert out["model"] == "opendecider-test" and len(out["results"]) == 3
+    assert out["results"][0]["answers"]["team"]["choice"] == "billing"
+    assert out["results"][2]["answers"]["team"]["truncated"] is True and "warnings" in out["results"][2]
+    assert fake.calls == 1   # every state and question in one batch
+    bad = call(server, "decide_batch", {"states": [], "questions": qs})
+    assert bad.is_error and "non-empty list" in bad.content[0].text
+    too_many = call(server, "decide_batch", {"states": ["x"] * 257, "questions": qs})
+    assert too_many.is_error and "at most 256 states" in too_many.content[0].text
+
+
+def test_status_reports_without_loading_the_model():
+    server, _, loads = setup()
+    st = call(server, "status", {}).structured_content
+    assert st["model"] == "test-model" and st["loaded"] is False and loads == []
+    assert st["limits"] == {"questions": 64, "options": 256, "state_chars": 200_000, "batch_states": 256}
+    call(server, "yes_no", {"state": "s", "question": "q?"})
+    st = call(server, "status", {}).structured_content
+    assert st["loaded"] is True and st["kind"] == "nano" and "version" in st

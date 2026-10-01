@@ -1,4 +1,4 @@
-"""CrewAI: OpenDecider as tools for crew agents, and as the router of a Flow.
+"""CrewAI: OpenDecider as tools for crew agents, the router of a Flow, and the assigner of a crew's tasks.
 
     pip install "opendecider[crewai]"
 
@@ -14,9 +14,14 @@
         def triage(self):
             return route(self.state.ticket)        # "billing", "tech" or "human": the @listen labels
 
-The router picks a Flow branch (or the crew member to delegate to) in one forward pass, with no LLM call, and sends
-unsure inputs to the fallback. The model loads on the first call (pass a model name, or an `OpenDecider` you already
-loaded). Answers are the same as the MCP server's: a probability for every option and a calibrated `confidence`.
+    assigner = TaskAssigner([billing, engineer, sales], fallback=lead, min_confidence=0.6)
+    assigner.assign_all(tasks)                         # sets each task's agent from the crew members' roles and goals
+    Crew(agents=[billing, engineer, sales, lead], tasks=tasks, process=Process.sequential).kickoff()
+
+The router picks a Flow branch, and the assigner the crew member for each task, in one forward pass, with no LLM call
+(in place of a hierarchical crew's manager LLM), and both send unsure inputs to the fallback. The model loads on the
+first call (pass a model name, an `opendecider serve` URL, or an `OpenDecider` you already loaded). Answers are the
+same as the MCP server's: a probability for every option and a calibrated `confidence`.
 """
 from __future__ import annotations
 
@@ -88,3 +93,71 @@ class DecisionRouter(core.Router):
     instructions: the routing question, e.g. "Which team should handle this request?".
     fallback / min_confidence: return `fallback` when the top route's probability is below `min_confidence`.
     """
+
+
+def _task_text(task) -> str:
+    """What to decide on, from a CrewAI Task (its description and expected output), a dict or text."""
+    if isinstance(task, str):
+        return task
+    get = task.get if isinstance(task, dict) else lambda k, d=None: getattr(task, k, d)
+    desc, expected = get("description") or "", get("expected_output") or ""
+    if not desc and not expected:
+        return str(task)
+    return f"{desc}\n\nExpected output: {expected}" if expected else desc
+
+
+class TaskAssigner:
+    """Assigns a crew's tasks to its members, from each member's role and goal, in one forward pass per task: in place
+    of a hierarchical crew's manager LLM, or of assigning every task by hand.
+
+    agents: the crew members to choose from (CrewAI `Agent`s, or anything with `role` and `goal`).
+    instructions: the assignment question.
+    fallback: the member (an `Agent`, usually a lead or a person-in-the-loop) for tasks no member fits confidently;
+      it need not be in `agents`. fallback / min_confidence / on_error / on_decision: as for `tools.Router`.
+    """
+
+    def __init__(self, agents: list, instructions: str = "Which crew member is best qualified to do this task?", *,
+                 model: Any = core.DEFAULT_MODEL, fallback: Any = None, min_confidence: float = 0.0,
+                 on_error: str = "raise", on_decision=None):
+        if len(agents) < 2:
+            raise ValueError("TaskAssigner needs at least 2 crew members to choose from")
+        self.members: dict[str, Any] = {}
+        for i, agent in enumerate(agents):   # a readable, unique label per member; the goal describes it
+            role = str(getattr(agent, "role", "") or f"member {i + 1}").strip()
+            self.members[role if role not in self.members else f"{role} ({i + 1})"] = agent
+        options = {label: (str(getattr(a, "goal", "") or "").strip() or None) for label, a in self.members.items()}
+        fallback_label = None
+        if fallback is not None:
+            fallback_label = next((label for label, a in self.members.items() if a is fallback), None)
+            if fallback_label is None:
+                fallback_label = str(getattr(fallback, "role", "") or "fallback").strip()
+                while fallback_label in self.members:
+                    fallback_label += " (fallback)"
+                self.members[fallback_label] = fallback
+        self.router = core.Router(options, instructions, model=model, fallback=fallback_label,
+                                  min_confidence=min_confidence, on_error=on_error, on_decision=on_decision)
+
+    @property
+    def last(self) -> core.Decision | None:
+        """The last assignment decision (its `route` is the member's label), for logging."""
+        return self.router.last
+
+    def decide(self, task) -> core.Decision:
+        """The full decision for one task; `route` is the chosen member's label (its role)."""
+        return self.router.decide(_task_text(task))
+
+    def assign(self, task):
+        """The crew member for `task`, also set as `task.agent` when the task has one."""
+        agent = self.members[self.decide(task).route]
+        if not isinstance(task, (str, dict)):
+            task.agent = agent
+        return agent
+
+    def assign_all(self, tasks: list) -> list:
+        """`assign` for each task, in order; returns the members chosen."""
+        return [self.assign(t) for t in tasks]
+
+    async def aassign(self, task):
+        """`assign`, with inference off the event loop."""
+        return await asyncio.to_thread(self.assign, task)
+

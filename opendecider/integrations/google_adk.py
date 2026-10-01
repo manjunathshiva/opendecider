@@ -70,7 +70,9 @@ class DecisionRouterAgent(BaseAgent):
     instructions: the routing question, e.g. "Which team should handle this request?".
     fallback / min_confidence: hand over to the `fallback` sub-agent when the top route's probability is below
       `min_confidence`.
-    decision_model: the OpenDecider model (a name, or a loaded `OpenDecider`).
+    decision_model: the OpenDecider model (a name, an `opendecider serve` URL, or a loaded `OpenDecider`).
+    on_error / on_decision: as for `tools.Router` ("fallback" hands a failed decision's request to the fallback
+      sub-agent; on_decision receives every `tools.Decision`).
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -80,20 +82,23 @@ class DecisionRouterAgent(BaseAgent):
     fallback: str | None = None
     min_confidence: float = 0.0
     decision_model: Any = Field(default=core.DEFAULT_MODEL)
+    on_error: str = "raise"
+    on_decision: Any = None
     _router: core.Router = PrivateAttr()
 
     def model_post_init(self, context: Any) -> None:
         super().model_post_init(context)
         self._router = core.Router(self.routes, self.instructions, model=self.decision_model,
-                                   fallback=self.fallback, min_confidence=self.min_confidence)
+                                   fallback=self.fallback, min_confidence=self.min_confidence,
+                                   on_error=self.on_error, on_decision=self.on_decision)
         names = {a.name for a in self.sub_agents}
         missing = [n for n in self._router.names if n not in names]
         if missing:
             raise ValueError(f"no sub-agent named {missing}")
 
     @property
-    def last(self) -> dict | None:
-        """The last routing answer, for logging."""
+    def last(self) -> core.Decision | None:
+        """The last routing decision, for logging; concurrent sessions overwrite it."""
         return self._router.last
 
     async def _run_async_impl(self, ctx) -> AsyncGenerator:

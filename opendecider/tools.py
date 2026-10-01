@@ -15,7 +15,9 @@ import contextlib
 import json
 import logging
 import threading
-from typing import Any
+import time
+from dataclasses import asdict, dataclass, field
+from typing import Any, Callable
 
 from .questions import Choice, Noul, Score
 
@@ -25,8 +27,24 @@ log = logging.getLogger("opendecider.tools")
 MAX_QUESTIONS = 64
 MAX_OPTIONS = 256
 MAX_STATE_CHARS = 200_000
+MAX_BATCH_STATES = 256
 
 DEFAULT_MODEL = "manjunathshiva/opendecider-nano"
+
+_TRACER: Any = None
+
+
+def _span(name: str):
+    """An OpenTelemetry span when opentelemetry-api is installed (a no-op until an SDK is configured), else nothing."""
+    global _TRACER
+    if _TRACER is None:
+        try:
+            from opentelemetry import trace
+            from . import __version__
+            _TRACER = trace.get_tracer("opendecider", __version__)
+        except ImportError:
+            _TRACER = False
+    return _TRACER.start_as_current_span(name) if _TRACER else contextlib.nullcontext()
 
 INSTRUCTIONS = (
     "OpenDecider answers typed questions about a state (text or JSON) with a calibrated probability for every option. "
@@ -50,6 +68,13 @@ DESCRIPTIONS = {
         'options: a list of labels, or {"label": "short description"} (descriptions help with terse labels).'),
     "yes_no": "Answer a yes/no question about the state, with the probability that the answer is yes.",
     "score": "Rate the state on an ordered scale (levels lowest first), with a probability for every level.",
+    "decide_batch": (
+        "Answer the same typed questions about many states in one call (faster than one call per state), with a "
+        "probability for every option.\n\n"
+        f"states: up to {MAX_BATCH_STATES} states, each plain text or any JSON.\n"
+        "questions: as for `decide`.\n"
+        "Returns one result per state, in order, each with its answers."),
+    "status": "The model behind these tools: its name, whether it is loaded, where it runs, and the input limits.",
 }
 
 
@@ -82,17 +107,62 @@ class Decider:
                     with self._guard():
                         self._model = self._loader(self.name, **self.load_kw)
                 except Exception as e:   # noqa: BLE001 -- not cached: the next call tries again
-                    log.exception("could not load %s", self.name)
+                    from .remote import ServerError
+                    if isinstance(e, ServerError):   # a server that is down or refusing: the message says it all
+                        log.error("could not load %s: %s", self.name, e)
+                    else:
+                        log.exception("could not load %s", self.name)
                     raise ModelError(f"could not load model {self.name!r}: {type(e).__name__}: {e}") from None
             return self._model
+
+    def system_one_batch(self, states: list, questions: dict) -> list[dict]:
+        """`system_one` for many states and the same questions, as one batch."""
+        from . import OpenDecider
+        if not isinstance(states, list) or not states:
+            raise ValueError("states must be a non-empty list")
+        if len(states) > MAX_BATCH_STATES:
+            raise ValueError(f"at most {MAX_BATCH_STATES} states per call (got {len(states)})")
+        questions = OpenDecider.prepare(questions)
+        for i, state in enumerate(states):
+            try:
+                check(state, questions)
+            except ValueError as e:
+                raise ValueError(f"state {i}: {e}") from None
+        model = self.model()
+        with _span("opendecider.decide_batch") as span, self._run_lock, self._guard():
+            out = model.system_one_batch(states, questions)
+            if span is not None:
+                span.set_attribute("opendecider.model", self.name)
+                span.set_attribute("opendecider.states", len(states))
+                span.set_attribute("opendecider.questions", len(questions))
+            return out
+
+    @property
+    def label(self) -> str:
+        """The loaded model's own name once it is loaded (what answered), else the name it was asked for."""
+        return getattr(self._model, "name", None) or self.name
+
+    def status(self) -> dict:
+        """What is behind this Decider, without loading it."""
+        out: dict = {"model": self.name, "loaded": self._model is not None}
+        if self._model is not None:
+            meta = getattr(self._model, "meta", {}) or {}
+            out["kind"] = meta.get("kind")
+            out["device"] = str(getattr(getattr(self._model, "impl", None), "device", "unknown"))
+        return out
 
     def system_one(self, state, questions: dict) -> dict:
         from . import OpenDecider
         questions = OpenDecider.prepare(questions)   # validates without a model: a bad call never triggers a download
         check(state, questions)
         model = self.model()
-        with self._run_lock, self._guard():
-            return model.system_one(state, questions)
+        with _span("opendecider.decide") as span, self._run_lock, self._guard():
+            out = model.system_one(state, questions)
+            if span is not None:
+                span.set_attribute("opendecider.model", str(out.get("model", self.name)))
+                span.set_attribute("opendecider.questions", len(questions))
+                span.set_attribute("opendecider.latency_ms", float(out.get("latency_ms", 0.0)))
+            return out
 
 
 _shared: dict = {}
@@ -150,11 +220,13 @@ def answer(a: dict) -> dict:
 
 
 def as_result(fn, *args) -> dict[str, Any]:
-    """`fn(*args)`, with the caller's input errors and a model that cannot load returned as {"error": "<what to fix>"}:
+    """`fn(*args)`, with the caller's input errors, a model that cannot load and a model server that cannot answer
+    returned as {"error": "<what to fix>"}:
     for frameworks that hide a tool's exception text from the model by default."""
+    from .remote import ServerError
     try:
         return fn(*args)
-    except (ValueError, ModelError) as e:
+    except (ValueError, ModelError, ServerError) as e:
         return {"error": str(e)}
 
 
@@ -164,6 +236,24 @@ def decide(decider: Decider, state, questions: dict) -> dict[str, Any]:
     if r.get("warnings"):
         out["warnings"] = r["warnings"]
     return out
+
+
+def decide_batch(decider: Decider, states: list, questions: dict) -> dict[str, Any]:
+    raw = decider.system_one_batch(states, questions)
+    results = []
+    for r in raw:
+        item = {"answers": {k: answer(a) for k, a in r["answers"].items()}}
+        if r.get("warnings"):
+            item["warnings"] = r["warnings"]
+        results.append(item)
+    return {"model": raw[0]["model"], "results": results}   # the model that answered, as `decide` reports
+
+
+def status(decider: Decider) -> dict[str, Any]:
+    from . import __version__
+    return {**decider.status(), "version": __version__,
+            "limits": {"questions": MAX_QUESTIONS, "options": MAX_OPTIONS, "state_chars": MAX_STATE_CHARS,
+                       "batch_states": MAX_BATCH_STATES}}
 
 
 def choose(decider: Decider, state, question: str, options) -> dict[str, Any]:
@@ -181,6 +271,33 @@ def score(decider: Decider, state, question: str, levels: list) -> dict[str, Any
     return answer(r["answers"][question])
 
 
+REASONS = ("confident", "low_confidence", "empty_input", "error")
+
+
+@dataclass(frozen=True)
+class Decision:
+    """One routing decision: what the router returned and why.
+
+    route: the route taken (None when the decision failed and the error was raised).
+    reason: "confident" (the top route), "low_confidence" (below `min_confidence`: the fallback), "empty_input"
+      (nothing to decide on: the fallback), or "error" (the decision failed: the fallback, or raised).
+    choice, confidence, probabilities: the model's top route, its probability, and every route's probability (empty
+      when no decision was made).
+    """
+    route: str | None
+    reason: str
+    choice: str | None = None
+    confidence: float | None = None
+    probabilities: dict = field(default_factory=dict)
+    model: str = ""
+    latency_ms: float = 0.0
+    truncated: bool = False
+    error: str | None = None
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
 class Router:
     """Picks one route for a state: the most likely route, or `fallback` when its probability is below
     `min_confidence`. The framework integrations build on it (a LangGraph edge, an Agent Framework switch, an Agno
@@ -188,37 +305,96 @@ class Router:
 
     routes: the route names, as a list or as {"route": "when to take it"} (descriptions help).
     instructions: the routing question, e.g. "Which agent should handle this request?".
+    model: a Hub name or folder, a served model (`ollama:...`, `lmstudio:...`), an `opendecider serve` URL, or a
+      loaded `OpenDecider` / `Decider`.
+    fallback / min_confidence: take `fallback` when the top route's probability is below `min_confidence`.
+    on_error: "raise" (the default) lets a failed decision (a model that cannot load, a server that cannot answer)
+      raise; "fallback" takes the fallback route instead, and logs the error.
+    on_decision: a function (or list of functions) called with every `Decision`, including failed ones: for logs,
+      metrics or audits. A hook that raises is logged and never breaks routing. With opentelemetry-api installed,
+      each decision is also an `opendecider.route` span.
     """
 
     def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = DEFAULT_MODEL,
-                 fallback: str | None = None, min_confidence: float = 0.0):
+                 fallback: str | None = None, min_confidence: float = 0.0, on_error: str = "raise",
+                 on_decision: Callable | list | None = None):
         if not 0 <= min_confidence <= 1:
             raise ValueError(f"min_confidence is a probability, between 0 and 1 (got {min_confidence})")
         if fallback is None and min_confidence > 0:
             raise ValueError("min_confidence needs a fallback route")
+        if on_error not in ("raise", "fallback"):
+            raise ValueError(f'on_error must be "raise" or "fallback" (got {on_error!r})')
+        if on_error == "fallback" and fallback is None:
+            raise ValueError('on_error="fallback" needs a fallback route')
         from . import OpenDecider
         OpenDecider.prepare({"routes": Choice(instructions, routes)})   # at least 2 routes and an instruction, now
         self.routes, self.instructions = routes, instructions
-        self.fallback, self.min_confidence = fallback, min_confidence
+        self.fallback, self.min_confidence, self.on_error = fallback, min_confidence, on_error
+        hooks = on_decision if isinstance(on_decision, (list, tuple)) else [on_decision] if on_decision else []
+        if not all(callable(h) for h in hooks):
+            raise ValueError("on_decision must be a function or a list of functions")
+        self.hooks: list = list(hooks)
         self.decider = shared(model)
-        self.last: dict | None = None   # the last answer, for logging
+        self.last: Decision | None = None   # the last decision, for logging; concurrent calls overwrite it
 
-    def route(self, state) -> str:
-        """The route name for `state` (text or JSON); `self.last` keeps the full answer. An empty state (blank text,
-        {} or []) has nothing to decide on: it takes the fallback, or raises ValueError without one."""
+    def decide(self, state) -> Decision:
+        """The full decision for `state` (text or JSON). An empty state (blank text, {} or []) has nothing to decide
+        on: it takes the fallback, or raises ValueError without one."""
+        t0 = time.perf_counter()
+        with _span("opendecider.route") as span:
+            try:
+                decision = self._decide(state, t0)
+            except Exception as e:   # noqa: BLE001 -- reported to the hooks and the span, then raised or routed
+                decision = Decision(route=self.fallback if self.on_error == "fallback" else None, reason="error",
+                                    model=self.decider.label, latency_ms=_ms(t0), error=f"{type(e).__name__}: {e}")
+                if span is not None:
+                    span.record_exception(e)
+                self._report(decision, span)
+                if self.on_error == "raise":
+                    raise
+                log.error("routing failed, taking the fallback route %r: %s", self.fallback, decision.error)
+                return decision
+            self._report(decision, span)
+            return decision
+
+    def _decide(self, state, t0: float) -> Decision:
         if state is None or state in ({}, []) or (isinstance(state, str) and not state.strip()):
             if self.fallback is None:
                 raise ValueError("nothing to route on: the state is empty")
             log.warning("nothing to route on (the state is empty): taking the fallback route %r", self.fallback)
-            self.last = None
-            return self.fallback
+            return Decision(route=self.fallback, reason="empty_input", model=self.decider.label, latency_ms=_ms(t0))
         answer = choose(self.decider, state, self.instructions, self.routes)
-        self.last = answer   # for logging only: concurrent calls overwrite it, so the route comes from `answer`
         if answer.get("truncated"):
             log.warning("the routing input was shortened to fit the model's input; route on a shorter field")
-        if self.fallback is not None and answer["confidence"] < self.min_confidence:
-            return self.fallback
-        return answer["choice"]
+        low = self.fallback is not None and answer["confidence"] < self.min_confidence
+        return Decision(route=self.fallback if low else answer["choice"],
+                        reason="low_confidence" if low else "confident", choice=answer["choice"],
+                        confidence=answer["confidence"], probabilities=answer["probabilities"],
+                        model=self.decider.label, latency_ms=_ms(t0), truncated=bool(answer.get("truncated")))
+
+    def _report(self, decision: Decision, span) -> None:
+        self.last = decision
+        if span is not None:
+            span.set_attribute("opendecider.reason", decision.reason)
+            span.set_attribute("opendecider.model", decision.model)
+            span.set_attribute("opendecider.latency_ms", decision.latency_ms)
+            if decision.route is not None:
+                span.set_attribute("opendecider.route", decision.route)
+            if decision.choice is not None:
+                span.set_attribute("opendecider.choice", decision.choice)
+                span.set_attribute("opendecider.confidence", decision.confidence)
+            if decision.reason == "error":
+                from opentelemetry.trace import Status, StatusCode
+                span.set_status(Status(StatusCode.ERROR, decision.error))
+        for hook in self.hooks:
+            try:
+                hook(decision)
+            except Exception:   # noqa: BLE001 -- a hook must never break routing
+                log.exception("an on_decision hook failed")
+
+    def route(self, state) -> str:
+        """The route name for `state`: `decide(state).route`."""
+        return self.decide(state).route
 
     __call__ = route
 
@@ -227,3 +403,7 @@ class Router:
         """Every name the router can return: the routes, then the fallback."""
         names = list(self.routes)
         return names + ([self.fallback] if self.fallback is not None and self.fallback not in names else [])
+
+
+def _ms(t0: float) -> float:
+    return round((time.perf_counter() - t0) * 1000, 1)
