@@ -1,6 +1,6 @@
 """The same decision through a model server: LM Studio, Ollama or vLLM.
 
-    pip install "opendecider>=0.2.1"      # no torch needed: the server runs the model
+    pip install "opendecider>=0.2.1"      # the server runs the model: no GPU needed here
 
     # LM Studio: load the Q8_0 file of opendecider-small-GGUF and start its server
     python examples/remote_backends.py lmstudio:opendecider-small

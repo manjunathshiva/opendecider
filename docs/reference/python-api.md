@@ -1,7 +1,9 @@
 # Python API
 
 The public API is `load`, `OpenDecider.system_one`, `OpenDecider.system_one_batch`, the question helpers `Choice`,
-`Score` and `Noul`, and the answer fields below. Patch releases never change it; see the
+`Score` and `Noul`, the answer fields below and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names,
+arguments and answers, `opendecider.tools` and the public names in `opendecider.integrations`. Patch releases never
+change it; see the
 [versioning policy](https://github.com/manjunathshiva/opendecider/blob/main/CHANGELOG.md).
 
 ## `load`
@@ -76,6 +78,44 @@ An answer also carries `"truncated": true` when its state was cut to fit the mod
 !!! note "Score on the wire"
     Over HTTP (`opendecider serve`) a score answer follows TypeSafe Jev: `score` is the expected score and `level` the
     most likely level. In Python, `score` is the most likely level and `expected` the expected score.
+
+## Agent tools and integrations
+
+`opendecider.tools` is the core behind the [MCP server](../guides/mcp.md) and the
+[agent framework](../guides/agent-frameworks.md) integrations:
+
+```python
+from opendecider.tools import Decider, choose, decide, score, yes_no
+
+d = Decider("manjunathshiva/opendecider-nano")   # or tools.shared(name): one copy per model name
+choose(d, state, "Which team?", {"billing": "charges", "tech": "bugs"})
+# {'choice': 'billing', 'probabilities': {...}, 'confidence': ...}
+yes_no(d, state, "Is this spam?")   # {'answer': 'yes' or 'no', 'probability_yes': ..., 'confidence': ...}
+score(d, state, "How urgent?", ["low", "medium", "high"])   # {'level', 'label', 'expected_level', ...}
+```
+
+The integrations ship in 0.4.0 (not on PyPI yet; install from GitHub until then, see
+[Agent frameworks](../guides/agent-frameworks.md)).
+
+| integration | install | provides |
+|---|---|---|
+| `opendecider.integrations.langchain` | `opendecider[langchain]` | `decision_tools()`, `DecisionRouter` |
+| `opendecider.integrations.llamaindex` | `opendecider[llamaindex]` | `decision_tools()`, `DecisionSelector` |
+| `opendecider.integrations.agno` | `opendecider[agno]` | `decision_toolkit()`, `DecisionRouter` (`.selector()`) |
+| `opendecider.integrations.crewai` | `opendecider[crewai]` | `decision_tools()`, `DecisionRouter` |
+| `opendecider.integrations.agent_framework` | `opendecider[agent-framework]` | `decision_tools()`, `DecisionRouter` (`.cases()`) |
+| `opendecider.integrations.google_adk` | `opendecider[google-adk]` | `decision_tools()`, `DecisionRouterAgent` |
+| `opendecider.integrations.pydantic_ai` | `opendecider[pydantic-ai]` | `decision_toolset()`, `DecisionRouter` |
+| `opendecider.integrations.strands` | `opendecider[strands]` | `decision_tools()`, `DecisionRouter` |
+
+`tools.Router(routes, instructions, *, model=..., fallback=None, min_confidence=0.0)` is the router every integration builds
+on: calling it with a state returns a route name (the fallback when the top route's probability is below
+`min_confidence`), and `.last` holds the full answer. An empty state takes the fallback without a decision (or
+raises `ValueError` without one).
+
+Invalid input raises `ValueError` and a model that cannot load raises `tools.ModelError`, each naming the problem.
+`tools.as_result(fn, *args)` returns those as `{"error": "..."}` instead, for frameworks that hide a tool's exception
+text from the model.
 
 ## Environment variables for served models
 

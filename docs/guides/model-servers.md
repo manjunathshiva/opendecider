@@ -2,7 +2,8 @@
 
 The 4B models (small and small-td) can run in an app instead of PyTorch. The app runs the model; the `opendecider`
 package builds the prompt the model was trained on and reads the option probabilities from the server's token
-log-probabilities. No PyTorch is needed on the client.
+log-probabilities. The client never runs the model, so it needs no GPU and little memory (PyTorch is installed with the
+package but not used).
 
 ```bash
 pip install "opendecider[serve]>=0.2.1"      # or plain opendecider>=0.2.1 if you only need load()

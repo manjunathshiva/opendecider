@@ -238,6 +238,39 @@ number of typed questions, and the shortcuts `choose`, `yes_no` and `score`. The
 option instead of reasoning a classification out in text, and can ask you when the confidence is low. Any model works
 (`--model`), including one served by Ollama or LM Studio. Setup for each client: [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
 
+## Agent frameworks: LangGraph, Agno, CrewAI, Microsoft Agent Framework, Google ADK and more
+
+> Not on PyPI yet: these integrations ship in 0.4.0. Until then, install from GitHub:
+> `pip install "opendecider[agno] @ git+https://github.com/manjunathshiva/opendecider"` (any extra in place of `agno`).
+
+```python
+from opendecider.integrations.langchain import DecisionRouter
+
+route = DecisionRouter({"billing_agent": "invoices, refunds", "tech_support": "errors, outages"},
+                       "Which specialist agent should answer this?", state_key="input",
+                       fallback="human_agent", min_confidence=0.6)
+graph.add_conditional_edges("triage", route, route.path_map)     # LangGraph: route on confidence
+```
+
+A router picks the next step of an agent workflow in milliseconds, with no LLM call, and sends unsure cases to a
+fallback; `decision_tools()` gives an agent the same four tools as the MCP server.
+
+| framework | install | router |
+|---|---|---|
+| LangGraph / LangChain | `opendecider[langchain]` | `DecisionRouter`: a conditional edge |
+| LlamaIndex | `opendecider[llamaindex]` | `DecisionSelector`: a RouterQueryEngine selector |
+| Agno | `opendecider[agno]` | `DecisionRouter.selector()`: a workflow Router's selector |
+| CrewAI | `opendecider[crewai]` | `DecisionRouter`: a Flow `@router` label |
+| Microsoft Agent Framework | `opendecider[agent-framework]` | `DecisionRouter.cases()`: a switch-case edge group |
+| Google ADK | `opendecider[google-adk]` | `DecisionRouterAgent`: hands over to a sub-agent |
+| PydanticAI | `opendecider[pydantic-ai]` | `decision_toolset()`, and `DecisionRouter` for your code |
+| Strands Agents | `opendecider[strands]` | `decision_tools()`, and `DecisionRouter` for your code |
+| Mastra (TypeScript) | `opendecider[mcp]` + `@mastra/mcp` | the MCP server's tools |
+
+A runnable example for each, without an LLM API key, is in
+[examples/agent_frameworks](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks); see
+[Agent frameworks](https://manjunathshiva.github.io/opendecider/guides/agent-frameworks/).
+
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
 **On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for
@@ -365,11 +398,10 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 **Next**
 
 * **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
-  ships (0.4).
+  ships (0.5).
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
-* **Agent frameworks:** LangChain / LangGraph and LlamaIndex tools.
 * **A TypeScript client** for `opendecider serve`.
 * **ONNX export** of opendecider-nano for edge and in-browser use.
 * **Multilingual evaluation.**

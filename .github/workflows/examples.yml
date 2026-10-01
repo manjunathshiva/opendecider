@@ -15,6 +15,13 @@ on:
 permissions:
   contents: read
 
+env:   # agent frameworks report usage by default; the examples send nothing
+  AGNO_TELEMETRY: 'false'
+  CREWAI_DISABLE_TELEMETRY: 'true'
+  CREWAI_TRACING_ENABLED: 'false'
+  OTEL_SDK_DISABLED: 'true'
+  PYDANTIC_AI_NO_BANNER: '1'
+
 jobs:
   examples:
     runs-on: ubuntu-latest
@@ -25,12 +32,31 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install -e ".[serve]" pandas pyarrow
-      - run: python -m py_compile examples/*.py   # remote_backends.py needs LM Studio, Ollama or vLLM: compiled only
+      - run: python -m pip install -e ".[serve,mcp,langchain,llamaindex,agno,agent-framework,google-adk,pydantic-ai]" langgraph pandas pyarrow
+      - run: python -m py_compile examples/*.py examples/agent_frameworks/*.py   # remote_backends.py: compiled only
       - run: python examples/quickstart.py
       - run: python examples/support_triage.py
       - run: python examples/agent_guardrail.py
       - run: python examples/confident_automation.py --limit 10
+      - run: python examples/agent_frameworks/langgraph_router.py
+      - run: python examples/agent_frameworks/llamaindex_selector.py
+      - run: python examples/agent_frameworks/mcp_client.py
+      - run: python examples/agent_frameworks/agno_workflow.py
+      - run: python examples/agent_frameworks/agent_framework_workflow.py
+      - run: python examples/agent_frameworks/google_adk_router.py
+      - run: python examples/agent_frameworks/pydantic_ai_agent.py
+      - name: CrewAI and Strands (they pin mcp 1.x, so in a venv layered over the one above)
+        run: |
+          python -m venv --system-site-packages mcp1
+          mcp1/bin/python -m pip install -e ".[crewai,strands]"
+          mcp1/bin/python examples/agent_frameworks/crewai_flow.py
+          mcp1/bin/python examples/agent_frameworks/strands_agent.py
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '22'
+      - name: Mastra (TypeScript) through opendecider mcp
+        working-directory: examples/agent_frameworks/mastra
+        run: npm ci --ignore-scripts --no-audit --no-fund && node index.mjs   # no dependency runs install scripts
       - name: serve_client.py against opendecider serve
         run: |
           opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &

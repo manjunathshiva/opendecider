@@ -15,8 +15,9 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 - **Break the wire format.** `opendecider/serve.py` must keep answering Jev's request and response shape (a score
   answer's `score` is the expected score and `level` the most likely level). Keep auth comparisons constant-time, give
   every limit a 4xx with a message, and never return tracebacks or paths to the client.
-- **Change the public API** (`load`, `system_one`, `system_one_batch`, `Choice` / `Score` / `Noul`, the answer fields)
-  outside the versioning policy in [CHANGELOG.md](CHANGELOG.md).
+- **Change the public API** (`load`, `system_one`, `system_one_batch`, `Choice` / `Score` / `Noul`, the answer fields,
+  the MCP tools, `opendecider.tools`, the public names in `opendecider.integrations`) outside the versioning policy in
+  [CHANGELOG.md](CHANGELOG.md).
 - Add a dependency to the core package, or one that needs a hosted service. Optional features go in an extra in
   `pyproject.toml` (`small`, `mlx`, `serve`).
 - Reformat files wholesale, reorder imports or "modernise" surrounding code. Match the style of the file being edited
@@ -31,6 +32,9 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 | `opendecider/serve.py` | `tests/test_serve.py` |
 | `opendecider/remote.py` (LM Studio / Ollama / vLLM backend) | `tests/test_remote.py` |
 | `opendecider/questions.py` | `tests/test_questions.py` |
+| `opendecider/tools.py`, `mcp_server.py` | `tests/test_mcp.py` |
+| `opendecider/integrations/` (LangChain, LangGraph, LlamaIndex) | `tests/test_integrations.py` |
+| `opendecider/integrations/` (Agno, CrewAI, Agent Framework, Google ADK, PydanticAI, Strands) | `tests/test_frameworks.py`; CrewAI and Strands pin `mcp` 1.x, so run them in a separate venv (`pip install crewai strands-agents`) |
 | `examples/` | run the script with opendecider-nano on CPU; CI runs them all |
 | `docs/`, `zensical.toml` | `pip install -r requirements-docs.txt && zensical build --strict --clean` |
 | `benchmarks/` | `python benchmarks/report.py` rebuilds every table from the committed results |

@@ -1,0 +1,14 @@
+{
+  "name": "opendecider-mastra-example",
+  "private": true,
+  "type": "module",
+  "description": "OpenDecider's MCP tools in a Mastra (TypeScript) agent",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@mastra/core": "^1.72.0",
+    "@mastra/mcp": "^2.1.1"
+  }
+}

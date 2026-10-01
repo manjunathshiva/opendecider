@@ -22,6 +22,26 @@ pip install opendecider pandas pyarrow
 python examples/support_triage.py
 ```
 
+### Agent frameworks
+
+One script per framework, in
+[examples/agent_frameworks/](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks). Each
+runs without an LLM API key; [Agent frameworks](guides/agent-frameworks.md) explains each integration. They ship in
+0.4.0, which is not on PyPI yet: from a clone, install with `pip install -e ".[agno]"` (the extra each script needs).
+
+| script | framework | what it shows |
+|---|---|---|
+| [`langgraph_router.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/langgraph_router.py) | LangGraph | `DecisionRouter` as a graph's conditional edge: each ticket to a specialist, unsure ones to a person |
+| [`llamaindex_selector.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/llamaindex_selector.py) | LlamaIndex | `DecisionSelector` picks a RouterQueryEngine's source without an LLM call |
+| [`agno_workflow.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/agno_workflow.py) | Agno | `DecisionRouter.selector()` as a workflow Router's selector |
+| [`crewai_flow.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/crewai_flow.py) | CrewAI | `DecisionRouter` in a Flow's `@router` |
+| [`agent_framework_workflow.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/agent_framework_workflow.py) | Microsoft Agent Framework | `DecisionRouter.cases()` as a switch-case edge group |
+| [`google_adk_router.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/google_adk_router.py) | Google ADK | `DecisionRouterAgent` hands each request to a sub-agent |
+| [`pydantic_ai_agent.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/pydantic_ai_agent.py) | PydanticAI | an agent calling `decision_toolset()`, including a retry on an invalid call |
+| [`strands_agent.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/strands_agent.py) | Strands Agents | `DecisionRouter` plus `decision_tools()` |
+| [`mcp_client.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/mcp_client.py) | MCP | what an AI assistant sees: `opendecider mcp`'s tools called over stdio |
+| [`mastra/`](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks/mastra) | Mastra (TypeScript) | the MCP tools through Mastra's `MCPClient` |
+
 ## Colab notebook
 
 [Open in Colab](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb){ .md-button .md-button--primary }

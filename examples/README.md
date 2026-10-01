@@ -24,6 +24,31 @@ pip install "opendecider[small]"           # the 4B models: pass e.g. manjunaths
 The scripts that take a model name accept any OpenDecider model (`quickstart.py`, `support_triage.py` and
 `agent_guardrail.py` as the first argument, `confident_automation.py` as `--model`).
 
+## Agent frameworks
+
+[`agent_frameworks/`](agent_frameworks/) has one script per framework. Each routes the same four support tickets (to
+a specialist, or to a person when unsure) or calls the decision tools as an agent would, without an LLM API key. See
+[Agent frameworks](https://manjunathshiva.github.io/opendecider/guides/agent-frameworks/) for each integration.
+
+| script | framework | what it shows | install |
+|---|---|---|---|
+| [`langgraph_router.py`](agent_frameworks/langgraph_router.py) | LangGraph | `DecisionRouter` as a graph's conditional edge | `pip install "opendecider[langchain]" langgraph` |
+| [`llamaindex_selector.py`](agent_frameworks/llamaindex_selector.py) | LlamaIndex | `DecisionSelector` picks a RouterQueryEngine's source | `pip install "opendecider[llamaindex]"` |
+| [`agno_workflow.py`](agent_frameworks/agno_workflow.py) | Agno | `DecisionRouter.selector()` as a workflow Router's selector | `pip install "opendecider[agno]"` |
+| [`crewai_flow.py`](agent_frameworks/crewai_flow.py) | CrewAI | `DecisionRouter` in a Flow's `@router` | `pip install "opendecider[crewai]"` |
+| [`agent_framework_workflow.py`](agent_frameworks/agent_framework_workflow.py) | Microsoft Agent Framework | `DecisionRouter.cases()` as a switch-case edge group | `pip install "opendecider[agent-framework]"` |
+| [`google_adk_router.py`](agent_frameworks/google_adk_router.py) | Google ADK | `DecisionRouterAgent` hands each request to a sub-agent | `pip install "opendecider[google-adk]"` |
+| [`pydantic_ai_agent.py`](agent_frameworks/pydantic_ai_agent.py) | PydanticAI | an agent calling `decision_toolset()`, including a retry on an invalid call | `pip install "opendecider[pydantic-ai]"` |
+| [`strands_agent.py`](agent_frameworks/strands_agent.py) | Strands Agents | `DecisionRouter` plus `decision_tools()` | `pip install "opendecider[strands]"` |
+| [`mcp_client.py`](agent_frameworks/mcp_client.py) | MCP | what an AI assistant sees: `opendecider mcp`'s tools over stdio | `pip install "opendecider[mcp]"` |
+| [`mastra/`](agent_frameworks/mastra/) | Mastra (TypeScript) | the MCP tools through Mastra's `MCPClient` | `pip install "opendecider[mcp]"`, then `npm ci` in the folder |
+
+These integrations ship in 0.4.0, which is not on PyPI yet: from a clone, install with `pip install -e ".[agno]"`
+(the extra each script needs) instead of the table's install column. Run each with
+`python examples/agent_frameworks/<script>.py` (the Mastra one with `node index.mjs` in its folder).
+The Python ones take a model name as the first argument (`mcp_client.py` and the Mastra one: `--model <name>`). CrewAI
+and Strands require `mcp` 1.x, so keep them out of the environment that runs `opendecider mcp`.
+
 ## What `confident_automation.py` prints for nano
 
 The full test split (400 cases, 2,000 decisions; no OpenDecider model was trained on it), on a laptop CPU in about a
