@@ -77,6 +77,28 @@ An answer also carries `"truncated": true` when its state was cut to fit the mod
     Over HTTP (`opendecider serve`) a score answer follows TypeSafe Jev: `score` is the expected score and `level` the
     most likely level. In Python, `score` is the most likely level and `expected` the expected score.
 
+## Agent tools and integrations
+
+`opendecider.tools` is the core behind the [MCP server](../guides/mcp.md) and the
+[LangChain, LangGraph and LlamaIndex](../guides/agent-frameworks.md) integrations:
+
+```python
+from opendecider.tools import Decider, choose, decide, score, yes_no
+
+d = Decider("manjunathshiva/opendecider-nano")   # or tools.shared(name): one copy per model name
+choose(d, state, "Which team?", {"billing": "charges", "tech": "bugs"})
+# {'choice': 'billing', 'probabilities': {...}, 'confidence': ...}
+yes_no(d, state, "Is this spam?")   # {'answer': 'yes' or 'no', 'probability_yes': ..., 'confidence': ...}
+score(d, state, "How urgent?", ["low", "medium", "high"])   # {'level', 'label', 'expected_level', ...}
+```
+
+| integration | install | provides |
+|---|---|---|
+| `opendecider.integrations.langchain` | `opendecider[langchain]` | `decision_tools()`, `DecisionRouter` |
+| `opendecider.integrations.llamaindex` | `opendecider[llamaindex]` | `decision_tools()`, `DecisionSelector` |
+
+Invalid input raises `ValueError` and a model that cannot load raises `tools.ModelError`, each naming the problem.
+
 ## Environment variables for served models
 
 | variable | meaning |

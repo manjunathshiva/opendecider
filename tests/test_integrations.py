@@ -218,3 +218,18 @@ def test_components_naming_the_same_model_share_it():
     b = DecisionRouter(["x", "y"], "Which?", model=name)
     assert a.decider is b.decider is core.shared(name)
     assert core.shared(decider()) is not core.shared(decider())   # distinct objects keep distinct Deciders
+
+
+def test_agents_see_typed_argument_schemas():
+    """The schemas the LLM driving an agent sees (deferred annotations must still resolve to real types)."""
+    pytest.importorskip("langchain_core")
+    pytest.importorskip("llama_index.core")
+    from opendecider.integrations.langchain import decision_tools as lc
+    from opendecider.integrations.llamaindex import decision_tools as li
+    options = {"anyOf": [{"items": {"type": "string"}, "type": "array"},
+                         {"additionalProperties": {"type": "string"}, "type": "object"}], "title": "Options"}
+    lt = {t.name: t for t in lc(decider())}
+    assert lt["choose"].args["options"] == options and lt["score"].args["levels"]["type"] == "array"
+    it = {t.metadata.name: t for t in li(decider())}
+    params = it["choose"].metadata.get_parameters_dict()
+    assert params["properties"]["options"] == options and params["required"] == ["state", "question", "options"]
