@@ -62,7 +62,10 @@ jobs:
                   "opendecider/small.py", "opendecider/bench_speed.py", "opendecider/mlx_small.py",
                   "opendecider/serve.py", "opendecider/cli.py", "opendecider/prompt.py", "opendecider/remote.py",
                   "opendecider/mcp_server.py", "opendecider/tools.py", "opendecider/integrations/__init__.py",
-                  "opendecider/integrations/langchain.py", "opendecider/integrations/llamaindex.py"]
+                  "opendecider/integrations/langchain.py", "opendecider/integrations/llamaindex.py",
+                  "opendecider/integrations/agno.py", "opendecider/integrations/crewai.py",
+                  "opendecider/integrations/agent_framework.py", "opendecider/integrations/google_adk.py",
+                  "opendecider/integrations/pydantic_ai.py", "opendecider/integrations/strands.py"]
           missing = [n for n in need if n not in names]
           if missing:
               sys.exit(f"{whl} is missing {missing}")

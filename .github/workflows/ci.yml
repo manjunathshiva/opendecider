@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+env:   # agent frameworks report usage by default; the tests send nothing
+  AGNO_TELEMETRY: 'false'
+  CREWAI_DISABLE_TELEMETRY: 'true'
+  OTEL_SDK_DISABLED: 'true'
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -20,5 +25,16 @@ jobs:
         with:
           python-version: '3.12'
       # question/answer logic and the HTTP server (with a fake model) are torch-free; real-model tests run in docker.yml and the release checks
-      - run: python -m pip install --no-deps -e . && python -m pip install pytest fastapi httpx "mcp>=2.2,<3" langchain-core langgraph llama-index-core
+      - run: python -m pip install --no-deps -e . && python -m pip install pytest fastapi httpx "mcp>=2.2,<3" langchain-core langgraph llama-index-core agno agent-framework-core google-adk pydantic-ai-slim
       - run: python -m pytest -q tests
+
+  # crewai and strands-agents pin mcp 1.x, which the MCP server cannot use: their integrations get their own environment
+  frameworks-mcp1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --no-deps -e . && python -m pip install pytest crewai strands-agents
+      - run: python -m pytest -q tests/test_frameworks.py
