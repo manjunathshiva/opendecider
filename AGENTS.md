@@ -15,8 +15,9 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 - **Break the wire format.** `opendecider/serve.py` must keep answering Jev's request and response shape (a score
   answer's `score` is the expected score and `level` the most likely level). Keep auth comparisons constant-time, give
   every limit a 4xx with a message, and never return tracebacks or paths to the client.
-- **Change the public API** (`load`, `system_one`, `system_one_batch`, `Choice` / `Score` / `Noul`, the answer fields)
-  outside the versioning policy in [CHANGELOG.md](CHANGELOG.md).
+- **Change the public API** (`load`, `system_one`, `system_one_batch`, `Choice` / `Score` / `Noul`, the answer fields,
+  the MCP tools, `opendecider.tools`, the public names in `opendecider.integrations`) outside the versioning policy in
+  [CHANGELOG.md](CHANGELOG.md).
 - Add a dependency to the core package, or one that needs a hosted service. Optional features go in an extra in
   `pyproject.toml` (`small`, `mlx`, `serve`).
 - Reformat files wholesale, reorder imports or "modernise" surrounding code. Match the style of the file being edited

@@ -1,7 +1,9 @@
 # Python API
 
 The public API is `load`, `OpenDecider.system_one`, `OpenDecider.system_one_batch`, the question helpers `Choice`,
-`Score` and `Noul`, and the answer fields below. Patch releases never change it; see the
+`Score` and `Noul`, the answer fields below and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names,
+arguments and answers, `opendecider.tools` and the public names in `opendecider.integrations`. Patch releases never
+change it; see the
 [versioning policy](https://github.com/manjunathshiva/opendecider/blob/main/CHANGELOG.md).
 
 ## `load`

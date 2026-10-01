@@ -1,8 +1,9 @@
 # Changelog
 
 All notable changes to the `opendecider` package. Versions follow [Semantic Versioning](https://semver.org). The public
-API is `load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer fields and the HTTP wire
-format.
+API is `load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer fields, the HTTP wire
+format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, arguments and answers,
+`opendecider.tools` and the public names in `opendecider.integrations`.
 
 - **Before 1.0.0** (0.x): patch releases (0.2.x) never change the public API. A breaking change can only ship in a new
   minor release (0.3.0, 0.4.0, …), and only after at least one release in which the old behaviour emits a deprecation
@@ -34,6 +35,11 @@ format.
 - Mastra and other TypeScript or MCP-capable frameworks use `opendecider mcp`; an example shows Mastra's `MCPClient`.
 - `opendecider.tools`: the shared core of the MCP server and every integration (validation, lazy loading, the
   agent-facing answer format, and `Router`, the routing logic every router builds on), so all of them answer alike.
+
+### Changed
+
+- Versioning: the agent-facing surfaces (the MCP server's tool names, arguments and answers, `opendecider.tools` and
+  the public names in `opendecider.integrations`) are now part of the public API, under the same versioning policy.
 
 ### Documentation
 
