@@ -9,7 +9,7 @@
 **Next**
 
 * **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
-  ships (0.3).
+  ships (0.4).
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.

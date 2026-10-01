@@ -35,7 +35,7 @@ protocol, so existing Jev clients work by changing the base URL. It was tested w
 
 The images serve opendecider-nano by default; set `OPENDECIDER_MODEL` to serve another model, and mount a volume at
 `/models` so downloaded weights survive restarts. Pin a release with a version tag, for example
-`ghcr.io/manjunathshiva/opendecider:0.2.1`.
+`ghcr.io/manjunathshiva/opendecider:0.3.0`.
 
 ## Call it
 

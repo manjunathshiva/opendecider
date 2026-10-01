@@ -41,7 +41,7 @@ Settings with no flag (environment only):
 ## `opendecider mcp`
 
 ```bash
-pip install "opendecider[mcp]"
+pip install "opendecider[mcp]>=0.3.0"
 opendecider mcp [--model NAME] [--revision REV] [--device DEV] [--dtype DTYPE]
 ```
 
