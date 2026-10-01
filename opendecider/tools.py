@@ -88,6 +88,23 @@ class Decider:
             return model.system_one(state, questions)
 
 
+_shared: dict = {}
+_shared_lock = threading.Lock()
+
+
+def shared(model: Any = DEFAULT_MODEL) -> Decider:
+    """A Decider for `model`, shared by every component that names the same model, so it loads once.
+    A Decider passes through; a loaded OpenDecider gets its own Decider (the object itself is already shared)."""
+    if isinstance(model, Decider):
+        return model
+    if not isinstance(model, str):
+        return Decider(model)
+    with _shared_lock:
+        if model not in _shared:
+            _shared[model] = Decider(model)
+        return _shared[model]
+
+
 def check(state, questions: dict) -> None:
     """The size limits (question types and options are validated by `OpenDecider.prepare`)."""
     if not isinstance(questions, dict) or not questions:
@@ -102,7 +119,10 @@ def check(state, questions: dict) -> None:
         is_score = isinstance(q, dict) and q.get("type") == "score" and isinstance(crit, list)
         if is_score and len(set(map(str, crit))) < len(crit):
             raise ValueError(f"question {name!r}: score levels must be distinct")   # answers are keyed by level label
-    text = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
+    try:
+        text = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"the state must be text or JSON-serialisable ({e})") from None
     if len(text) > MAX_STATE_CHARS:
         raise ValueError(f"the state is longer than {MAX_STATE_CHARS} characters")
 

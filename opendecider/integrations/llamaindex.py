@@ -15,6 +15,7 @@ same as the MCP server's: a probability for every option and a calibrated `confi
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any, Sequence
 
 try:
@@ -25,8 +26,7 @@ except ImportError as e:   # pragma: no cover
 from .. import tools as core
 
 
-def _decider(model) -> core.Decider:
-    return model if isinstance(model, core.Decider) else core.Decider(model)
+log = logging.getLogger("opendecider.integrations.llamaindex")
 
 
 def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
@@ -38,7 +38,7 @@ def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
     """
     from llama_index.core.tools import FunctionTool
 
-    decider = _decider(model)
+    decider = core.shared(model)
 
     # typed signatures: LlamaIndex builds each tool's argument schema from them
     def decide(state: str | dict | list, questions: dict[str, dict]) -> dict[str, Any]:
@@ -66,13 +66,17 @@ class DecisionSelector(BaseSelector):
     """Selects one of a RouterQueryEngine's query engines (or any tools) for a query, from their names and descriptions.
 
     model: as for `decision_tools`. instructions: the routing question asked about the query.
+    max_description_chars: each choice's description is cut to this length, so long tool descriptions cannot push the
+      query itself out of the model's input (opendecider-nano reads 2,048 tokens and shortens the query first).
     The selection's `reason` gives the probability, so it shows up in LlamaIndex's traces.
     """
 
     def __init__(self, model: Any = core.DEFAULT_MODEL,
-                 instructions: str = "Which of these sources is best suited to answer the query?"):
-        self.decider = _decider(model)
+                 instructions: str = "Which of these sources is best suited to answer the query?",
+                 max_description_chars: int = 400):
+        self.decider = core.shared(model)
         self.instructions = instructions
+        self.max_description_chars = max_description_chars
         self.last: dict | None = None   # the last answer, for logging
 
     def _select(self, choices: Sequence, query) -> SelectorResult:
@@ -84,9 +88,12 @@ class DecisionSelector(BaseSelector):
             labels.append(label if label not in labels else f"{label} ({i + 1})")
         if len(choices) == 1:
             return SelectorResult(selections=[SingleSelection(index=0, reason="the only choice")])
-        options = {label: c.description for label, c in zip(labels, choices)}
+        cap = self.max_description_chars
+        options = {label: (c.description or "")[:cap] or None for label, c in zip(labels, choices)}
         text = query.query_str if hasattr(query, "query_str") else str(query)
         self.last = core.choose(self.decider, text, self.instructions, options)
+        if self.last.get("truncated"):
+            log.warning("the query was shortened to fit the model's input; shorten the tool descriptions")
         index = labels.index(self.last["choice"])
         return SelectorResult(selections=[SingleSelection(
             index=index, reason=f"OpenDecider: {labels[index]!r} with probability {self.last['confidence']:.3f}")])

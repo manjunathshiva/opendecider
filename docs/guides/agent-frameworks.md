@@ -5,13 +5,14 @@ OpenDecider plugs into agent frameworks in two ways: as **tools** an agent calls
 routing decision with opendecider-nano takes milliseconds and comes with a calibrated probability, so low-confidence
 cases can go to a fallback (a person, a slower model) instead of the wrong branch.
 
-Every component loads its model on the first call. Pass a model name (`manjunathshiva/opendecider-small-td`, or a served
-model such as `ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0`), or share one model between components by
-passing a `Decider`:
+Every component loads its model on the first call: opendecider-nano by default, or any model name you pass
+(`manjunathshiva/opendecider-small-td`, or a served model such as
+`ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0`). Components that name the same model share one loaded
+copy. To set loading options such as the device, pass a `Decider`:
 
 ```python
 from opendecider.tools import Decider
-nano = Decider("manjunathshiva/opendecider-nano")
+nano_cpu = Decider("manjunathshiva/opendecider-nano", device="cpu")
 ```
 
 ## LangGraph: route on confidence
@@ -98,7 +99,9 @@ engine = RouterQueryEngine(
 engine.query("What was our revenue in March?")
 ```
 
-`DecisionSelector` picks one engine from the tools' names and descriptions, in place of an LLM selector. With
+`DecisionSelector` picks one engine from the tools' names and descriptions, in place of an LLM selector. Each
+description is cut to 400 characters (`max_description_chars`), so long descriptions cannot push the query out of
+the model's input. With
 opendecider-nano, "What was our revenue in March?" goes to `sales_db` (0.94) and "How do I reset the device to factory
 settings?" to `product_docs` (0.95). The selection's `reason` carries the probability, so it shows in LlamaIndex traces.
 
@@ -112,6 +115,6 @@ tools = decision_tools()
 ## Notes
 
 - Write the routes' descriptions the way you would brief a person; descriptions matter more than the labels.
-- One model serves every component that shares a `Decider`; calls run one at a time. For high request rates from
+- One model serves every component that names it; calls run one at a time. For high request rates from
   services, use [`opendecider serve`](serve.md).
 - `DecisionSelector` returns a single selection; for multi-engine fan-out, keep an LLM multi-selector.

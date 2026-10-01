@@ -150,3 +150,71 @@ def test_llamaindex_selector_in_a_router_query_engine():
     assert selector.last["confidence"] == 0.8
     r = selector.select([sql.metadata, docs.metadata], "manuals for the docs")
     assert r.ind == 1 and "probability" in r.reason
+
+
+# ---- review fixes --------------------------------------------------------------------------------------------------
+
+def test_router_reads_text_from_content_blocks():
+    pytest.importorskip("langchain_core")
+    from langchain_core.messages import HumanMessage
+    from opendecider.integrations.langchain import DecisionRouter
+    class Recording(Fake):
+        def decide_many(self, items, info=None):
+            self.states = [st for st, _, _ in items]
+            return super().decide_many(items, info)
+
+    fake = Recording()
+    route = DecisionRouter(["billing", "tech"], "Which team?", model=decider(fake))
+    msg = HumanMessage(content=[{"type": "text", "text": "please refund my billing error"},
+                                {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAAA"}}])
+    assert route({"messages": [msg]}) == "billing"
+    assert fake.states == ["please refund my billing error"]   # the text block only, not the image or the structure
+
+
+def test_router_validates_at_construction():
+    pytest.importorskip("langchain_core")
+    from opendecider.integrations.langchain import DecisionRouter
+    with pytest.raises(ValueError, match="between 0 and 1"):
+        DecisionRouter(["a", "b"], "Which?", model=decider(), fallback="h", min_confidence=60)
+    with pytest.raises(ValueError, match="at least 2 options"):
+        DecisionRouter(["only"], "Which?", model=decider())
+
+
+def test_non_json_state_is_a_clear_error():
+    pytest.importorskip("langchain_core")
+    import datetime
+    from opendecider.integrations.langchain import decision_tools
+    tools = {t.name: t for t in decision_tools(decider())}
+    msg = tools["yes_no"].invoke({"state": "x", "question": "Is it?"})   # fine
+    assert isinstance(msg, dict)
+    from opendecider import tools as core
+    with pytest.raises(ValueError, match="text or JSON-serialisable"):
+        core.yes_no(decider(), {"when": datetime.datetime(2026, 10, 1)}, "Is it late?")
+
+
+def test_selector_caps_long_descriptions():
+    pytest.importorskip("llama_index.core")
+    from llama_index.core.tools import ToolMetadata
+    from opendecider.integrations.llamaindex import DecisionSelector
+
+    class Recording(Fake):
+        def decide_many(self, items, info=None):
+            self.items = items
+            return super().decide_many(items, info)
+
+    fake = Recording()
+    sel = DecisionSelector(model=decider(fake), max_description_chars=50)
+    sel.select([ToolMetadata(name="a", description="x" * 5000), ToolMetadata(name="b", description="short")], "q")
+    (_, _, opts), = fake.items
+    assert len(opts["a"]) == 50 and opts["b"] == "short"
+
+
+def test_components_naming_the_same_model_share_it():
+    pytest.importorskip("langchain_core")
+    from opendecider import tools as core
+    from opendecider.integrations.langchain import DecisionRouter
+    name = "test/shared-model"   # never loaded: nothing is called
+    a = DecisionRouter(["x", "y"], "Which?", model=name)
+    b = DecisionRouter(["x", "y"], "Which?", model=name)
+    assert a.decider is b.decider is core.shared(name)
+    assert core.shared(decider()) is not core.shared(decider())   # distinct objects keep distinct Deciders

@@ -17,13 +17,21 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import logging
 from typing import Any, Callable
 
 from .. import tools as core
 
+log = logging.getLogger("opendecider.integrations.langchain")
 
-def _decider(model) -> core.Decider:
-    return model if isinstance(model, core.Decider) else core.Decider(model)
+
+def _text(content):
+    """A message's text: content blocks (multimodal or provider-specific) joined, other blocks dropped."""
+    if isinstance(content, list):
+        parts = [b if isinstance(b, str) else b.get("text", "") for b in content
+                 if isinstance(b, str) or (isinstance(b, dict) and b.get("type") == "text")]
+        return "\n".join(p for p in parts if p)
+    return content
 
 
 def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
@@ -37,7 +45,7 @@ def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
     except ImportError as e:   # pragma: no cover
         raise ImportError('the LangChain integration needs: pip install "opendecider[langchain]"') from e
 
-    decider = _decider(model)
+    decider = core.shared(model)
 
     # typed signatures: LangChain builds each tool's argument schema from them
     def decide(state: str | dict | list, questions: dict[str, dict]) -> dict[str, Any]:
@@ -81,11 +89,16 @@ class DecisionRouter:
 
     def __init__(self, routes: dict[str, str] | list[str], instructions: str, *, model: Any = core.DEFAULT_MODEL,
                  state_key: str | None = None, fallback: str | None = None, min_confidence: float = 0.0):
+        if not 0 <= min_confidence <= 1:
+            raise ValueError(f"min_confidence is a probability, between 0 and 1 (got {min_confidence})")
         if fallback is None and min_confidence > 0:
             raise ValueError("min_confidence needs a fallback route")
+        from .. import OpenDecider
+        from ..questions import Choice
+        OpenDecider.prepare({"routes": Choice(instructions, routes)})   # at least 2 routes and an instruction, now
         self.routes, self.instructions = routes, instructions
         self.state_key, self.fallback, self.min_confidence = state_key, fallback, min_confidence
-        self.decider = _decider(model)
+        self.decider = core.shared(model)
         self.last: dict | None = None   # the last answer, for logging
 
     def _state(self, state):
@@ -94,11 +107,13 @@ class DecisionRouter:
         messages = state.get("messages") if isinstance(state, dict) else getattr(state, "messages", None)
         if messages:
             last = messages[-1]
-            return last.content if hasattr(last, "content") else last
+            return _text(last.content) if hasattr(last, "content") else last
         return state
 
     def __call__(self, state) -> str:
         self.last = core.choose(self.decider, self._state(state), self.instructions, self.routes)
+        if self.last.get("truncated"):
+            log.warning("the routing input was shortened to fit the model's input; set state_key to a shorter field")
         if self.fallback is not None and self.last["confidence"] < self.min_confidence:
             return self.fallback
         return self.last["choice"]
