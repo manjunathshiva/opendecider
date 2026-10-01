@@ -67,4 +67,4 @@ for ticket in TICKETS:
     flow.kickoff(inputs={"ticket": ticket})
     results.append((ticket, flow.state.handled_by, route.last))
 for ticket, handled_by, top in results:   # after CrewAI's own flow logs
-    print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top['choice']}, p = {top['confidence']:.2f})")
+    print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top.choice}, p = {top.confidence:.2f})")

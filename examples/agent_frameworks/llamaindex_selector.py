@@ -40,4 +40,4 @@ for query in ["What was our revenue in March?",
               "How do I reset the device to factory settings?",
               "Which customers ordered more than 100 units last quarter?"]:
     answered_by = engine.query(query)
-    print(f"{query:<58} -> {str(answered_by):<12} (p = {selector.last['confidence']:.2f})")
+    print(f"{query:<58} -> {str(answered_by):<12} (p = {selector.last.confidence:.2f})")

@@ -55,6 +55,11 @@ TYPESAFE_BASE_URL=http://localhost:8000 TYPESAFE_API_KEY=<your OPENDECIDER_API_K
 A Python client with retries (standard library only) is in
 [examples/serve_client.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/serve_client.py).
 
+From Python, the MCP server and every agent framework integration, pass the server's URL as the model
+(`load("http://localhost:8000")`, `DecisionRouter(..., model="http://localhost:8000")`): its model answers, with the
+same answers as in-process, and the client loads none. Set `OPENDECIDER_REMOTE_API_KEY` to the server's key. See
+[Production](agent-frameworks.md#production).
+
 | endpoint | what it does |
 |---|---|
 | `POST /v1/systemone` | one state, any number of typed questions (Jev's request and response shape) |

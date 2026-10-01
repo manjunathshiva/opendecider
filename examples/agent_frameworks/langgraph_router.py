@@ -47,4 +47,4 @@ TICKETS = [
 for ticket in TICKETS:
     out = app.invoke({"ticket": ticket})
     top = route.last
-    print(f"{ticket[:60]:<60} -> {out['handled_by']:<13} (top: {top['choice']}, p = {top['confidence']:.2f})")
+    print(f"{ticket[:60]:<60} -> {out['handled_by']:<13} (top: {top.choice}, p = {top.confidence:.2f})")

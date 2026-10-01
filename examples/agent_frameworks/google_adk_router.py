@@ -55,7 +55,7 @@ async def main():
         async for event in runner.run_async(user_id="user", session_id=str(i), new_message=message):
             handled_by = event.author
         top = router.last
-        print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top['choice']}, p = {top['confidence']:.2f})")
+        print(f"{ticket[:60]:<60} -> {handled_by:<13} (top: {top.choice}, p = {top.confidence:.2f})")
 
 
 asyncio.run(main())

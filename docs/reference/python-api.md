@@ -9,16 +9,19 @@ change it; see the
 ## `load`
 
 ```python
-load(name_or_path="manjunathshiva/opendecider-nano", device=None, revision=None, dtype=None, base_url=None) -> OpenDecider
+load(name_or_path="manjunathshiva/opendecider-nano", device=None, revision=None, dtype=None, base_url=None,
+     api_key=None, timeout=None) -> OpenDecider
 ```
 
 | argument | meaning |
 |---|---|
-| `name_or_path` | a Hugging Face model name, a local folder with `opendecider.json`, or `lmstudio:<model>`, `ollama:<model>`, `openai:<model>` for a model served by an app ([LM Studio, Ollama and vLLM](../guides/model-servers.md)) |
+| `name_or_path` | a Hugging Face model name, a local folder with `opendecider.json`, `lmstudio:<model>`, `ollama:<model>`, `openai:<model>` for a model served by an app ([LM Studio, Ollama and vLLM](../guides/model-servers.md)), or the http(s) URL of an [`opendecider serve`](../guides/serve.md) (its model answers; nothing loads locally) |
 | `device` | `"cuda"`, `"mps"` or `"cpu"`; default: CUDA, then MPS, then CPU. Ignored for the MLX builds and served models |
 | `revision` | a Hub revision (tag, branch or commit) to pin |
 | `dtype` | nano only: `"float32"` (default, as evaluated) or `"bfloat16"` (faster on CPUs with bf16 units and on GPUs) |
 | `base_url` | the server URL for `openai:` models (or set `OPENDECIDER_REMOTE_URL`) |
+| `api_key` | served models: the server's bearer token (default: `OPENDECIDER_REMOTE_API_KEY`) |
+| `timeout` | served models: seconds to wait for each request (default 60 for `opendecider serve`, 120 for the apps) |
 
 Which package extra a model needs: nano none; small, small-td, medium-td and large-td `opendecider[small]`; the MLX
 builds `opendecider[mlx]`; served models none.
@@ -102,25 +105,31 @@ The integrations ship in 0.4.0 (not on PyPI yet; install from GitHub until then,
 | `opendecider.integrations.langchain` | `opendecider[langchain]` | `decision_tools()`, `DecisionRouter` |
 | `opendecider.integrations.llamaindex` | `opendecider[llamaindex]` | `decision_tools()`, `DecisionSelector` |
 | `opendecider.integrations.agno` | `opendecider[agno]` | `decision_toolkit()`, `DecisionRouter` (`.selector()`) |
-| `opendecider.integrations.crewai` | `opendecider[crewai]` | `decision_tools()`, `DecisionRouter` |
+| `opendecider.integrations.crewai` | `opendecider[crewai]` | `decision_tools()`, `DecisionRouter`, `TaskAssigner` |
 | `opendecider.integrations.agent_framework` | `opendecider[agent-framework]` | `decision_tools()`, `DecisionRouter` (`.cases()`) |
 | `opendecider.integrations.google_adk` | `opendecider[google-adk]` | `decision_tools()`, `DecisionRouterAgent` |
 | `opendecider.integrations.pydantic_ai` | `opendecider[pydantic-ai]` | `decision_toolset()`, `DecisionRouter` |
 | `opendecider.integrations.strands` | `opendecider[strands]` | `decision_tools()`, `DecisionRouter` |
 
-`tools.Router(routes, instructions, *, model=..., fallback=None, min_confidence=0.0)` is the router every integration builds
-on: calling it with a state returns a route name (the fallback when the top route's probability is below
-`min_confidence`), and `.last` holds the full answer. An empty state takes the fallback without a decision (or
-raises `ValueError` without one).
+`tools.Router(routes, instructions, *, model=..., fallback=None, min_confidence=0.0, on_error="raise",
+on_decision=None)` is the router every integration builds on. Calling it with a state returns a route name (the
+fallback when the top route's probability is below `min_confidence`); `.decide(state)` returns the full
+`tools.Decision` (route, reason, choice, confidence, probabilities, model, latency, truncation, error), which
+`on_decision` also receives and `.last` keeps. An empty state takes the fallback without a decision (or raises
+`ValueError` without one). `on_error="fallback"` takes the fallback when the decision fails. See
+[Production](../guides/agent-frameworks.md#production).
 
-Invalid input raises `ValueError` and a model that cannot load raises `tools.ModelError`, each naming the problem.
-`tools.as_result(fn, *args)` returns those as `{"error": "..."}` instead, for frameworks that hide a tool's exception
-text from the model.
+`tools.decide_batch(decider, states, questions)` answers the same questions about up to 256 states in one batch;
+`tools.status(decider)` reports the model, whether it is loaded, the version and the limits, without loading it.
+
+Invalid input raises `ValueError`, a model that cannot load raises `tools.ModelError`, and a model server that cannot
+answer raises `remote.ServerError`, each naming the problem. `tools.as_result(fn, *args)` returns those as
+`{"error": "..."}` instead, for frameworks that hide a tool's exception text from the model.
 
 ## Environment variables for served models
 
 | variable | meaning |
 |---|---|
 | `OPENDECIDER_REMOTE_URL` | server URL for `lmstudio:`, `ollama:` and `openai:` models when `base_url` is not given |
-| `OPENDECIDER_REMOTE_API_KEY` | bearer token for that server; sent only to it, never on a redirect |
+| `OPENDECIDER_REMOTE_API_KEY` | bearer token for that server (and for an `opendecider serve` URL); sent only to it, never on a redirect |
 | `OPENDECIDER_REMOTE_ALLOW_HTTP` | `1` to allow sending the key over plain HTTP to another host on a trusted network |

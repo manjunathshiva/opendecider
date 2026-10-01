@@ -68,6 +68,8 @@ tool over stdio.
 | `choose` | `state`, `question`, `options` (a list of labels, or `{"label": "description"}`) | `choice`, `probabilities`, `confidence` |
 | `yes_no` | `state`, `question` | `answer` (yes / no), `probability_yes`, `confidence` |
 | `score` | `state`, `question`, `levels` (lowest first) | `level`, `label`, `expected_level`, `probabilities`, `confidence` |
+| `decide_batch` | `states` (up to 256), `questions` | one result per state, in order: faster than one call per state |
+| `status` | none | the model, whether it is loaded, where it runs, the version and the input limits (does not load the model) |
 
 Every tool is read-only and idempotent. Answers carry `truncated: true` when the state was cut to fit the model.
 Invalid input (an unknown question type, a single option, repeated score levels, more than 64 questions or 256
@@ -92,7 +94,8 @@ opendecider mcp --model manjunathshiva/opendecider-small-td        # pip install
 opendecider mcp --model ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0   # a model Ollama serves
 ```
 
-`--model` takes anything [`load`](../reference/python-api.md#load) does (or set `OPENDECIDER_MODEL`); `--device`,
+`--model` takes anything [`load`](../reference/python-api.md#load) does, including an `opendecider serve` URL (or set
+`OPENDECIDER_MODEL`); `--device`,
 `--dtype` and `--revision` work as for [`opendecider serve`](../reference/cli.md). nano is the default: it is fast on
 any machine. Use small or small-td on a GPU or a Mac with 16 GB for higher accuracy; see
 [Choose a model](../models.md).

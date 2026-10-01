@@ -33,6 +33,16 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
   them.
 - Strands Agents (`opendecider[strands]`): `decision_tools()` and `DecisionRouter`.
 - Mastra and other TypeScript or MCP-capable frameworks use `opendecider mcp`; an example shows Mastra's `MCPClient`.
+- Production routing, in every integration: the model can be an `opendecider serve` URL (`load("https://...")`,
+  `model="https://..."`), so the routing process holds no model and answers are the server model's own;
+  `router.decide()` returns a `tools.Decision` (route, reason, choice, confidence, probabilities, model, latency,
+  error); `on_decision=` receives every decision, failed ones included; `on_error="fallback"` takes the fallback
+  route when the decision fails; OpenTelemetry spans for every decision (`pip install "opendecider[otel]"`).
+- CrewAI `TaskAssigner`: picks the crew member for each task from the members' roles and goals, in place of a
+  hierarchical crew's manager LLM, with a fallback member for tasks no one fits confidently.
+- MCP server: `decide_batch` (the same questions about up to 256 states in one call) and `status` (the model, whether
+  it is loaded, the version and the limits, without loading it).
+- `load(..., api_key=, timeout=)` for served models; a busy server's `Retry-After` is honoured.
 - `opendecider.tools`: the shared core of the MCP server and every integration (validation, lazy loading, the
   agent-facing answer format, and `Router`, the routing logic every router builds on), so all of them answer alike.
 

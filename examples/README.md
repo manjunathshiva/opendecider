@@ -13,6 +13,7 @@ noted. CI runs each of them against the released model whenever the package or t
 | [`confident_automation.py`](confident_automation.py) | on 2,000 labelled business decisions: how many you can automate at a given accuracy | `python examples/confident_automation.py` |
 | [`serve_client.py`](serve_client.py) | call `opendecider serve` over HTTP (Jev's `/v1/systemone` protocol), with retries | start the server, then `python examples/serve_client.py` |
 | [`remote_backends.py`](remote_backends.py) | the same decision through LM Studio, Ollama or vLLM | `python examples/remote_backends.py lmstudio:opendecider-small` |
+| [`production_router.py`](production_router.py) | a router for production: the model behind `opendecider serve`, a JSON audit line per decision, fallback on error, OpenTelemetry spans (0.4.0, unreleased: from a clone) | start the server, then `python examples/production_router.py http://127.0.0.1:8000` |
 
 ```bash
 pip install opendecider                    # nano
@@ -35,6 +36,7 @@ a specialist, or to a person when unsure) or calls the decision tools as an agen
 | [`langgraph_router.py`](agent_frameworks/langgraph_router.py) | LangGraph | `DecisionRouter` as a graph's conditional edge | `pip install "opendecider[langchain]" langgraph` |
 | [`llamaindex_selector.py`](agent_frameworks/llamaindex_selector.py) | LlamaIndex | `DecisionSelector` picks a RouterQueryEngine's source | `pip install "opendecider[llamaindex]"` |
 | [`agno_workflow.py`](agent_frameworks/agno_workflow.py) | Agno | `DecisionRouter.selector()` as a workflow Router's selector | `pip install "opendecider[agno]"` |
+| [`crewai_crew.py`](agent_frameworks/crewai_crew.py) | CrewAI | `TaskAssigner` picks the crew member for each task | `pip install "opendecider[crewai]"` |
 | [`crewai_flow.py`](agent_frameworks/crewai_flow.py) | CrewAI | `DecisionRouter` in a Flow's `@router` | `pip install "opendecider[crewai]"` |
 | [`agent_framework_workflow.py`](agent_frameworks/agent_framework_workflow.py) | Microsoft Agent Framework | `DecisionRouter.cases()` as a switch-case edge group | `pip install "opendecider[agent-framework]"` |
 | [`google_adk_router.py`](agent_frameworks/google_adk_router.py) | Google ADK | `DecisionRouterAgent` hands each request to a sub-agent | `pip install "opendecider[google-adk]"` |

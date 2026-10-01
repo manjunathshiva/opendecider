@@ -16,7 +16,7 @@ cases can go to a fallback (a person, a slower model) instead of the wrong branc
 | [LangChain](#langchain-tools-for-an-agent) | `opendecider[langchain]` | `decision_tools()` | (use LangGraph) | |
 | [LlamaIndex](#llamaindex-a-selector-for-routerqueryengine) | `opendecider[llamaindex]` | `decision_tools()` | `DecisionSelector`: a RouterQueryEngine selector | [llamaindex_selector.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/llamaindex_selector.py) |
 | [Agno](#agno-a-workflow-router-and-a-toolkit) | `opendecider[agno]` | `decision_toolkit()` | `DecisionRouter.selector()`: a workflow Router's selector | [agno_workflow.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/agno_workflow.py) |
-| [CrewAI](#crewai-a-flow-router-and-crew-tools) | `opendecider[crewai]` | `decision_tools()` | `DecisionRouter`: returns a Flow `@router` label | [crewai_flow.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/crewai_flow.py) |
+| [CrewAI](#crewai-a-flow-router-task-assignment-and-crew-tools) | `opendecider[crewai]` | `decision_tools()` | `DecisionRouter`: returns a Flow `@router` label; `TaskAssigner`: picks the crew member for each task | [crewai_flow.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/crewai_flow.py), [crewai_crew.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/crewai_crew.py) |
 | [Microsoft Agent Framework](#microsoft-agent-framework-a-switch-case-edge) | `opendecider[agent-framework]` | `decision_tools()` | `DecisionRouter.cases()`: a switch-case edge group | [agent_framework_workflow.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/agent_framework_workflow.py) |
 | [Google ADK](#google-adk-a-router-agent) | `opendecider[google-adk]` | `decision_tools()` | `DecisionRouterAgent`: hands over to a sub-agent | [google_adk_router.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/google_adk_router.py) |
 | [PydanticAI](#pydanticai-a-toolset) | `opendecider[pydantic-ai]` | `decision_toolset()` | `DecisionRouter`: call it from your code | [pydantic_ai_agent.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/pydantic_ai_agent.py) |
@@ -45,10 +45,10 @@ nano_cpu = Decider("manjunathshiva/opendecider-nano", device="cpu")
 ```
 
 Every `DecisionRouter` takes the same arguments: `routes` (names, or {"name": "when to take it"}), the routing
-question, `model`, `fallback` and `min_confidence` (Google ADK's `DecisionRouterAgent` takes them as fields, with
-`instructions=` for the question and `decision_model=` for the model). `.last` holds the last answer (probabilities
-and confidence), for logging; under concurrent calls it is whichever call finished last, while each call still
-routes on its own answer. An empty input (blank text, `{}` or `[]`, such as an image-only message) takes the
+question, `model`, `fallback`, `min_confidence`, `on_error` and `on_decision` (Google ADK's `DecisionRouterAgent`
+takes them as fields, with `instructions=` for the question and `decision_model=` for the model). `.last` holds the
+last [`Decision`](#production), for logging; under concurrent calls it is whichever call finished last, while each
+call still routes on its own answer. An empty input (blank text, `{}` or `[]`, such as an image-only message) takes the
 fallback without asking the model, which would otherwise guess; without a fallback it raises `ValueError`.
 
 ## LangGraph: route on confidence
@@ -176,7 +176,7 @@ The selector decides on the workflow's input; `DecisionRouter(..., state="previo
 output instead, and `state=` also takes a function of the `StepInput`. `selector()` checks that every route (and the
 fallback) has a step. Works with Agno 2.x and 3.x.
 
-## CrewAI: a Flow router and crew tools
+## CrewAI: a Flow router, task assignment and crew tools
 
 ```bash
 pip install "opendecider[crewai]>=0.4.0"
@@ -205,6 +205,23 @@ class Support(Flow[Ticket]):
 
 agent = Agent(role=..., goal=..., backstory=..., tools=decision_tools())   # or: the decisions as crew tools
 ```
+
+`TaskAssigner` picks the crew member for each task from the members' roles and goals, in place of a hierarchical
+crew's manager LLM (or assigning every task by hand). It reads each task's description and expected output, sets
+`task.agent`, and sends tasks no member fits confidently to a fallback member:
+
+```python
+from crewai import Crew, Process
+from opendecider.integrations.crewai import TaskAssigner
+
+assigner = TaskAssigner([billing, engineer, sales], fallback=lead, min_confidence=0.6)
+assigner.assign_all(tasks)
+Crew(agents=[billing, engineer, sales, lead], tasks=tasks, process=Process.sequential).kickoff()
+```
+
+With opendecider-nano, a duplicate charge goes to the billing specialist (0.92), a 500 error to the support engineer
+(0.91), a quote request to the account executive (0.90), and "Look into this." to the team lead (top member only
+0.36). Runnable without an API key: [examples/agent_frameworks/crewai_crew.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/crewai_crew.py).
 
 ## Microsoft Agent Framework: a switch-case edge
 
@@ -310,6 +327,56 @@ const agent = new Agent({ name: "support", instructions: "...", model: ...,
 
 The example calls the tools the way the agent would, so it runs without an API key. Other frameworks with an MCP
 client connect the same way.
+
+## Production
+
+**The model on its own server.** Pass an `opendecider serve` URL as the model, in any integration, the MCP server or
+`load`: the process that routes then holds no model, and the server runs it for every client, batches their requests
+and reports `/metrics`. Answers are the server model's own, the same as in-process. Set `OPENDECIDER_REMOTE_API_KEY`
+(or `api_key=` on `tools.Decider`) when the server needs a key; it is sent only to that server, and never over plain
+HTTP to another host.
+
+```python
+route = DecisionRouter(routes, "Which specialist?", model="https://decider.internal:8000",
+                       fallback="human_agent", min_confidence=0.6)
+```
+
+A failed load (the server down, a wrong key) is not cached: the next call tries again.
+
+**Every decision, recorded.** `router.decide(state)` returns a `Decision`, and `on_decision=` receives every one,
+failed ones included, for logs, metrics or audits:
+
+| field | meaning |
+|---|---|
+| `route` | the route taken (`None` when the decision failed and the error was raised) |
+| `reason` | `confident`, `low_confidence` (below `min_confidence`: the fallback), `empty_input` (nothing to decide on: the fallback) or `error` |
+| `choice`, `confidence`, `probabilities` | the model's top route, its probability, and every route's probability |
+| `model`, `latency_ms`, `truncated`, `error` | the model that answered, the time taken, whether the input was cut to fit, and what failed |
+
+```python
+def audit(d):
+    log.info(json.dumps(d.to_dict()))     # one line per decision
+
+route = DecisionRouter(routes, "Which specialist?", fallback="human_agent", on_decision=audit)
+```
+
+A hook that raises is logged and never breaks routing.
+
+**Traces.** With `opentelemetry-api` installed (`pip install "opendecider[otel]"`), every decision is an
+`opendecider.route` span with the route, choice, confidence, reason and latency as attributes, and the model call an
+`opendecider.decide` span inside it. A failed decision is an error span with the exception. Spans go wherever your
+OpenTelemetry SDK sends them; without one configured, they cost nothing.
+
+**When the decision fails.** `on_error="raise"` (the default) lets a failed decision raise, as any other step that
+fails would. `on_error="fallback"` takes the fallback route instead and logs the error, so a model outage sends
+requests to people rather than failing them. In an Agent Framework switch, a failed decision always goes to the
+default executor, since the framework would swallow the error anyway.
+
+**Concurrency.** One router serves concurrent requests: each call routes on its own answer, and a shared model loads
+once. Local models run one inference at a time per process; for higher request rates, serve the model.
+
+A router set up this way (served model, JSON audit log, fallback on error, spans):
+[examples/production_router.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/production_router.py).
 
 ## Other frameworks
 
