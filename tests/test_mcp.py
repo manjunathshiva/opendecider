@@ -95,9 +95,10 @@ def test_truncation_is_reported():
 
 
 def test_invalid_input_is_a_tool_error_with_a_message():
-    server, _, _ = setup()
+    server, _, loads = setup()
     r = call(server, "decide", {"state": "x", "questions": {"q": {"type": "pick", "instructions": "?"}}})
     assert r.is_error and "question type must be one of" in r.content[0].text
+    assert loads == []   # rejected before the model loads: a bad first call never triggers a download
     too_many = [f"o{i}" for i in range(MAX_OPTIONS + 1)]
     r = call(server, "choose", {"state": "x", "question": "Which?", "options": too_many})
     assert r.is_error and f"at most {MAX_OPTIONS} options" in r.content[0].text

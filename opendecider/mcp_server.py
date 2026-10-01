@@ -63,6 +63,8 @@ class Decider:
             return self._model
 
     def system_one(self, state, questions: dict) -> dict:
+        from . import OpenDecider
+        questions = OpenDecider.prepare(questions)   # validates without a model: a bad call never triggers a download
         _check(state, questions)
         model = self.model()
         with self._run_lock, _stdout_to_stderr():
