@@ -269,6 +269,8 @@ class ServedModel(_Client):
                 groups[-1][1].append(it)
             else:
                 groups.append((it[0], [it]))
+        if not groups:   # nothing to ask
+            return []
         if len(groups) == 1:   # one request (a routing call): no thread pool
             res = [self._ask(*groups[0])]
         else:

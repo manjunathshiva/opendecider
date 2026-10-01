@@ -487,3 +487,18 @@ def test_agent_framework_low_confidence_goes_to_the_fallback_target_and_failures
     assert run(unsure, "on_call", "refund my billing") == ["human"]      # its own target, apart from the default
     failing = DecisionRouter(ROUTES, "Which team?", model=decider(Broken()), fallback="human")
     assert run(failing, "on_call", "refund") == ["on_call"]              # a failed decision: the default
+
+
+def test_agent_framework_failures_go_to_the_default_under_either_error_policy():
+    pytest.importorskip("agent_framework")
+    from opendecider.integrations.agent_framework import DecisionRouter
+
+    class Broken(Fake):
+        def decide_many(self, items, info=None):
+            raise RuntimeError("model gone")
+
+    for policy in ("raise", "fallback"):
+        route = DecisionRouter(ROUTES, "Which team?", model=decider(Broken()), fallback="human", on_error=policy)
+        cases = route.cases({"billing": "B", "tech": "T", "human": "H"}, default="ON_CALL")
+        assert [c.target for c in cases[:-1]] == ["B", "T", "H"]
+        assert not any(c.condition("refund") for c in cases[:-1]), policy   # only the Default (ON_CALL) matches

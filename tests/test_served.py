@@ -269,3 +269,10 @@ def test_odd_server_replies_are_handled():
         assert ServedModel(url).name == url                               # the URL stands in for the name
     finally:
         srv.shutdown()
+
+
+def test_an_empty_batch_asks_nothing(serve):
+    m = ServedModel(serve())
+    info = []
+    assert m.decide_many([], info) == [] and info == []
+    assert OpenDecider(m, {"name": "x", "kind": "served"}).system_one_batch([], QUESTIONS) == []

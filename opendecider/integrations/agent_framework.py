@@ -100,7 +100,10 @@ class DecisionRouter(core.Router):
         if seen is message:
             return choice
         try:
-            choice = self._decide_from(message, self.state).route
+            decision = self._decide_from(message, self.state)
+            # a failed decision goes to the default executor under either on_error policy; only a decision that
+            # was made (top choice or low confidence) follows its route
+            choice = None if decision.reason == "error" else decision.route
         except Exception as e:   # the switch would swallow it case by case; say why once, then take the default
             core._log_once(log, logging.ERROR, "routing failed, sending the message to the default executor: %s", e)
             choice = None
