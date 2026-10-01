@@ -104,15 +104,24 @@ class OpenDecider:
 
 
 def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | None = None,
-         revision: str | None = None, dtype: str | None = None, base_url: str | None = None) -> OpenDecider:
+         revision: str | None = None, dtype: str | None = None, base_url: str | None = None,
+         api_key: str | None = None, timeout: float | None = None) -> OpenDecider:
     """Load a model from the Hub or a local folder (anything with opendecider.json).
     `dtype` (nano only): "float32" (default, as evaluated) or "bfloat16" (faster on CPUs with bf16 units and on GPUs).
     "lmstudio:<model>", "ollama:<model>" or "openai:<model>" (with `base_url`) uses a model served by LM Studio,
-    Ollama or any OpenAI-compatible server that returns token log-probabilities (see opendecider.remote)."""
+    Ollama or any OpenAI-compatible server that returns token log-probabilities (see opendecider.remote).
+    An http(s) URL uses the model behind `opendecider serve` at that address, with no local model.
+    `api_key` and `timeout` (seconds per request) apply to served models; the key defaults to
+    OPENDECIDER_REMOTE_API_KEY."""
     from . import remote
+    http = {k: v for k, v in (("api_key", api_key), ("timeout", timeout)) if v is not None}
+    if remote.is_url(name_or_path):   # opendecider serve, by URL
+        impl = remote.ServedModel(name_or_path, **http)
+        return OpenDecider(impl, {"name": impl.name, "kind": "served", "served_kind": impl.kind,
+                                  "base_url": impl.base_url})
     target = remote.parse(name_or_path, base_url)
     if target:   # a model served by LM Studio / Ollama / any OpenAI-compatible server with logprobs
-        impl = remote.RemoteModel(target[0], target[1])
+        impl = remote.RemoteModel(target[0], target[1], **http)
         return OpenDecider(impl, {"name": target[0], "kind": "remote", "base_url": target[1]})
     path = Path(name_or_path).expanduser()
     if not (path / "opendecider.json").exists():
