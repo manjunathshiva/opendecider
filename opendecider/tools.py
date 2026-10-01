@@ -36,8 +36,9 @@ DEFAULT_MODEL = "manjunathshiva/opendecider-nano"
 _TRACER: Any = None
 
 
-def _span(name: str):
-    """An OpenTelemetry span when opentelemetry-api is installed (a no-op until an SDK is configured), else nothing."""
+def _span(name: str, manual_errors: bool = False):
+    """An OpenTelemetry span when opentelemetry-api is installed (a no-op until an SDK is configured), else nothing.
+    manual_errors: the caller records exceptions and the error status itself (so they are not recorded twice)."""
     global _TRACER
     if _TRACER is None:
         try:
@@ -46,7 +47,11 @@ def _span(name: str):
             _TRACER = trace.get_tracer("opendecider", __version__)
         except ImportError:
             _TRACER = False
-    return _TRACER.start_as_current_span(name) if _TRACER else contextlib.nullcontext()
+    if not _TRACER:
+        return contextlib.nullcontext()
+    if manual_errors:
+        return _TRACER.start_as_current_span(name, record_exception=False, set_status_on_exception=False)
+    return _TRACER.start_as_current_span(name)
 
 INSTRUCTIONS = (
     "OpenDecider answers typed questions about a state (text or JSON) with a calibrated probability for every option. "
@@ -87,7 +92,8 @@ class ModelError(RuntimeError):
 
 class Decider:
     """The model behind the tools: a name (loaded on the first call) or an already-loaded `OpenDecider`.
-    One inference at a time; `guard` wraps loading and inference (the MCP server uses it to keep stdout clean)."""
+    A local model runs one inference at a time; a model server takes concurrent calls. `guard` wraps loading and
+    inference (the MCP server uses it to keep stdout clean)."""
 
     def __init__(self, model: Any = DEFAULT_MODEL, loader=None, guard=None, **load_kw):
         if isinstance(model, str):
@@ -153,7 +159,7 @@ class Decider:
         with _span("opendecider.decide_batch") as span, self._lock(model), self._guard():
             out = model.system_one_batch(states, questions)
             if span is not None:
-                span.set_attribute("opendecider.model", self.name)
+                span.set_attribute("opendecider.model", str(out[0].get("model", self.label)) if out else self.label)
                 span.set_attribute("opendecider.states", len(states))
                 span.set_attribute("opendecider.questions", len(questions))
             return out
@@ -374,10 +380,15 @@ class Router:
     def decide(self, state) -> Decision:
         """The full decision for `state` (text or JSON). An empty state (blank text, {} or []) has nothing to decide
         on: it takes the fallback, or raises ValueError without one."""
+        return self._decide_from(state, None)
+
+    def _decide_from(self, raw, extract) -> Decision:
+        """`decide(extract(raw))`, with `extract` (an integration reading its framework's state) inside the same
+        failure policy, hooks and span as the decision itself."""
         t0 = time.perf_counter()
-        with _span("opendecider.route") as span:
+        with _span("opendecider.route", manual_errors=True) as span:
             try:
-                decision = self._decide(state, t0)
+                decision = self._decide(extract(raw) if extract else raw, t0)
             except Exception as e:   # noqa: BLE001 -- reported to the hooks and the span, then raised or routed
                 decision = Decision(route=self.fallback if self.on_error == "fallback" else None, reason="error",
                                     model=self.decider.label, latency_ms=_ms(t0), error=f"{type(e).__name__}: {e}")

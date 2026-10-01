@@ -343,7 +343,8 @@ route = DecisionRouter(routes, "Which specialist?", model="https://decider.inter
 
 Each request waits at most 30 seconds by default; for routing, set a limit you can afford with
 `tools.Decider(url, timeout=5)` and pass that as the model. After a failed load (the server down, a wrong key), calls
-fail at once for 5 seconds and then try again, so an outage costs one slow call rather than one per request.
+fail at once for 5 seconds and then try again; so do calls after a loaded server times out or stops answering. An
+outage costs one slow call rather than one per request.
 
 **Every decision, recorded.** `router.decide(state)` returns a `Decision`, and `on_decision=` receives every one,
 failed ones included, for logs, metrics or audits:
@@ -373,7 +374,8 @@ OpenTelemetry SDK sends them; without one configured, they cost nothing.
 
 **When the decision fails.** `on_error="raise"` (the default) lets a failed decision raise, as any other step that
 fails would. `on_error="fallback"` takes the fallback route instead and logs the error, so a model outage sends
-requests to people rather than failing them. In an Agent Framework switch, a failed decision always goes to the
+requests to people rather than failing them. Reading the framework's state counts as part of the decision: a
+LangGraph state without the `state_key`, or an Agno step with no input, takes the fallback too. In an Agent Framework switch, a failed decision always goes to the
 default executor, since the framework would swallow the error anyway.
 
 **Concurrency.** One router serves concurrent requests: each call routes on its own answer, and a shared model loads

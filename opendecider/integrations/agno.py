@@ -92,6 +92,6 @@ class DecisionRouter(core.Router):
             raise ValueError(f"no step for route(s) {missing}")
 
         def select(step_input) -> list:
-            return [steps[self.route(self._state(step_input))]]
+            return [steps[self._decide_from(step_input, self._state).route]]
 
         return select

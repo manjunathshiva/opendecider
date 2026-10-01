@@ -206,3 +206,66 @@ def test_server_error_bodies_become_readable_messages(monkeypatch):
         m._http_error(err(502, b"<html>bad gateway</html>"))
     with pytest.raises(ServerError, match=r"HTTP 500: \[1, 2\]"):
         m._http_error(err(500, b"[1, 2]"))
+
+
+def test_a_server_that_times_out_fails_fast_for_a_while(serve, monkeypatch):
+    from opendecider import remote
+    m = ServedModel(serve())
+    calls, now, real = [], [1000.0], remote.urllib.request.urlopen
+    monkeypatch.setattr(remote.time, "monotonic", lambda: now[0])
+
+    def hung(req, timeout):
+        calls.append(1)
+        raise remote.urllib.error.URLError(TimeoutError("timed out"))
+
+    monkeypatch.setattr(remote.urllib.request, "urlopen", hung)
+    model = OpenDecider(m, {"name": "x", "kind": "served"})
+    with pytest.raises(ServerError, match="no answer within"):
+        model.system_one("s", QUESTIONS)
+    n = len(calls)
+    for _ in range(3):   # within the window: no request at all
+        with pytest.raises(ServerError, match="fail at once"):
+            model.system_one("s", QUESTIONS)
+    assert len(calls) == n
+    monkeypatch.setattr(remote.urllib.request, "urlopen", real)
+    now[0] += remote.DOWN_RETRY_S + 0.1
+    assert model.system_one("billing", QUESTIONS)["answers"]["team"]["choice"] == "billing"   # back, and cleared
+    assert m._down is None
+
+
+def test_one_request_needs_no_thread_pool(serve, monkeypatch):
+    from opendecider import remote
+
+    def no_pool(*a, **kw):
+        raise AssertionError("a thread pool for a single request")
+
+    m = ServedModel(serve())
+    monkeypatch.setattr(remote, "ThreadPoolExecutor", no_pool)
+    assert OpenDecider(m, {"name": "x", "kind": "served"}).system_one("billing", QUESTIONS)["answers"]
+
+
+def test_odd_server_replies_are_handled():
+    from opendecider.remote import _retry_after
+    from opendecider import remote
+    e = remote.urllib.error.HTTPError("u", 503, "busy", None, None)
+    assert _retry_after(e, 0.7) == 0.7                                    # no headers at all
+    from http.server import HTTPServer
+
+    class OddListing(BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def do_GET(self):
+            data = b'{"models": ["not an object"]}'
+            self.send_response(200)
+            self.send_header("content-length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+    srv = HTTPServer(("127.0.0.1", 0), OddListing)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        url = f"http://127.0.0.1:{srv.server_address[1]}"
+        assert ServedModel(url).name == url                               # the URL stands in for the name
+    finally:
+        srv.shutdown()

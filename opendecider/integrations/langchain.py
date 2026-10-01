@@ -101,7 +101,7 @@ class DecisionRouter(core.Router):
         return state
 
     def __call__(self, state) -> str:
-        return self.route(self._state(state))
+        return self._decide_from(state, self._state).route
 
     @property
     def path_map(self) -> list[str]:

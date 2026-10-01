@@ -441,3 +441,14 @@ def test_unique_labels():
     assert unique_labels(["tech", "tech (3)", "tech"]) == ["tech", "tech (3)", "tech (4)"]
     assert unique_labels(["x", "x", "x (2)"]) == ["x", "x (2)", "x (2) (3)"]
     assert len(set(unique_labels(["a"] * 50))) == 50
+
+
+def test_agno_unreadable_step_input_takes_the_fallback_step():
+    pytest.importorskip("agno")
+    from agno.workflow.types import StepInput
+    from opendecider.integrations.agno import DecisionRouter
+    steps = {n: n for n in ("billing", "tech", "human")}
+    route = DecisionRouter(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback",
+                           state="previous")
+    assert route.selector(steps)(StepInput(input="x")) == ["human"]   # no previous step content
+    assert route.last.reason == "error" and "no previous step content" in route.last.error

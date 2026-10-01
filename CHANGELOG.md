@@ -49,7 +49,9 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
 ### Changed
 
 - A model that fails to load is retried after 5 seconds instead of on every call (`tools.LOAD_RETRY_S`), so a server
-  outage costs one slow call rather than one per request; calls in between fail at once with the same reason.
+  outage costs one slow call rather than one per request; calls in between fail at once with the same reason. The
+  same holds for a served model (`opendecider serve`, LM Studio, Ollama, vLLM) that times out or cannot be reached
+  after loading (`remote.DOWN_RETRY_S`).
 - Versioning: the agent-facing surfaces (the MCP server's tool names, arguments and answers, `opendecider.tools` and
   the public names in `opendecider.integrations`) are now part of the public API, under the same versioning policy.
 

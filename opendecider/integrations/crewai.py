@@ -143,7 +143,7 @@ class TaskAssigner:
 
     def decide(self, task) -> core.Decision:
         """The full decision for one task; `route` is the chosen member's label (its role)."""
-        return self.router.decide(_task_text(task))
+        return self.router._decide_from(task, _task_text)
 
     def assign(self, task):
         """The crew member for `task`, also set as `task.agent` when the task has one."""

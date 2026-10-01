@@ -45,6 +45,7 @@ from .prompt import LETTERS, SYSTEM, render
 
 DEFAULT_URLS = {"lmstudio": "http://127.0.0.1:1234/v1", "ollama": "http://127.0.0.1:11434/v1"}
 RETRY_STATUS = {429, 500, 502, 503, 504}   # a busy or restarting server: try again before failing the request
+DOWN_RETRY_S = 5.0   # after a server times out or cannot be reached, calls fail at once for this long
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
 
 
@@ -69,8 +70,22 @@ class _Client:
             raise ValueError(f"refusing to send an API key over plain HTTP to {url.hostname}; use https, or set "
                              "OPENDECIDER_REMOTE_ALLOW_HTTP=1 if the network path is trusted")
         self.timeout = timeout
+        self._down: tuple[float, str] | None = None   # (retry after, message) once the server timed out or vanished
 
     def _post(self, path: str, body: dict) -> dict:
+        down = self._down
+        if down and time.monotonic() < down[0]:   # a hung server costs one timeout, not one per request
+            raise ServerError(down[1])
+        try:
+            out = self._send(path, body)
+        except ServerError as e:
+            if getattr(e, "unreachable", False):
+                self._down = (time.monotonic() + DOWN_RETRY_S, f"{e} (calls fail at once for {DOWN_RETRY_S:g} s)")
+            raise
+        self._down = None
+        return out
+
+    def _send(self, path: str, body: dict) -> dict:
         req = self._request(path, json.dumps(body).encode())
         for attempt in range(3):   # up to two retries, 0.5 s then 1 s apart (or the server's Retry-After, up to 5 s)
             try:
@@ -82,7 +97,7 @@ class _Client:
                     raise ServerError(f"{self.base_url} answered with something that is not JSON: "
                                       f"{raw[:200].decode(errors='replace')!r}") from None
             except TimeoutError:
-                raise ServerError(f"{self.base_url} gave no answer within {self.timeout:g} s") from None
+                raise _unreachable(f"{self.base_url} gave no answer within {self.timeout:g} s") from None
             except urllib.error.HTTPError as e:
                 if e.code in self.retry_status and attempt < 2:
                     time.sleep(_retry_after(e, 0.5 * 2 ** attempt))
@@ -92,8 +107,10 @@ class _Client:
                 if isinstance(getattr(e, "reason", e), ConnectionResetError) and attempt < 2:
                     time.sleep(0.5 * 2 ** attempt)
                     continue
-                raise ServerError(f"cannot reach {self.base_url} ({getattr(e, 'reason', e)}); "
-                                  "is the server running and the model loaded?") from None
+                if isinstance(getattr(e, "reason", None), TimeoutError):   # urllib wraps a connect timeout
+                    raise _unreachable(f"{self.base_url} gave no answer within {self.timeout:g} s") from None
+                raise _unreachable(f"cannot reach {self.base_url} ({getattr(e, 'reason', e)}); "
+                                   "is the server running and the model loaded?") from None
         raise ServerError(f"{self.base_url} did not answer after 3 attempts")   # not reached: each path returns or raises
 
     def _http_error(self, e: "urllib.error.HTTPError"):
@@ -107,10 +124,17 @@ class _Client:
         return req
 
 
+def _unreachable(message: str) -> ServerError:
+    """A ServerError for a server that timed out or could not be reached (it trips the fail-fast window)."""
+    e = ServerError(message)
+    e.unreachable = True
+    return e
+
+
 def _retry_after(e: "urllib.error.HTTPError", default: float) -> float:
     """The server's Retry-After in seconds (capped at 5), else `default`."""
     try:
-        return min(5.0, max(0.0, float(e.headers.get("Retry-After"))))
+        return min(5.0, max(0.0, float((getattr(e, "headers", None) or {}).get("Retry-After"))))
     except (TypeError, ValueError):
         return default
 
@@ -189,9 +213,12 @@ class ServedModel(_Client):
         try:   # fail now, with a clear message, rather than on the first decision
             with urllib.request.urlopen(self._request("/v1/models"), timeout=min(self.timeout, 10)) as r:
                 listed = (json.loads(r.read()).get("models") or [{}])[0]
-        except (urllib.error.URLError, ConnectionError, TimeoutError, OSError, ValueError, AttributeError) as e:
+        except (urllib.error.URLError, ConnectionError, TimeoutError, OSError, ValueError, AttributeError,
+                IndexError) as e:
             raise ServerError(f"cannot reach opendecider serve at {self.base_url} "
                               f"({getattr(e, 'reason', e)}); is it running?") from None
+        if not isinstance(listed, dict):   # an unexpected listing: use the URL as the name
+            listed = {}
         self.name = listed.get("name") or self.base_url
         self.kind = listed.get("kind")
 
@@ -241,8 +268,11 @@ class ServedModel(_Client):
                 groups[-1][1].append(it)
             else:
                 groups.append((it[0], [it]))
-        with ThreadPoolExecutor(max_workers=min(self.workers, len(groups) or 1)) as pool:
-            res = list(pool.map(lambda g: self._ask(*g), groups))
+        if len(groups) == 1:   # one request (a routing call): no thread pool
+            res = [self._ask(*groups[0])]
+        else:
+            with ThreadPoolExecutor(max_workers=min(self.workers, len(groups))) as pool:
+                res = list(pool.map(lambda g: self._ask(*g), groups))
         if info is not None:
             info.extend(i for _, inf in res for i in inf)
         return [p for ps, _ in res for p in ps]

@@ -100,7 +100,7 @@ class DecisionRouter(core.Router):
         if seen is message:
             return choice
         try:
-            choice = self.route(self.state(message))
+            choice = self._decide_from(message, self.state).route
         except Exception as e:   # the switch would swallow it case by case; say why once, then take the default
             log.error("routing failed, sending the message to the default executor: %s", e)
             choice = None

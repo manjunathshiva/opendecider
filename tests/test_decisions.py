@@ -198,3 +198,27 @@ def test_an_input_that_is_neither_text_nor_json_is_a_reported_error():
     route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback",
                    on_decision=seen.append)
     assert route(object()) == "human" and "text or JSON" in seen[0].error
+
+
+def test_a_state_the_integration_cannot_read_takes_the_fallback_too():
+    """Reading the framework's state (a LangGraph key, an Agno step input) is part of the decision: with
+    on_error="fallback" a state that cannot be read takes the fallback, and the hooks see it."""
+    pytest.importorskip("langchain_core")
+    from opendecider.integrations.langchain import DecisionRouter
+    seen = []
+    route = DecisionRouter(ROUTES, "Which team?", model=decider(), state_key="ticket", fallback="human",
+                           on_error="fallback", on_decision=seen.append)
+    assert route({"something_else": "x"}) == "human"                 # no "ticket" key
+    assert seen[0].reason == "error" and "KeyError" in seen[0].error
+    strict = DecisionRouter(ROUTES, "Which team?", model=decider(), state_key="ticket", on_decision=seen.append)
+    with pytest.raises(KeyError):
+        strict({"something_else": "x"})
+    assert seen[-1].reason == "error"                                # raised, and still reported
+
+
+def test_an_exception_is_recorded_once_on_the_route_span(spans):
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human")
+    with pytest.raises(RuntimeError):
+        route("boom")
+    r = next(s for s in spans.get_finished_spans() if s.name == "opendecider.route")
+    assert [e.name for e in r.events].count("exception") == 1
