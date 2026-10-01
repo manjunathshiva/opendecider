@@ -15,7 +15,7 @@ or the examples change (`remote_backends.py`, which needs a model server, is com
 | [`confident_automation.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/confident_automation.py) | on 2,000 labelled business decisions: how many you can automate at a given accuracy |
 | [`serve_client.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/serve_client.py) | call `opendecider serve` over HTTP (Jev's `/v1/systemone` protocol), with retries |
 | [`remote_backends.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/remote_backends.py) | the same decision through LM Studio, Ollama or vLLM |
-| [`production_router.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/production_router.py) | a router for production: the model behind `opendecider serve`, a JSON audit line per decision, fallback on error, OpenTelemetry spans (0.4.0, unreleased: from a clone) |
+| [`production_router.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/production_router.py) | a router for production: the model behind `opendecider serve`, a JSON audit line per decision, fallback on error, OpenTelemetry spans (0.4.0 or later) |
 
 ```bash
 git clone https://github.com/manjunathshiva/opendecider && cd opendecider
@@ -27,8 +27,8 @@ python examples/support_triage.py
 
 One script per framework, in
 [examples/agent_frameworks/](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks). Each
-runs without an LLM API key; [Agent frameworks](guides/agent-frameworks.md) explains each integration. They ship in
-0.4.0, which is not on PyPI yet: from a clone, install with `pip install -e ".[agno]"` (the extra each script needs).
+runs without an LLM API key; [Agent frameworks](guides/agent-frameworks.md) explains each integration. They need
+opendecider 0.4.0 or later: `pip install "opendecider[agno]>=0.4.0"`, with the extra each script needs.
 
 | script | framework | what it shows |
 |---|---|---|

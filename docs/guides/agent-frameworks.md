@@ -5,10 +5,7 @@ OpenDecider plugs into agent frameworks in two ways: as **tools** an agent calls
 routing decision with opendecider-nano takes milliseconds and comes with a calibrated probability, so low-confidence
 cases can go to a fallback (a person, a slower model) instead of the wrong branch.
 
-!!! note "Not on PyPI yet"
-    These integrations ship in opendecider 0.4.0, which is not released yet. Until then, install from GitHub:
-    `pip install "opendecider[agno] @ git+https://github.com/manjunathshiva/opendecider"` (any extra in place of
-    `agno`). The `>=0.4.0` install lines below work once 0.4.0 is on PyPI.
+The integrations need opendecider 0.4.0 or later.
 
 | framework | install | tools | router | example |
 |---|---|---|---|---|

@@ -11,7 +11,7 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.4.0] - 2026-10-01
 
 ### Added
 

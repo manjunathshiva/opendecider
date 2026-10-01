@@ -229,7 +229,7 @@ fit the model's input length.
 ## Use it from AI assistants (MCP)
 
 ```bash
-pip install "opendecider[mcp]>=0.3.0"
+pip install "opendecider[mcp]>=0.4.0"
 claude mcp add opendecider -- opendecider mcp      # Claude Code; Claude Desktop and Cursor: see the guide
 ```
 
@@ -240,9 +240,6 @@ option instead of reasoning a classification out in text, and can ask you when t
 (`--model`), including one served by Ollama or LM Studio. Setup for each client: [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
 
 ## Agent frameworks: LangGraph, Agno, CrewAI, Microsoft Agent Framework, Google ADK and more
-
-> Not on PyPI yet: these integrations ship in 0.4.0. Until then, install from GitHub:
-> `pip install "opendecider[agno] @ git+https://github.com/manjunathshiva/opendecider"` (any extra in place of `agno`).
 
 ```python
 from opendecider.integrations.langchain import DecisionRouter
@@ -303,6 +300,21 @@ these workflows, not as general superiority.
 </p>
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
+
+## What's new in 0.4.0
+
+* **Agent frameworks.** Routers and tools for LangGraph / LangChain, LlamaIndex, Agno, CrewAI, Microsoft Agent
+  Framework, Google ADK, PydanticAI and Strands Agents, plus Mastra and other TypeScript frameworks through the MCP
+  server: an agent workflow picks its next step with no LLM call (milliseconds with opendecider-nano) and sends
+  unsure cases to a fallback. See [Agent frameworks](https://manjunathshiva.github.io/opendecider/guides/agent-frameworks/).
+* **Ready for production.** Every router takes an `opendecider serve` URL as its model, reports each decision
+  (`on_decision`), can take the fallback when the decision fails (`on_error="fallback"`) and emits OpenTelemetry
+  spans (`opendecider[otel]`); a model server that times out or is down fails fast instead of stalling every
+  request.
+* **CrewAI `TaskAssigner`** gives each task to the crew member whose role and goal fit it, in place of a manager LLM.
+* **MCP server:** `decide_batch` answers the same questions about up to 256 states in one call, and `status` reports
+  the model and limits without loading it.
+* **Versioning:** the MCP tools, `opendecider.tools` and `opendecider.integrations` are now part of the public API.
 
 ## What's new in 0.3.0
 
@@ -400,6 +412,12 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
+* **Guardrails for agent workflows.** A guard that screens prompts for jailbreaks and prompt injection before they
+  reach an agent, in each framework's own hook (LangChain, CrewAI, Agno, Google ADK, Microsoft Agent Framework,
+  Strands, PydanticAI and MCP), measured on public prompt-injection datasets before it ships; LangChain triage and
+  evaluator runnables, and a LlamaIndex selector that picks several engines.
+* **Beyond Python and PyTorch.** A client for `opendecider serve` that installs without PyTorch, a TypeScript client
+  with tools for Mastra and the Vercel AI SDK, and opendecider-nano as ONNX in the browser.
 
 **Next**
 
@@ -408,8 +426,6 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
-* **A TypeScript client** for `opendecider serve`.
-* **ONNX export** of opendecider-nano for edge and in-browser use.
 * **Multilingual evaluation.**
 
 Want to help with one of these? See [where to help](https://github.com/manjunathshiva/opendecider/blob/main/CONTRIBUTING.md)
@@ -620,7 +636,7 @@ threshold, so check it on your own data before thresholding on it.
 * **opendecider-small, -medium-td and -large-td answer questions one at a time** (small: ~137 ms per question on a Mac, ~40 ms on an L40S). Use nano when you need many decisions per second.
 * **More than 26 options:** the Qwen-based models switch from reading lettered options to scoring each option name,
   which is weaker (BANKING77's 78 options still score 0.70 for small, but on long rule-based states it can fall close
-  to chance). A shortlist-then-letters fix is planned for 0.4, measured on every benchmark before it ships.
+  to chance). A shortlist-then-letters fix is planned for 0.5, measured on every benchmark before it ships.
 * **Descriptions help.** Very terse or cryptic option labels are harder for every model, so give options a short description when you can.
 
 ## Links

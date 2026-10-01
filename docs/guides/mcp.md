@@ -6,7 +6,7 @@ classification out in text, the agent gets a typed answer with a probability for
 confident ones and ask you about the rest.
 
 ```bash
-pip install "opendecider[mcp]>=0.3.0"
+pip install "opendecider[mcp]>=0.4.0"
 opendecider mcp                      # opendecider-nano over stdio; the client starts it for you
 ```
 
@@ -55,7 +55,7 @@ connecting is instant.
 
 Desktop apps do not see your shell's virtual environment, so give them the full path to the `opendecider` command
 (`which opendecider` prints it). To run without installing anything into a project, use
-[uv](https://docs.astral.sh/uv/): `"command": "uvx", "args": ["--from", "opendecider[mcp]>=0.3.0", "opendecider", "mcp"]`.
+[uv](https://docs.astral.sh/uv/): `"command": "uvx", "args": ["--from", "opendecider[mcp]>=0.4.0", "opendecider", "mcp"]`.
 
 To see what an assistant sees, run [examples/agent_frameworks/mcp_client.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/mcp_client.py): it starts the server and calls each
 tool over stdio.
