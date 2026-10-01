@@ -13,7 +13,7 @@ noted. CI runs each of them against the released model whenever the package or t
 | [`confident_automation.py`](confident_automation.py) | on 2,000 labelled business decisions: how many you can automate at a given accuracy | `python examples/confident_automation.py` |
 | [`serve_client.py`](serve_client.py) | call `opendecider serve` over HTTP (Jev's `/v1/systemone` protocol), with retries | start the server, then `python examples/serve_client.py` |
 | [`remote_backends.py`](remote_backends.py) | the same decision through LM Studio, Ollama or vLLM | `python examples/remote_backends.py lmstudio:opendecider-small` |
-| [`production_router.py`](production_router.py) | a router for production: the model behind `opendecider serve`, a JSON audit line per decision, fallback on error, OpenTelemetry spans (0.4.0, unreleased: from a clone) | start the server, then `python examples/production_router.py http://127.0.0.1:8000` |
+| [`production_router.py`](production_router.py) | a router for production: the model behind `opendecider serve`, a JSON audit line per decision, fallback on error, OpenTelemetry spans (0.4.0 or later) | start the server, then `python examples/production_router.py http://127.0.0.1:8000` |
 
 ```bash
 pip install opendecider                    # nano
@@ -45,8 +45,8 @@ a specialist, or to a person when unsure) or calls the decision tools as an agen
 | [`mcp_client.py`](agent_frameworks/mcp_client.py) | MCP | what an AI assistant sees: `opendecider mcp`'s tools over stdio | `pip install "opendecider[mcp]"` |
 | [`mastra/`](agent_frameworks/mastra/) | Mastra (TypeScript) | the MCP tools through Mastra's `MCPClient` | `pip install "opendecider[mcp]"`, then `npm ci` in the folder |
 
-These integrations ship in 0.4.0, which is not on PyPI yet: from a clone, install with `pip install -e ".[agno]"`
-(the extra each script needs) instead of the table's install column. Run each with
+These integrations need opendecider 0.4.0 or later: upgrade an older install with
+`pip install -U "opendecider[agno]"` (the extra each script needs). Run each with
 `python examples/agent_frameworks/<script>.py` (the Mastra one with `node index.mjs` in its folder).
 The Python ones take a model name as the first argument (`mcp_client.py` and the Mastra one: `--model <name>`). CrewAI
 and Strands require `mcp` 1.x, so keep them out of the environment that runs `opendecider mcp`.
