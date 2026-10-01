@@ -452,3 +452,38 @@ def test_agno_unreadable_step_input_takes_the_fallback_step():
                            state="previous")
     assert route.selector(steps)(StepInput(input="x")) == ["human"]   # no previous step content
     assert route.last.reason == "error" and "no previous step content" in route.last.error
+
+
+def test_agent_framework_low_confidence_goes_to_the_fallback_target_and_failures_to_the_default():
+    """Built into real workflows: the framework allows one edge per target, so the fallback gets its own case only
+    when its executor is not the default."""
+    pytest.importorskip("agent_framework")
+    from agent_framework import WorkflowBuilder, WorkflowContext, executor
+    from opendecider.integrations.agent_framework import DecisionRouter
+
+    class Broken(Fake):
+        def decide_many(self, items, info=None):
+            raise RuntimeError("model gone")
+
+    def run(router, default, text):
+        @executor(id="triage")
+        async def triage(t: str, ctx: WorkflowContext[str]) -> None:
+            await ctx.send_message(t)
+
+        def team(name):
+            @executor(id=name)
+            async def handle(t: str, ctx: WorkflowContext[str, str]) -> None:
+                await ctx.yield_output(name)
+            return handle
+
+        targets = {n: team(n) for n in ("billing", "tech", "human")}
+        on_call = team("on_call") if default == "on_call" else None
+        wf = (WorkflowBuilder(start_executor=triage)
+              .add_switch_case_edge_group(triage, router.cases(targets, default=on_call)).build())
+        return asyncio.run(wf.run(text)).get_outputs()
+
+    unsure = DecisionRouter(ROUTES, "Which team?", model=decider(), fallback="human", min_confidence=0.9)
+    assert run(unsure, None, "refund my billing") == ["human"]           # the fallback is the default
+    assert run(unsure, "on_call", "refund my billing") == ["human"]      # its own target, apart from the default
+    failing = DecisionRouter(ROUTES, "Which team?", model=decider(Broken()), fallback="human")
+    assert run(failing, "on_call", "refund") == ["on_call"]              # a failed decision: the default

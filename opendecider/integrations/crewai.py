@@ -112,8 +112,9 @@ class TaskAssigner:
 
     agents: the crew members to choose from (CrewAI `Agent`s, or anything with `role` and `goal`).
     instructions: the assignment question.
-    fallback: the member (an `Agent`, usually a lead or a person-in-the-loop) for tasks no member fits confidently;
-      it need not be in `agents`. fallback / min_confidence / on_error / on_decision: as for `tools.Router`.
+    fallback: the member (a CrewAI `Agent`, usually a lead, since CrewAI checks what `task.agent` holds) for tasks no
+      member fits confidently; it need not be in `agents`.
+    min_confidence / on_error / on_decision: as for `tools.Router`.
     """
 
     def __init__(self, agents: list, instructions: str = "Which crew member is best qualified to do this task?", *,

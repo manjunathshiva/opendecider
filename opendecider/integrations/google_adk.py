@@ -102,7 +102,8 @@ class DecisionRouterAgent(BaseAgent):
         return self._router.last
 
     async def _run_async_impl(self, ctx) -> AsyncGenerator:
-        name = await asyncio.to_thread(self._router.route, _user_text(ctx))   # inference blocks: off the event loop
+        # inference blocks: off the event loop; reading the message is part of the decision (its failure policy)
+        name = (await asyncio.to_thread(self._router._decide_from, ctx, _user_text)).route
         target = next(a for a in self.sub_agents if a.name == name)
         async for event in target.run_async(ctx):
             yield event

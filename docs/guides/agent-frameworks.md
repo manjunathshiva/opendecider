@@ -375,8 +375,10 @@ OpenTelemetry SDK sends them; without one configured, they cost nothing.
 **When the decision fails.** `on_error="raise"` (the default) lets a failed decision raise, as any other step that
 fails would. `on_error="fallback"` takes the fallback route instead and logs the error, so a model outage sends
 requests to people rather than failing them. Reading the framework's state counts as part of the decision: a
-LangGraph state without the `state_key`, or an Agno step with no input, takes the fallback too. In an Agent Framework switch, a failed decision always goes to the
-default executor, since the framework would swallow the error anyway.
+LangGraph state without the `state_key`, or an Agno step with no input, takes the fallback too. In an outage the
+same error is logged once every 5 seconds (repeats go to DEBUG), while every decision still reaches `on_decision`. In an Agent Framework switch, a failed decision always goes to the
+default executor, since the framework would swallow the error anyway; a low-confidence one goes to the fallback's own
+executor when `cases()` was given one.
 
 **Concurrency.** One router serves concurrent requests: each call routes on its own answer, and a shared model loads
 once. Local models run one inference at a time per process; for higher request rates, serve the model.

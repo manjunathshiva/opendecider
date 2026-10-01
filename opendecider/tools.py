@@ -397,7 +397,8 @@ class Router:
                 self._report(decision, span)
                 if self.on_error == "raise":
                     raise
-                log.error("routing failed, taking the fallback route %r: %s", self.fallback, decision.error)
+                log_once(log, logging.ERROR, "routing failed, taking the fallback route %r: %s", self.fallback,
+                         decision.error)
                 return decision
             self._report(decision, span)
             return decision
@@ -407,11 +408,13 @@ class Router:
                                                                                and not state.strip()):
             if self.fallback is None:
                 raise ValueError("nothing to route on: the state is empty")
-            log.warning("nothing to route on (the state is empty): taking the fallback route %r", self.fallback)
+            log_once(log, logging.WARNING, "nothing to route on (the state is empty): taking the fallback route %r",
+                     self.fallback)
             return Decision(route=self.fallback, reason="empty_input", model=self.decider.label, latency_ms=_ms(t0))
         answer = choose(self.decider, state, self.instructions, self.routes)
         if answer.get("truncated"):
-            log.warning("the routing input was shortened to fit the model's input; route on a shorter field")
+            log_once(log, logging.WARNING, "the routing input was shortened to fit the model's input; route on a "
+                     "shorter field")
         low = self.fallback is not None and answer["confidence"] < self.min_confidence
         return Decision(route=self.fallback if low else answer["choice"],
                         reason="low_confidence" if low else "top_choice", choice=answer["choice"],
@@ -449,6 +452,26 @@ class Router:
         """Every name the router can return: the routes, then the fallback."""
         names = list(self.routes)
         return names + ([self.fallback] if self.fallback is not None and self.fallback not in names else [])
+
+
+_LOGGED: dict = {}
+_LOGGED_LOCK = threading.Lock()
+LOG_REPEAT_S = 5.0   # the same warning or error is logged once per this window; repeats go to DEBUG
+
+
+def log_once(logger: logging.Logger, level: int, message: str, *args) -> None:
+    """`logger.log(level, ...)`, but a message repeated within LOG_REPEAT_S goes to DEBUG: an outage that fails
+    every request at once must not write one error line per request."""
+    key = (logger.name, level, message % args if args else message)
+    now = time.monotonic()
+    with _LOGGED_LOCK:
+        quiet = now - _LOGGED.get(key, -LOG_REPEAT_S) < LOG_REPEAT_S
+        if not quiet:
+            _LOGGED[key] = now
+            if len(_LOGGED) > 1000:   # bounded: drop the oldest entries
+                for k in sorted(_LOGGED, key=_LOGGED.get)[:500]:
+                    del _LOGGED[k]
+    logger.log(logging.DEBUG if quiet else level, message, *args)
 
 
 def _ms(t0: float) -> float:

@@ -222,3 +222,17 @@ def test_an_exception_is_recorded_once_on_the_route_span(spans):
         route("boom")
     r = next(s for s in spans.get_finished_spans() if s.name == "opendecider.route")
     assert [e.name for e in r.events].count("exception") == 1
+
+
+def test_an_outage_logs_once_per_window_not_once_per_request(caplog, monkeypatch):
+    from opendecider import tools
+    now = [500.0]
+    monkeypatch.setattr(tools.time, "monotonic", lambda: now[0])
+    route = Router(ROUTES, "Which team?", model=decider(), fallback="human", on_error="fallback")
+    with caplog.at_level(logging.DEBUG, logger="opendecider.tools"):
+        for _ in range(50):
+            route("boom")
+        now[0] += tools.LOG_REPEAT_S + 0.1
+        route("boom")
+    levels = [r.levelno for r in caplog.records if "routing failed" in r.getMessage()]
+    assert levels.count(logging.ERROR) == 2 and levels.count(logging.DEBUG) == 49   # first, then after the window
