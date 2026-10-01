@@ -25,6 +25,8 @@ format.
 
 ### Documentation
 
+- Examples: `langgraph_router.py`, `llamaindex_selector.py` and `mcp_client.py`, run in CI with
+  opendecider-nano.
 - Model servers: PyTorch is installed with the package but not used when LM Studio, Ollama or vLLM runs the model.
 
 ## [0.3.0] - 2026-10-01

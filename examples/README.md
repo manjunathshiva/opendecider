@@ -12,12 +12,18 @@ noted. CI runs each of them against the released model whenever the package or t
 | [`agent_guardrail.py`](agent_guardrail.py) | check an AI agent's JSON trace before its next step: continue, retry, ask the user or stop | `python examples/agent_guardrail.py` |
 | [`confident_automation.py`](confident_automation.py) | on 2,000 labelled business decisions: how many you can automate at a given accuracy | `python examples/confident_automation.py` |
 | [`serve_client.py`](serve_client.py) | call `opendecider serve` over HTTP (Jev's `/v1/systemone` protocol), with retries | start the server, then `python examples/serve_client.py` |
+| [`langgraph_router.py`](langgraph_router.py) | a LangGraph support graph: each ticket to a specialist, unsure ones to a person | `python examples/langgraph_router.py` |
+| [`llamaindex_selector.py`](llamaindex_selector.py) | a LlamaIndex RouterQueryEngine that picks its source without an LLM call | `python examples/llamaindex_selector.py` |
+| [`mcp_client.py`](mcp_client.py) | what an AI assistant sees: `opendecider mcp`'s tools called over stdio | `python examples/mcp_client.py` |
 | [`remote_backends.py`](remote_backends.py) | the same decision through LM Studio, Ollama or vLLM | `python examples/remote_backends.py lmstudio:opendecider-small` |
 
 ```bash
 pip install opendecider                    # nano
 pip install "opendecider[serve]"           # serve_client.py: the server
 pip install pandas pyarrow                 # confident_automation.py: reads the typed-decisions test split
+pip install "opendecider[langchain]" langgraph   # langgraph_router.py
+pip install "opendecider[llamaindex]"      # llamaindex_selector.py
+pip install "opendecider[mcp]"             # mcp_client.py
 pip install "opendecider[small]"           # the 4B models: pass e.g. manjunathshiva/opendecider-small-td as the model
 ```
 

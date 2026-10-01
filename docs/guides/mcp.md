@@ -57,6 +57,9 @@ Desktop apps do not see your shell's virtual environment, so give them the full 
 (`which opendecider` prints it). To run without installing anything into a project, use
 [uv](https://docs.astral.sh/uv/): `"command": "uvx", "args": ["--from", "opendecider[mcp]>=0.3.0", "opendecider", "mcp"]`.
 
+To see what an assistant sees, run [examples/mcp_client.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/mcp_client.py): it starts the server and calls each
+tool over stdio.
+
 ## Tools
 
 | tool | arguments | returns |

@@ -25,12 +25,15 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install -e ".[serve]" pandas pyarrow
+      - run: python -m pip install -e ".[serve,mcp,langchain,llamaindex]" langgraph pandas pyarrow
       - run: python -m py_compile examples/*.py   # remote_backends.py needs LM Studio, Ollama or vLLM: compiled only
       - run: python examples/quickstart.py
       - run: python examples/support_triage.py
       - run: python examples/agent_guardrail.py
       - run: python examples/confident_automation.py --limit 10
+      - run: python examples/langgraph_router.py
+      - run: python examples/llamaindex_selector.py
+      - run: python examples/mcp_client.py
       - name: serve_client.py against opendecider serve
         run: |
           opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &

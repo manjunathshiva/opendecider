@@ -14,6 +14,9 @@ or the examples change (`remote_backends.py`, which needs a model server, is com
 | [`agent_guardrail.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_guardrail.py) | check an AI agent's JSON trace before its next step: continue, retry, ask the user or stop |
 | [`confident_automation.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/confident_automation.py) | on 2,000 labelled business decisions: how many you can automate at a given accuracy |
 | [`serve_client.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/serve_client.py) | call `opendecider serve` over HTTP (Jev's `/v1/systemone` protocol), with retries |
+| [`langgraph_router.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/langgraph_router.py) | a LangGraph support graph: each ticket to a specialist, unsure ones to a person |
+| [`llamaindex_selector.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/llamaindex_selector.py) | a LlamaIndex RouterQueryEngine that picks its source without an LLM call |
+| [`mcp_client.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/mcp_client.py) | what an AI assistant sees: `opendecider mcp`'s tools called over stdio |
 | [`remote_backends.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/remote_backends.py) | the same decision through LM Studio, Ollama or vLLM |
 
 ```bash

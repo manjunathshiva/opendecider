@@ -61,6 +61,8 @@ With opendecider-nano:
 `messages` (as in `MessagesState`), otherwise the whole state. `router.last` holds the last answer, for logging. Pick
 `min_confidence` from your own labelled examples; see [Automate the confident decisions](confident-automation.md).
 
+The whole graph, runnable on a laptop: [examples/langgraph_router.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/langgraph_router.py).
+
 ## LangChain: tools for an agent
 
 ```python
@@ -104,6 +106,8 @@ description is cut to 400 characters (`max_description_chars`), so long descript
 the model's input. With
 opendecider-nano, "What was our revenue in March?" goes to `sales_db` (0.94) and "How do I reset the device to factory
 settings?" to `product_docs` (0.95). The selection's `reason` carries the probability, so it shows in LlamaIndex traces.
+
+Runnable without data or an API key: [examples/llamaindex_selector.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/llamaindex_selector.py).
 
 The same four tools are available as `FunctionTool`s for LlamaIndex agents:
 
