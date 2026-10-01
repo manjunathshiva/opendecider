@@ -1,7 +1,7 @@
 """Pick a LlamaIndex RouterQueryEngine's source with OpenDecider, in place of an LLM selector.
 
     pip install "opendecider[llamaindex]"
-    python examples/llamaindex_selector.py
+    python examples/agent_frameworks/llamaindex_selector.py
 
 `DecisionSelector` reads each query engine's name and description and picks one in a single forward pass. The two
 engines here only report their name, so the script runs without data or an API key: swap in your own query engines

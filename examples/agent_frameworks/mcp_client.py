@@ -1,7 +1,7 @@
 """Call OpenDecider's MCP server the way an AI assistant does: start `opendecider mcp` and use its tools over stdio.
 
     pip install "opendecider[mcp]"
-    python examples/mcp_client.py
+    python examples/agent_frameworks/mcp_client.py
 
 Claude Code, Claude Desktop and Cursor do exactly this once the server is registered
 (`claude mcp add opendecider -- opendecider mcp`). This script shows what the assistant sees: the tools, their

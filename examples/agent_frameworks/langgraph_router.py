@@ -1,8 +1,9 @@
 """Route a LangGraph support graph with OpenDecider: each ticket goes to a specialist, unsure ones to a person.
 
     pip install "opendecider[langchain]" langgraph
-    python examples/langgraph_router.py                                       # opendecider-nano: CPU, NVIDIA, Mac
-    python examples/langgraph_router.py manjunathshiva/opendecider-small-td   # pip install "opendecider[small]"
+    python examples/agent_frameworks/langgraph_router.py               # opendecider-nano: CPU, NVIDIA, Mac
+    python examples/agent_frameworks/langgraph_router.py manjunathshiva/opendecider-small-td
+                                                          # the 4B model: pip install "opendecider[small]"
 
 `DecisionRouter` is the graph's conditional edge: one forward pass picks the next node, with no LLM call. When the top
 route's probability is below `min_confidence`, the ticket goes to the fallback node instead of a likely-wrong branch.

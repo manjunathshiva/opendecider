@@ -7,3 +7,6 @@ build/
 assets/table.jpg
 benchmarks/.cache/
 site/
+
+# Node examples
+node_modules/
