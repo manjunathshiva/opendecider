@@ -229,7 +229,7 @@ fit the model's input length.
 ## Use it from AI assistants (MCP)
 
 ```bash
-pip install "opendecider[mcp]"
+pip install "opendecider[mcp]>=0.3.0"
 claude mcp add opendecider -- opendecider mcp      # Claude Code; Claude Desktop and Cursor: see the guide
 ```
 
@@ -264,6 +264,18 @@ these workflows, not as general superiority.
 </p>
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
+
+## What's new in 0.3.0
+
+* **Use it from AI assistants (MCP).** `opendecider mcp` runs an MCP server, so Claude Code, Claude Desktop, Cursor
+  and other agents call OpenDecider as a tool: `decide`, `choose`, `yes_no` and `score`, each with a probability for
+  every option. `pip install "opendecider[mcp]"`; see [AI assistants (MCP)](https://manjunathshiva.github.io/opendecider/guides/mcp/).
+* **Documentation site:** [manjunathshiva.github.io/opendecider](https://manjunathshiva.github.io/opendecider/), with guides for serving, LM Studio / Ollama /
+  vLLM, automating the confident decisions and agent guardrails, plus the Python, HTTP and command-line reference.
+* **Runnable examples** for triage, agent guardrails, confident automation, an HTTP client and model servers, run
+  in CI, and a Colab notebook saved with the outputs of a T4 run.
+* **`opendecider serve` hardening:** every error keeps the JSON body and `x-request-id`, failures are logged with
+  the request that failed, and a client's request id is checked before it reaches the log.
 
 ## What's new in 0.2.1
 
@@ -353,7 +365,7 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 **Next**
 
 * **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
-  ships (0.3).
+  ships (0.4).
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.
@@ -570,7 +582,7 @@ threshold, so check it on your own data before thresholding on it.
 * **opendecider-small, -medium-td and -large-td answer questions one at a time** (small: ~137 ms per question on a Mac, ~40 ms on an L40S). Use nano when you need many decisions per second.
 * **More than 26 options:** the Qwen-based models switch from reading lettered options to scoring each option name,
   which is weaker (BANKING77's 78 options still score 0.70 for small, but on long rule-based states it can fall close
-  to chance). A shortlist-then-letters fix is planned for 0.3, measured on every benchmark before it ships.
+  to chance). A shortlist-then-letters fix is planned for 0.4, measured on every benchmark before it ships.
 * **Descriptions help.** Very terse or cryptic option labels are harder for every model, so give options a short description when you can.
 
 ## Links

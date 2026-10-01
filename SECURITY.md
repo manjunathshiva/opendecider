@@ -7,7 +7,7 @@ Please report security issues privately through GitHub's
 public issue. You'll get an acknowledgement within 3 working days and a fix or mitigation plan within 14 days for
 confirmed issues. Fixes ship in a patch release, with credit if you want it.
 
-Supported versions: the latest minor release (currently 0.2.x) receives security fixes.
+Supported versions: the latest minor release (currently 0.3.x) receives security fixes.
 
 ## Running the server safely
 

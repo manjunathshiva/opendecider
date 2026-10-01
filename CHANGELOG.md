@@ -10,7 +10,7 @@ format.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.3.0] - 2026-10-01
 
 ### Added
 
