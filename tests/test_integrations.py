@@ -233,3 +233,24 @@ def test_agents_see_typed_argument_schemas():
     it = {t.metadata.name: t for t in li(decider())}
     params = it["choose"].metadata.get_parameters_dict()
     assert params["properties"]["options"] == options and params["required"] == ["state", "question", "options"]
+
+
+def test_selector_picks_from_its_own_answer_under_concurrency():
+    """A selector shared by concurrent queries picks from its own answer, even when another query overwrites
+    `.last` between this query's decision and its selection."""
+    pytest.importorskip("llama_index.core")
+    from llama_index.core.tools import ToolMetadata
+    from opendecider.integrations.llamaindex import DecisionSelector
+
+    tools = [ToolMetadata(name="sql", description="sales figures"), ToolMetadata(name="docs", description="manuals")]
+
+    class Racing(DecisionSelector):
+        def __setattr__(self, name, value):
+            object.__setattr__(self, name, value)
+            if name == "last" and value and value["choice"] == "sql" and not self.__dict__.get("raced"):
+                object.__setattr__(self, "raced", True)
+                self.select(tools, "what do the docs say?")   # another query lands mid-call
+
+    sel = Racing(model=decider())
+    assert sel.select(tools, "sql: total sales").ind == 0
+    assert sel.last["choice"] == "docs"   # the race happened

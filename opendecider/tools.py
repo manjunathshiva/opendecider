@@ -212,12 +212,13 @@ class Router:
             log.warning("nothing to route on (the state is empty): taking the fallback route %r", self.fallback)
             self.last = None
             return self.fallback
-        self.last = choose(self.decider, state, self.instructions, self.routes)
-        if self.last.get("truncated"):
+        answer = choose(self.decider, state, self.instructions, self.routes)
+        self.last = answer   # for logging only: concurrent calls overwrite it, so the route comes from `answer`
+        if answer.get("truncated"):
             log.warning("the routing input was shortened to fit the model's input; route on a shorter field")
-        if self.fallback is not None and self.last["confidence"] < self.min_confidence:
+        if self.fallback is not None and answer["confidence"] < self.min_confidence:
             return self.fallback
-        return self.last["choice"]
+        return answer["choice"]
 
     __call__ = route
 

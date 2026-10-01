@@ -47,7 +47,8 @@ nano_cpu = Decider("manjunathshiva/opendecider-nano", device="cpu")
 Every `DecisionRouter` takes the same arguments: `routes` (names, or {"name": "when to take it"}), the routing
 question, `model`, `fallback` and `min_confidence` (Google ADK's `DecisionRouterAgent` takes them as fields, with
 `instructions=` for the question and `decision_model=` for the model). `.last` holds the last answer (probabilities
-and confidence), for logging. An empty input (blank text, `{}` or `[]`, such as an image-only message) takes the
+and confidence), for logging; under concurrent calls it is whichever call finished last, while each call still
+routes on its own answer. An empty input (blank text, `{}` or `[]`, such as an image-only message) takes the
 fallback without asking the model, which would otherwise guess; without a fallback it raises `ValueError`.
 
 ## LangGraph: route on confidence

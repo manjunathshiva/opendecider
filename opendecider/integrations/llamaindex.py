@@ -91,12 +91,13 @@ class DecisionSelector(BaseSelector):
         cap = self.max_description_chars
         options = {label: (c.description or "")[:cap] or None for label, c in zip(labels, choices)}
         text = query.query_str if hasattr(query, "query_str") else str(query)
-        self.last = core.choose(self.decider, text, self.instructions, options)
-        if self.last.get("truncated"):
+        answer = core.choose(self.decider, text, self.instructions, options)
+        self.last = answer   # for logging only: concurrent queries overwrite it, so the selection comes from `answer`
+        if answer.get("truncated"):
             log.warning("the query was shortened to fit the model's input; shorten the tool descriptions")
-        index = labels.index(self.last["choice"])
+        index = labels.index(answer["choice"])
         return SelectorResult(selections=[SingleSelection(
-            index=index, reason=f"OpenDecider: {labels[index]!r} with probability {self.last['confidence']:.3f}")])
+            index=index, reason=f"OpenDecider: {labels[index]!r} with probability {answer['confidence']:.3f}")])
 
     async def _aselect(self, choices: Sequence, query) -> SelectorResult:
         return await asyncio.to_thread(self._select, choices, query)

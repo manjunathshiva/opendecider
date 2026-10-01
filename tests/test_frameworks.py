@@ -305,3 +305,20 @@ def test_an_empty_state_takes_the_fallback_without_a_decision():
     assert fake.calls == 0 and route.last is None   # the model never guessed
     with pytest.raises(ValueError, match="nothing to route on"):
         Router(ROUTES, "Which team?", model=decider())("")
+
+
+def test_concurrent_routes_never_take_each_others_answer():
+    """One router shared by concurrent requests (a server): a call routes on its own answer, even when another
+    request overwrites `.last` between this call's decision and its return."""
+    from opendecider.tools import Router
+
+    class Racing(Router):
+        def __setattr__(self, name, value):
+            object.__setattr__(self, name, value)
+            if name == "last" and value and value["choice"] == "billing" and not self.__dict__.get("raced"):
+                self.raced = True
+                self.route("the tech stack is down")   # another request lands mid-call and overwrites .last
+
+    route = Racing(ROUTES, "Which team?", model=decider(), fallback="human", min_confidence=0.5)
+    assert route("refund my billing") == "billing"
+    assert route.last["choice"] == "tech"   # the race happened: .last is the other request's answer
