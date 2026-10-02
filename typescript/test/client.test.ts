@@ -454,6 +454,15 @@ describe("load and Decider", () => {
     }
   });
 
+  it("trims trailing slashes in linear time, even from a pathological URL", async () => {
+    const f = fakeServe();
+    const t0 = performance.now();
+    await load(`http://h:8000/${"/".repeat(200_000)}x`, { fetch: f.fetch }); // a regex would backtrack on each slash
+    expect(performance.now() - t0).toBeLessThan(1000);
+    await (await load("http://h:8000////", { fetch: f.fetch })).ping();
+    expect(f.calls.at(-1)!.url).toBe("http://h:8000/ready");
+  });
+
   it("validates the connection options", async () => {
     const f = fakeServe().fetch;
     await expect(load(URL_, { fetch: f, timeoutMs: 0 })).rejects.toThrow(

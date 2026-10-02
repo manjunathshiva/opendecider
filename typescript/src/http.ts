@@ -36,6 +36,14 @@ export function env(name: string): string | undefined {
   }
 }
 
+/** `text` without its trailing slashes (a loop: a regular expression such as /\/+$/ takes quadratic time on a long run
+ * of slashes). */
+export function trimSlashes(text: string): string {
+  let end = text.length;
+  while (end > 0 && text.charCodeAt(end - 1) === 47) end--;
+  return text.slice(0, end);
+}
+
 /** Resolve after `ms`, or reject when `signal` fires. */
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -90,7 +98,7 @@ export class HttpClient {
     private readonly retryStatus: ReadonlySet<number>,
     private readonly onHttpError: (status: number, text: string) => Error,
   ) {
-    this.baseUrl = baseUrl.replace(/\/+$/, "");
+    this.baseUrl = trimSlashes(baseUrl);
     let url: URL;
     try {
       url = new URL(this.baseUrl);
@@ -108,7 +116,7 @@ export class HttpClient {
       // (not echoed either: a query string often carries a token) the paths are appended to it, so it must end there
       throw new InputError("the server URL must not have a query string or a fragment; pass a key as apiKey");
     }
-    this.baseUrl = (url.origin + url.pathname).replace(/\/+$/, ""); // e.g. https://host/decider behind a proxy
+    this.baseUrl = trimSlashes(url.origin + url.pathname); // e.g. https://host/decider behind a proxy
     this.apiKey = options.apiKey || env("OPENDECIDER_REMOTE_API_KEY");
     const insecure = options.allowInsecureHttp ?? env("OPENDECIDER_REMOTE_ALLOW_HTTP") === "1";
     if (this.apiKey && url.protocol === "http:" && !LOOPBACK.has(url.hostname) && !insecure) {

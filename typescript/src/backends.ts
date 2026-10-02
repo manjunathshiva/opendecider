@@ -70,7 +70,7 @@ export class ServedBackend implements Backend {
       options,
       30_000,
       new Set([429, 502, 503]),
-      servedError(baseUrl.replace(/\/+$/, "")),
+      (status, text) => servedError(http.baseUrl)(status, text), // (called only once `http` exists)
     );
     let r: Response;
     let text: string;
@@ -264,7 +264,7 @@ export class LogprobBackend implements Backend {
       options,
       120_000,
       new Set([429, 500, 502, 503, 504]),
-      (status, text) => new ServerError(`${baseUrl.replace(/\/+$/, "")} answered HTTP ${status}: ${text}`),
+      (status, text) => new ServerError(`${this.http.baseUrl} answered HTTP ${status}: ${text}`),
     );
     this.device = `remote (${this.http.baseUrl})`;
   }
