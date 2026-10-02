@@ -7,9 +7,9 @@ name: Examples
 on:
   push:
     branches: [main]
-    paths: [opendecider/**, examples/**, packaging/**, pyproject.toml, .github/workflows/examples.yml]
+    paths: [opendecider/**, examples/**, packaging/**, typescript/**, pyproject.toml, .github/workflows/examples.yml]
   pull_request:
-    paths: [opendecider/**, examples/**, packaging/**, pyproject.toml, .github/workflows/examples.yml]
+    paths: [opendecider/**, examples/**, packaging/**, typescript/**, pyproject.toml, .github/workflows/examples.yml]
   workflow_dispatch:
 
 permissions:
@@ -21,6 +21,7 @@ env:   # agent frameworks report usage by default; the examples send nothing
   CREWAI_TRACING_ENABLED: 'false'
   OTEL_SDK_DISABLED: 'true'
   PYDANTIC_AI_NO_BANNER: '1'
+  MASTRA_TELEMETRY_DISABLED: '1'
 
 jobs:
   examples:
@@ -61,7 +62,7 @@ jobs:
       - name: Mastra (TypeScript) through opendecider mcp
         working-directory: examples/agent_frameworks/mastra
         run: npm ci --ignore-scripts --no-audit --no-fund && node index.mjs   # no dependency runs install scripts
-      - name: serve_client.py, production_router.py and opendecider-client against opendecider serve
+      - name: serve_client.py, production_router.py, opendecider-client and @opendecider/client against opendecider serve
         run: |
           opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &
           python examples/serve_client.py --wait 300 || { tail -50 serve.log; exit 1; }
@@ -72,3 +73,7 @@ jobs:
           python -m venv client && client/bin/python -m pip install client-dist/*.whl
           client/bin/python packaging/check_client.py http://127.0.0.1:8000 || { tail -50 serve.log; exit 1; }
           client/bin/python examples/production_router.py http://127.0.0.1:8000 || { tail -50 serve.log; exit 1; }
+          # @opendecider/client (TypeScript): the live tests and the examples against the same server
+          cd typescript && npm ci --ignore-scripts --no-audit --no-fund && npm run build
+          OPENDECIDER_LIVE_URL=http://127.0.0.1:8000 npx vitest run test/live.test.ts || { tail -50 ../serve.log; exit 1; }
+          for f in quickstart ai-sdk-agent mastra-agent; do node "examples/$f.mjs" http://127.0.0.1:8000 || { tail -50 ../serve.log; exit 1; }; done

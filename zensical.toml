@@ -22,6 +22,7 @@ nav = [
     { "Agent guardrails" = "guides/agent-guardrails.md" },
     { "AI assistants (MCP)" = "guides/mcp.md" },
     { "Agent frameworks" = "guides/agent-frameworks.md" },
+    { "TypeScript (AI SDK, Mastra)" = "guides/typescript.md" },
   ] },
   { "Examples and notebook" = "examples.md" },
   { "Benchmarks" = "benchmarks.md" },

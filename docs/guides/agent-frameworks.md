@@ -19,7 +19,8 @@ and `DecisionMultiSelector` need 0.5.0.
 | [Google ADK](#google-adk-a-router-agent) | `opendecider[google-adk]` | `decision_tools()` | `DecisionRouterAgent`: hands over to a sub-agent | [google_adk_router.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/google_adk_router.py) |
 | [PydanticAI](#pydanticai-a-toolset) | `opendecider[pydantic-ai]` | `decision_toolset()` | `DecisionRouter`: call it from your code | [pydantic_ai_agent.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/pydantic_ai_agent.py) |
 | [Strands Agents](#strands-agents-tools-and-a-router) | `opendecider[strands]` | `decision_tools()` | `DecisionRouter`: call it from your code | [strands_agent.py](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/strands_agent.py) |
-| [Mastra](#mastra-typescript-through-mcp) (TypeScript) | `opendecider[mcp]` + `@mastra/mcp` | the MCP server's tools | (route with the `choose` tool) | [mastra/index.mjs](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/mastra/index.mjs) |
+| [Vercel AI SDK](typescript.md#vercel-ai-sdk) (TypeScript) | `@opendecider/client` | `opendeciderTools()` | `Router`: call it from your code | [ai-sdk-agent.mjs](https://github.com/manjunathshiva/opendecider/blob/main/typescript/examples/ai-sdk-agent.mjs) |
+| [Mastra](typescript.md#mastra) (TypeScript) | `@opendecider/client` | `opendeciderTools()` | `Router`: call it from your code | [mastra-agent.mjs](https://github.com/manjunathshiva/opendecider/blob/main/typescript/examples/mastra-agent.mjs); through MCP: [mastra/index.mjs](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/mastra/index.mjs) |
 
 Every example runs on a laptop with opendecider-nano, without an LLM API key, and CI runs each of them against the
 released model. The routing examples (LangGraph, Agno, CrewAI, Agent Framework, Google ADK, Strands) route the same
@@ -306,8 +307,9 @@ SPECIALISTS[route(ticket)](ticket)          # call the chosen specialist agent
 
 ## Mastra (TypeScript): through MCP
 
-Mastra connects to OpenDecider's [MCP server](mcp.md) through its MCP client; there is no TypeScript package to install
-from OpenDecider.
+For TypeScript, [`@opendecider/client`](typescript.md) gives Mastra and the Vercel AI SDK the same tools natively, and a
+guard (`GuardProcessor`, `guardMiddleware`), with no Python process beside the agent. Mastra can also reach the
+[MCP server](mcp.md) through its MCP client:
 
 ```bash
 pip install "opendecider[mcp]"
@@ -333,8 +335,8 @@ Three building blocks on top of the routers, from 0.5.0:
 - **Prompt guard.** Each framework's own hook screens prompts for jailbreaks and prompt injection before the agent
   acts on them: `guardrail_runnable()` (LangChain), `guardrail()` (Agno), `kickoff_guardrail()` and
   `task_guardrail()` (CrewAI), `guardrail_callback()` (Google ADK), `guardrail_middleware()` (Agent Framework),
-  `guardrail_capability()` / `guardrail_processor()` (PydanticAI), `guardrail_hook()` (Strands) and the MCP `guard`
-  tool. See [Agent guardrails](agent-guardrails.md#in-your-agent-framework), with the benchmark against Laya.
+  `guardrail_capability()` / `guardrail_processor()` (PydanticAI), `guardrail_hook()` (Strands), the MCP `guard`
+  tool, and in TypeScript `guardMiddleware()` (AI SDK) and `GuardProcessor` (Mastra). See [Agent guardrails](agent-guardrails.md#in-your-agent-framework), with the benchmark against Laya.
 - **LangChain triage and evaluation.** `decision_runnable(questions)` answers typed questions about each input, and
   its `batch` sends many inputs in batched model calls; `decision_evaluator(key, question)` scores runs in LangSmith's
   `evaluate` with one question instead of an LLM judge.
