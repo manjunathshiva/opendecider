@@ -2553,8 +2553,140 @@
  "thresholds": {
   "opendecider-small-td": 0.4843,
   "opendecider-small": 0.5,
-  "opendecider-nano": 0.3871
+  "opendecider-nano": 0.3871,
+  "opendecider-small-td-gguf:q8_0": 0.5056,
+  "opendecider-small-td-gguf:q4_k_m": 0.5568,
+  "opendecider-small-gguf:q8_0": 0.5119,
+  "opendecider-small-gguf:q4_k_m": 0.5576,
+  "opendecider-small-mlx-8bit": 0.5156,
+  "opendecider-small-mlx-4bit": 0.5467
  },
+ "threshold_keys": [
+  {
+   "name": "manjunathshiva/opendecider-small-td",
+   "key": "opendecider-small-td"
+  },
+  {
+   "name": "opendecider-small",
+   "key": "opendecider-small"
+  },
+  {
+   "name": "OpenDecider-Nano",
+   "key": "opendecider-nano"
+  },
+  {
+   "name": "/models/opendecider-small-td",
+   "key": "opendecider-small-td"
+  },
+  {
+   "name": "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0",
+   "key": "opendecider-small-td-gguf:q8_0"
+  },
+  {
+   "name": "hf.co/manjunathshiva/opendecider-small-GGUF:Q4_K_M",
+   "key": "opendecider-small-gguf:q4_k_m"
+  },
+  {
+   "name": "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF",
+   "key": "opendecider-small-td-gguf"
+  },
+  {
+   "name": "hf.co/manjunathshiva/opendecider-small-td-GGUF:latest",
+   "key": "opendecider-small-td-gguf"
+  },
+  {
+   "name": "opendecider-small-td-GGUF:",
+   "key": "opendecider-small-td-gguf"
+  },
+  {
+   "name": "ollama:opendecider-small-td:latest",
+   "key": "opendecider-small-td"
+  },
+  {
+   "name": "lmstudio:opendecider-small@q8_0",
+   "key": "opendecider-small-gguf:q8_0"
+  },
+  {
+   "name": "opendecider-small-td@Q4_K_M",
+   "key": "opendecider-small-td-gguf:q4_k_m"
+  },
+  {
+   "name": "opendecider-small@",
+   "key": "opendecider-small"
+  },
+  {
+   "name": "manjunathshiva/opendecider-small-mlx-4bit",
+   "key": "opendecider-small-mlx-4bit"
+  },
+  {
+   "name": "openai:opendecider-small-mlx-8bit",
+   "key": "opendecider-small-mlx-8bit"
+  },
+  {
+   "name": "opendecider-medium-td",
+   "key": "opendecider-medium-td"
+  },
+  {
+   "name": "http://localhost:8000",
+   "key": "localhost"
+  },
+  {
+   "name": "ollama:",
+   "key": ""
+  },
+  {
+   "name": ":x",
+   "key": ""
+  },
+  {
+   "name": "",
+   "key": ""
+  },
+  {
+   "name": "a@b:c",
+   "key": "a-gguf:b:c"
+  },
+  {
+   "name": "a:b@c",
+   "key": "a-gguf:c"
+  },
+  {
+   "name": "toString",
+   "key": "tostring"
+  },
+  {
+   "name": "__proto__",
+   "key": "__proto__"
+  },
+  {
+   "name": "opendecider-small-GGUF@q8_0",
+   "key": "opendecider-small-gguf:q8_0"
+  },
+  {
+   "name": "lmstudio:opendecider-small-td-gguf",
+   "key": "opendecider-small-td-gguf"
+  },
+  {
+   "name": "opendecider-small-td-gguf:latest",
+   "key": "opendecider-small-td-gguf"
+  },
+  {
+   "name": "HF.CO/manjunathshiva/opendecider-small-GGUF",
+   "key": "opendecider-small-gguf"
+  },
+  {
+   "name": "ollama:huggingface.co/manjunathshiva/opendecider-small-td-GGUF:latest",
+   "key": "opendecider-small-td-gguf"
+  },
+  {
+   "name": "hf.co/manjunathshiva/opendecider-small-td-GGUF@Q8_0:Q4_K_M",
+   "key": "opendecider-small-td-gguf:q8_0:q4_k_m"
+  },
+  {
+   "name": "lmstudio:hf.co/manjunathshiva/opendecider-small-td-GGUF",
+   "key": "opendecider-small-td-gguf"
+  }
+ ],
  "constants": {
   "MAX_QUESTIONS": 64,
   "MAX_OPTIONS": 256,

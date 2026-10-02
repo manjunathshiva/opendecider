@@ -36,6 +36,11 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
   the extra (`pip install "opendecider[mlx]"`). Such a load failure is logged as one line, without a traceback.
 - `import opendecider` warns when both `opendecider` and `opendecider-client` are installed: they share the same
   files, so uninstalling either one removes them for both.
+- The guard has a measured threshold for each published GGUF build (Q8_0 and Q4_K_M; in LM Studio, loaded with its
+  variant in the name) and MLX build of opendecider-small-td and opendecider-small, in Python and TypeScript. They used 0.5, and a 4-bit
+  build, which scores higher than its model, then flagged too much: on the guard benchmark's test splits the Q4_K_M
+  builds of small-td and small flagged 10.6% and 22.5% of the benign prompts at 0.5, and 3.1% and 5.7% at their own
+  thresholds (accuracy 0.922 to 0.957 and 0.842 to 0.934). A threshold you pass still wins.
 
 ## [0.5.0] - 2026-10-02
 

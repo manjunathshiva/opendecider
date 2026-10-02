@@ -307,6 +307,35 @@ describe("Guard", () => {
     expect(() => new Guard({ model: URL_, onError: "ignore" as never })).toThrow(/onError must be "block" or "allow"/);
   });
 
+  it("gives a quantised build its own measured threshold", async () => {
+    const both = (t: number) => ({ jailbreak: t, prompt_injection: t });
+    const q4 = "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M";
+    expect(new Guard({ model: q4 }).thresholds()).toEqual(both(0.5568)); // before it is loaded: the name asked for
+    expect(new Guard({ model: q4, threshold: 0.6 }).thresholds()).toEqual(both(0.6)); // a given threshold still wins
+    expect(new Guard({ model: q4, threshold: { jailbreak: 0.6 } }).thresholds()).toEqual({
+      jailbreak: 0.6,
+      prompt_injection: 0.5568,
+    });
+    expect(new Guard({ model: q4, checks: { x: "Is `prompt` odd?" } }).thresholds()).toEqual({ x: 0.5 });
+    expect(new Guard({ model: "lmstudio:opendecider-small@q8_0" }).thresholds()).toEqual(both(0.5119));
+    expect(new Guard({ model: "lmstudio:opendecider-small-GGUF@q8_0" }).thresholds()).toEqual(both(0.5119));
+    expect(new Guard({ model: "lmstudio:opendecider-small-td-gguf" }).thresholds()).toEqual(both(0.5)); // which build?
+    expect(new Guard({ model: "lmstudio:hf.co/manjunathshiva/opendecider-small-td-GGUF" }).thresholds()).toEqual(
+      both(0.5),
+    );
+    for (const [name, t] of [
+      ["hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0", 0.5056],
+      ["hf.co/manjunathshiva/opendecider-small-td-GGUF", 0.5], // no tag: which build?
+      ["opendecider-small-mlx-4bit", 0.5467],
+      ["hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", 0.5],
+    ] as const) {
+      const fake = fakeServe(name);
+      const g = new Guard({ model: URL_, connection: { fetch: fake.fetch } });
+      await g.check("hi"); // loaded: the name the server reports
+      expect(g.thresholds(), name).toEqual(both(t));
+    }
+  });
+
   it("treats check names such as constructor and toString as plain names", async () => {
     const fake = fakeServe("constructor");
     const g = new Guard({

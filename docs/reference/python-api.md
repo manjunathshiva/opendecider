@@ -144,7 +144,8 @@ guard.enforce(text)        # the GuardResult, or raises GuardrailError (a ValueE
 - `checks`: `{"name": "question"}`, yes/no questions that call the text `` `prompt` ``; the default is
   `opendecider.guard.ATTACK_CHECKS` (`jailbreak`, `prompt_injection`).
 - `threshold`: a probability for every check, or `{"check": probability}`; by default the model's measured threshold
-  for the default checks (`opendecider.guard.THRESHOLDS`), else 0.5. A check is flagged at or above its threshold.
+  for the default checks (`opendecider.guard.THRESHOLDS`: per model, and per published GGUF and MLX build), else 0.5.
+  A check is flagged at or above its threshold.
 - `on_error`: `"block"` blocks text that could not be checked, `"allow"` lets it through; either way `reason="error"`.
 - `on_decision`: a function or list, called with every `GuardResult`; a hook that raises is logged and ignored.
 - `GuardResult`: `passed`, `reason` (`passed`, `flagged`, `empty_input`, `error`), `violations`, `probabilities`,

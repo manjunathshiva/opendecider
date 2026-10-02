@@ -55,6 +55,11 @@ same 200 general decisions in [jev-frontier-bench](https://github.com/manjunaths
 python benchmarks/guard.py run --model opendecider-small-td               # test split, every setup
 python benchmarks/guard.py run --model opendecider-small-td --split train --setups attack
 python benchmarks/guard.py run --model laya-en                            # pip install laya
+# a quantised build, through Ollama (GGUF) or natively (MLX, pip install "opendecider[mlx]"): train, then test
+python benchmarks/guard.py run --model "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M" \
+    --name opendecider-small-td-gguf-q4 --split train --setups attack
+python benchmarks/guard.py run --model "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M" \
+    --name opendecider-small-td-gguf-q4 --setups attack
 python benchmarks/guard.py report                                          # every table, from the committed results
 ```
 

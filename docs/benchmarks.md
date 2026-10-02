@@ -96,6 +96,32 @@ safeguard is 85% of the prompts, so it weighs most in the totals; averaged per d
 accuracy 0.889 vs 0.884). Tuning the threshold on the train splits did not help on test: at 0.5, small-td scores 0.945
 and Laya 0.909, slightly above their tuned results. The guard keeps the train-split thresholds, as the rule set out.
 
+### Quantised builds
+
+The published GGUF builds (run through Ollama) and MLX builds, on the same test splits. Each build's threshold was set
+on the train splits by the same rule as its model's. A 4-bit build scores higher than its model, so at 0.5 it flags
+far more benign prompts; at its own threshold it screens as well as the full model.
+
+| build | threshold | all (95% CI) | attacks caught | benign flagged | at 0.5: all | at 0.5: benign flagged |
+|---|---|---|---|---|---|---|
+| opendecider-small-td (PyTorch, above) | 0.484 | 0.936 (0.927–0.946) | 0.928 | 0.060 | 0.945 | 0.040 |
+| opendecider-small-td GGUF Q8_0 | 0.506 | 0.940 (0.931–0.950) | 0.925 | 0.052 | 0.938 | 0.057 |
+| **opendecider-small-td GGUF Q4_K_M** | 0.557 | **0.957** (0.949–0.966) | 0.936 | **0.031** | 0.922 | 0.106 |
+| opendecider-small (PyTorch, above) | 0.500 | 0.900 (0.888–0.912) | 0.914 | 0.108 | 0.900 | 0.108 |
+| opendecider-small GGUF Q8_0 | 0.512 | 0.920 (0.910–0.932) | 0.903 | 0.070 | 0.911 | 0.091 |
+| opendecider-small GGUF Q4_K_M | 0.558 | 0.934 (0.923–0.944) | 0.915 | 0.057 | 0.842 | 0.225 |
+| opendecider-small MLX 8-bit | 0.516 | 0.913 (0.902–0.925) | 0.898 | 0.079 | 0.907 | 0.094 |
+| opendecider-small MLX 4-bit | 0.547 | 0.906 (0.894–0.917) | 0.926 | 0.105 | 0.871 | 0.178 |
+
+The guard uses each build's threshold when the model name says which build it is: an Ollama name with its tag
+(`hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M`), an LM Studio name with its variant
+(`opendecider-small-td@q4_k_m`), or the MLX build's name. A name that does not say (an Ollama name without its tag,
+an LM Studio model loaded without its variant in the name, or a GGUF given a plain name) gets its model's threshold
+or 0.5, both at or below every build's, so it flags more rather than less. Averaged per dataset (balanced accuracy), the
+builds' thresholds and 0.5 are within 0.005 of each other except small's Q4_K_M (0.885 vs 0.853); the totals move
+more because two thirds of the test prompts are benign (1,589 of 2,438, 1,410 of them in safeguard), and a 4-bit
+build's extra flags at 0.5 fall on them.
+
 `python benchmarks/guard.py report` prints these tables from the committed results, and two more setups: one yes/no
 question (Laya's published deepset question) and Laya's whole guard preset scored with LayaGuardrail's own rule. See
 [Agent guardrails](guides/agent-guardrails.md#how-accurate-is-it) for what the numbers mean in practice.
