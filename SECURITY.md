@@ -44,7 +44,9 @@ Supported versions: the latest minor release (currently 0.5.x) receives security
   gh attestation verify opendecider-<version>-py3-none-any.whl --repo manjunathshiva/opendecider
   ```
 - **Docker images.** From 0.5.0 on, each image on GHCR is signed with cosign (keyless, through GitHub's
-  OIDC identity), with an SPDX SBOM and build provenance attested in the registry:
+  OIDC identity), with an SPDX SBOM and build provenance attested in the registry. From 0.6.0 the CPU image is
+  multi-platform: the signature covers the image and each platform (`linux/amd64`, `linux/arm64`), and each platform
+  has its own SBOM and provenance, published with it as `<version>-amd64` and `<version>-arm64`:
 
   ```bash
   cosign verify ghcr.io/manjunathshiva/opendecider:<version> \

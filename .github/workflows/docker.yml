@@ -1,10 +1,13 @@
 name: Docker
 
-# PRs and main: build the CPU image and smoke-test it for real (start the container, wait for /ready,
-# answer a Jev-format request with opendecider-nano). Tags (vX.Y.Z): also publish both images to GHCR:
-#   ghcr.io/<owner>/opendecider:<version> and :latest          (CPU)
-#   ghcr.io/<owner>/opendecider:<version>-cuda and :latest-cuda (NVIDIA)
-# and sign each with cosign (keyless, Sigstore), with an SBOM and build provenance attested in the registry:
+# PRs and main: build the CPU image on amd64 and on arm64 (each natively, on its own runner) and smoke-test both for
+# real (start the container, wait for /ready, answer a Jev-format request with opendecider-nano). Tags (vX.Y.Z): also
+# publish both images to GHCR:
+#   ghcr.io/<owner>/opendecider:<version> and :latest          (CPU: one multi-platform image, linux/amd64 + linux/arm64,
+#                                                               from the per-platform :<version>-amd64 / -arm64)
+#   ghcr.io/<owner>/opendecider:<version>-cuda and :latest-cuda (NVIDIA, linux/amd64)
+# and sign each with cosign (keyless, Sigstore; the CPU image's index and both platforms), with an SBOM and build
+# provenance attested in the registry for each platform's image (and provenance for the CPU index):
 #   cosign verify ghcr.io/manjunathshiva/opendecider:<version> \
 #     --certificate-identity-regexp '^https://github.com/manjunathshiva/opendecider/' \
 #     --certificate-oidc-issuer https://token.actions.githubusercontent.com
@@ -20,23 +23,40 @@ permissions:
   contents: read
 
 jobs:
-  cpu:
-    runs-on: ubuntu-latest
+  cpu-build:
+    name: cpu (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+            machine: x86_64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            machine: aarch64
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       packages: write       # publish to GHCR (tags only)
-      id-token: write       # keyless signing (tags only)
+      id-token: write       # attestations (tags only)
       attestations: write   # SBOM and build provenance (tags only)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
       - name: Build the CPU image
-        run: docker build -f docker/Dockerfile -t opendecider:ci .
+        # one manifest per platform (no BuildKit attestation manifest): the multi-platform index lists exactly the
+        # two images that passed the smoke test, and the attestations below are bound to their digests
+        run: docker buildx build --load --provenance=false --sbom=false -f docker/Dockerfile -t opendecider:ci .
+      - name: Check the platform
+        env:
+          MACHINE: ${{ matrix.machine }}
+        run: test "$(docker run --rm --entrypoint python opendecider:ci -c 'import platform; print(platform.machine())')" = "$MACHINE"
       - name: Smoke test (nano, Jev wire format, auth)
         run: |
           docker run -d --name od -p 8000:8000 -e OPENDECIDER_API_KEY=ci-key opendecider:ci
-          for i in $(seq 1 90); do curl -sf localhost:8000/ready && break; sleep 4; done
+          for _ in $(seq 1 90); do curl -sf localhost:8000/ready && break; sleep 4; done
           curl -sf localhost:8000/health
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/v1/systemone -H 'content-type: application/json' -d '{"state":"x","questions":{"q":{"type":"noul","instructions":"?"}}}')
           test "$code" = 401
@@ -45,27 +65,19 @@ jobs:
             | tee out.json
           python3 -c "import json; b=json.load(open('out.json')); a=b['answers']; assert a['department']['choice']=='billing', a; assert a['refund']['noul']>0.5, a; assert 'legend' in a['urgency'] and b['usage']['input_tokens']>0; print('smoke test OK')"
           docker logs od | tail -20
-      - name: Publish to GHCR (tags only)
+      - name: Publish this platform's image to GHCR (tags only)
         id: publish
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
+          ARCH: ${{ matrix.arch }}
         run: |
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           V="${GITHUB_REF#refs/tags/v}"; IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/opendecider"
-          docker tag opendecider:ci "$IMG:$V" && docker tag opendecider:ci "$IMG:latest"
-          docker push "$IMG:$V" && docker push "$IMG:latest"
+          docker tag opendecider:ci "$IMG:$V-$ARCH" && docker push "$IMG:$V-$ARCH"
           echo "image=$IMG" >> "$GITHUB_OUTPUT"
-          echo "digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMG:$V" | cut -d@ -f2)" >> "$GITHUB_OUTPUT"
-      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6  # v4.1.2
-        if: startsWith(github.ref, 'refs/tags/v')
-      - name: Sign the image (cosign, keyless)
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          IMAGE: ${{ steps.publish.outputs.image }}
-          DIGEST: ${{ steps.publish.outputs.digest }}
-        run: cosign sign --yes "$IMAGE@$DIGEST"
+          echo "digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMG:$V-$ARCH" | cut -d@ -f2)" >> "$GITHUB_OUTPUT"
       - name: SBOM (SPDX)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26  # v0.24.2
@@ -83,6 +95,56 @@ jobs:
           subject-digest: ${{ steps.publish.outputs.digest }}
           sbom-path: sbom.spdx.json
           push-to-registry: true
+      - name: Attest the build provenance
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-name: ${{ steps.publish.outputs.image }}
+          subject-digest: ${{ steps.publish.outputs.digest }}
+          push-to-registry: true
+
+  # The required "cpu" check: passes when both platforms built and passed the smoke test. On a tag it publishes
+  # :<version> and :latest as one multi-platform image of the two, and signs it.
+  cpu:
+    needs: cpu-build
+    if: always()   # a job skipped after a failed need would report success to the required check: fail it instead
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write       # publish to GHCR (tags only)
+      id-token: write       # keyless signing (tags only)
+      attestations: write   # build provenance (tags only)
+    steps:
+      - name: Both platforms passed
+        env:
+          RESULT: ${{ needs.cpu-build.result }}
+        run: |
+          test "$RESULT" = success || { echo "the per-platform builds did not all pass ($RESULT)" >&2; exit 1; }
+          echo "linux/amd64 and linux/arm64 built and passed the smoke test"
+      - name: Publish the multi-platform image (tags only)
+        id: publish
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+          V="${GITHUB_REF#refs/tags/v}"; IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/opendecider"
+          # check the index before anything is tagged with it: exactly the two platforms
+          docker buildx imagetools create --dry-run "$IMG:$V-amd64" "$IMG:$V-arm64" > index.json
+          platforms=$(jq -r '[.manifests[].platform | "\(.os)/\(.architecture)"] | sort | join(",")' index.json)
+          test "$platforms" = "linux/amd64,linux/arm64" || { echo "unexpected platforms: $platforms" >&2; exit 1; }
+          docker buildx imagetools create -t "$IMG:$V" -t "$IMG:latest" "$IMG:$V-amd64" "$IMG:$V-arm64"
+          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+          echo "digest=$(docker buildx imagetools inspect "$IMG:$V" --format '{{json .Manifest}}' | jq -r .digest)" >> "$GITHUB_OUTPUT"
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6  # v4.1.2
+        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Sign the image and both platforms (cosign, keyless)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          IMAGE: ${{ steps.publish.outputs.image }}
+          DIGEST: ${{ steps.publish.outputs.digest }}
+        run: cosign sign --yes --recursive "$IMAGE@$DIGEST"
       - name: Attest the build provenance
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2

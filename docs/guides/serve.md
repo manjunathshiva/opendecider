@@ -35,7 +35,9 @@ protocol, so existing Jev clients work by changing the base URL. It was tested w
 
 The images serve opendecider-nano by default; set `OPENDECIDER_MODEL` to serve another model, and mount a volume at
 `/models` so downloaded weights survive restarts. Pin a release with a version tag, for example
-`ghcr.io/manjunathshiva/opendecider:0.4.0`.
+`ghcr.io/manjunathshiva/opendecider:0.4.0`. From 0.6.0 the CPU image runs natively on `linux/amd64` and `linux/arm64`
+(Apple Silicon, AWS Graviton, Ampere), and Docker pulls the one that fits; before 0.6.0 it was `linux/amd64` only, so an
+Apple Silicon Mac ran it emulated and many times slower. The NVIDIA image is `linux/amd64`.
 
 ## Call it
 
