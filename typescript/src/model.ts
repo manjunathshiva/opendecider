@@ -116,6 +116,14 @@ export class OpenDecider {
   }
 }
 
+/** The error for a model this client cannot call. A URL of another scheme is not quoted: it may carry a password. */
+function notServed(model: string): InputError {
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(model)) {
+    return new InputError(`the server URL must be an http or https URL; ${LOCAL_MODELS}`);
+  }
+  return new InputError(`cannot load ${pyRepr(model)}: ${LOCAL_MODELS}`);
+}
+
 /** True for an `opendecider serve` URL given as the model name. */
 export function isUrl(name: string): boolean {
   return /^https?:\/\//i.test(name);
@@ -148,7 +156,7 @@ export async function load(model: string, options: ConnectionOptions & CallOptio
     return new OpenDecider(b, { name: b.name, kind: "served", served_kind: b.servedKind, base_url: b.http.baseUrl });
   }
   const target = parse(model, options.baseUrl);
-  if (!target) throw new InputError(`cannot load ${pyRepr(model)}: ${LOCAL_MODELS}`);
+  if (!target) throw notServed(model);
   const b = new LogprobBackend(target[0], target[1], options);
   return new OpenDecider(b, { name: target[0], kind: "remote", base_url: b.http.baseUrl });
 }
@@ -174,8 +182,7 @@ export class Decider {
     } else {
       this.name = model;
       this.loaded = null;
-      if (!isUrl(model) && !parse(model, options.baseUrl))
-        throw new InputError(`cannot load ${pyRepr(model)}: ${LOCAL_MODELS}`);
+      if (!isUrl(model) && !parse(model, options.baseUrl)) throw notServed(model);
     }
   }
 

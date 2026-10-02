@@ -319,9 +319,10 @@ describe("credentials", () => {
       await load(URL_, { fetch: fake.fetch, headers: { Authorization: "Basic abc" } })
     ).systemOne(TICKET, { team: QS.team });
     expect(fake.calls.every((c) => c.redirect === "manual" && c.headers["Authorization"] === "Basic abc")).toBe(true);
-    const plain = fakeServe();
-    await (await load(URL_, { fetch: plain.fetch, headers: { "x-trace": "1" } })).systemOne(TICKET, { team: QS.team });
-    expect(plain.calls.every((c) => c.redirect === "follow")).toBe(true);
+    // any caller-supplied header may carry a credential (Azure's api-key, Google's x-goog-api-key, ...)
+    const other = fakeServe();
+    await (await load(URL_, { fetch: other.fetch, headers: { "api-key": "k" } })).systemOne(TICKET, { team: QS.team });
+    expect(other.calls.every((c) => c.redirect === "manual")).toBe(true);
   });
 
   it("follows redirects without a key", async () => {
@@ -463,6 +464,16 @@ describe("load and Decider", () => {
     expect(f.calls.at(-1)!.url).toBe("http://h:8000/ready");
   });
 
+  it("never quotes an invalid or non-http server URL, which may carry a password", async () => {
+    const f = fakeServe().fetch;
+    for (const u of ["https://user:s3cret@", "http://user:s3cret@[bad", "ftp://user:s3cret@host"]) {
+      const e = (await load(u, { fetch: f }).catch((x: Error) => x)) as Error;
+      expect(e).toBeInstanceOf(InputError);
+      expect(e.message).not.toContain("s3cret");
+    }
+    expect(() => new Decider("ftp://user:s3cret@host")).toThrow(/^the server URL must be an http or https URL/);
+  });
+
   it("validates the connection options", async () => {
     const f = fakeServe().fetch;
     await expect(load(URL_, { fetch: f, timeoutMs: 0 })).rejects.toThrow(
@@ -494,7 +505,9 @@ describe("load and Decider", () => {
     await expect(load("manjunathshiva/opendecider-nano")).rejects.toThrow(/calls served models only/);
     expect(() => new Decider("manjunathshiva/opendecider-nano")).toThrow(/pip install opendecider/);
     await expect(load("ftp://x")).rejects.toThrow(InputError);
-    await expect(load("http://")).rejects.toThrow("baseUrl must be an http or https URL, got 'http://'");
+    await expect(load("http://")).rejects.toThrow(
+      "the server URL is not a valid URL; give an http or https URL such as http://localhost:8000",
+    );
   });
 
   it("connects once for concurrent first calls, then fails fast for 5 s after a failed connection", async () => {

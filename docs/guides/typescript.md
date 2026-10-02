@@ -90,6 +90,10 @@ benchmark. opendecider-small-td catches as many attacks as Laya with half the fa
 
 ## Vercel AI SDK
 
+```bash
+npm install @opendecider/client ai   # plus your model's provider, e.g. @ai-sdk/openai
+```
+
 ```ts
 import { generateText, stepCountIs, wrapLanguageModel } from "ai";
 import { GuardrailError, guardMiddleware, opendeciderTools } from "@opendecider/client/ai-sdk";
@@ -114,6 +118,10 @@ try {
   in their own dependencies (5.0.207 and 6.0.214); keep the AI SDK current. Runnable example: [ai-sdk-agent.mjs](https://github.com/manjunathshiva/opendecider/blob/main/typescript/examples/ai-sdk-agent.mjs).
 
 ## Mastra
+
+```bash
+npm install @opendecider/client @mastra/core
+```
 
 ```ts
 import { Agent } from "@mastra/core/agent";
@@ -150,7 +158,7 @@ Mastra reports usage to its developers by default. Set `MASTRA_TELEMETRY_DISABLE
 | Timeouts | `timeoutMs` per request: 30 s for `opendecider serve`, 120 s for LLM servers. |
 | A server that is down | After a timeout or a refused connection, calls fail at once for 5 s instead of each waiting for a timeout. |
 | Cancellation | Every call takes `{ signal }`. The tools pass on the AI SDK's and Mastra's abort signal. |
-| Credentials | `apiKey`, or `OPENDECIDER_REMOTE_API_KEY`, is sent as a bearer token. It is never sent over plain HTTP to another host, unless `allowInsecureHttp` (or `OPENDECIDER_REMOTE_ALLOW_HTTP=1`). A request that carries a credential (the key, or an `Authorization`, `Proxy-Authorization`, `Cookie` or `X-API-Key` header) never follows a redirect. A server URL with a user name or password in it is refused, and errors never quote a key or header value. |
+| Credentials | `apiKey`, or `OPENDECIDER_REMOTE_API_KEY`, is sent as a bearer token. It is never sent over plain HTTP to another host, unless `allowInsecureHttp` (or `OPENDECIDER_REMOTE_ALLOW_HTTP=1`). A request that carries the key or any extra `headers` (which may hold a credential: `api-key`, `x-goog-api-key`, ...) never follows a redirect. A server URL with a user name, password or query string is refused, and errors never quote a URL, key or header value. |
 | Parallel requests | `workers` (default 4) for a call that needs several requests. |
 | One connection | Pass one `Decider` (`new Decider(url, options)`) to several tools, routers and guards. |
 | Audit and logs | `onDecision` on `Router` and `Guard` receives every decision. `setLogger(logger)` sends the package's warnings to your logger, or `setLogger(null)` to nowhere. |

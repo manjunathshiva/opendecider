@@ -103,10 +103,15 @@ export class HttpClient {
     try {
       url = new URL(this.baseUrl);
     } catch {
-      throw new InputError(`baseUrl must be an http or https URL, got '${baseUrl}'`);
+      // (none of these errors quotes the URL: it may carry a password or a token, and errors reach agents and logs)
+      throw new InputError(
+        "the server URL is not a valid URL; give an http or https URL such as http://localhost:8000",
+      );
     }
     if ((url.protocol !== "http:" && url.protocol !== "https:") || !url.hostname) {
-      throw new InputError(`baseUrl must be an http or https URL, got '${baseUrl}'`);
+      throw new InputError(
+        `the server URL must be an http or https URL with a host (got a ${JSON.stringify(url.protocol)} URL)`,
+      );
     }
     if (url.username || url.password) {
       // (not echoed: it would carry the credentials into messages and logs)
@@ -148,10 +153,9 @@ export class HttpClient {
         );
       }
     }
-    // a credential, given as apiKey or as a header, must reach only this origin: never follow a redirect with one
-    this.credentials =
-      Boolean(this.apiKey) ||
-      Object.keys(this.headers).some((h) => /^(authorization|proxy-authorization|cookie|x-api-key)$/i.test(h));
+    // a credential, given as apiKey or in a header, must reach only this origin: never follow a redirect with one
+    // any caller-supplied header may carry a credential (api-key, x-goog-api-key, ...: the name cannot tell)
+    this.credentials = Boolean(this.apiKey) || Object.keys(this.headers).length > 0;
   }
 
   private request(method: "GET" | "POST", body: string | undefined, signal: AbortSignal): RequestInit {

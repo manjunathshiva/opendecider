@@ -59,6 +59,10 @@ For the guard, opendecider-small-td is the most accurate model: the same catch r
 
 ## Vercel AI SDK
 
+```bash
+npm install @opendecider/client ai
+```
+
 ```ts
 import { generateText, stepCountIs, wrapLanguageModel } from "ai";
 import { guardMiddleware, opendeciderTools, GuardrailError } from "@opendecider/client/ai-sdk";
@@ -75,6 +79,10 @@ before the model sees it; steps that carry tool results pass unchecked. `ai` 5, 
 5.0.207 and 6.0.214: the earliest without known advisories in their dependencies).
 
 ## Mastra
+
+```bash
+npm install @opendecider/client @mastra/core
+```
 
 ```ts
 import { Agent } from "@mastra/core/agent";
@@ -101,9 +109,8 @@ r.tripwire;   // set when the guard blocked the message: the reason, and the Gua
   refuses the connection, calls fail at once for 5 s instead of each waiting for a timeout.
 - **Cancellation:** every call takes `{ signal }`; the AI SDK and Mastra tools pass their own abort signal through.
 - **Credentials:** `apiKey` (or `OPENDECIDER_REMOTE_API_KEY`) is sent as a bearer token, never over plain HTTP to another
-  host (unless `allowInsecureHttp`). Requests that carry a credential (the key, or an `Authorization`,
-  `Proxy-Authorization`, `Cookie` or `X-API-Key` header) never follow a redirect, and errors never quote a key or header
-  value.
+  host (unless `allowInsecureHttp`). Requests that carry the key or any extra `headers` (which may hold a credential)
+  never follow a redirect, and errors never quote a URL, key or header value.
 - **Audit:** `Router` and `Guard` call `onDecision` with every decision, errors included. `setLogger` sends the package's
   warnings to your logger (or nowhere).
 - **Limits** (as `opendecider serve`): 64 questions per call, 256 options, 200,000 characters of state, 256 states per
