@@ -10,6 +10,7 @@ noted. CI runs each of them against the released model whenever the package or t
 | [`quickstart.py`](quickstart.py) | three typed questions (`choice`, `score`, `noul`) about one ticket | `python examples/quickstart.py` |
 | [`support_triage.py`](support_triage.py) | a queue of tickets in one call: route by team, flag churn risk, send unsure answers to a person | `python examples/support_triage.py` |
 | [`agent_guardrail.py`](agent_guardrail.py) | check an AI agent's JSON trace before its next step: continue, retry, ask the user or stop | `python examples/agent_guardrail.py` |
+| [`prompt_guard.py`](prompt_guard.py) | screen a question, a jailbreak, a document with injected instructions and a long report for prompt injection, and filter retrieved passages | `python examples/prompt_guard.py` |
 | [`confident_automation.py`](confident_automation.py) | on 2,000 labelled business decisions: how many you can automate at a given accuracy | `python examples/confident_automation.py` |
 | [`serve_client.py`](serve_client.py) | call `opendecider serve` over HTTP (Jev's `/v1/systemone` protocol), with retries | start the server, then `python examples/serve_client.py` |
 | [`remote_backends.py`](remote_backends.py) | the same decision through LM Studio, Ollama or vLLM | `python examples/remote_backends.py lmstudio:opendecider-small` |

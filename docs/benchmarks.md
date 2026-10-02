@@ -71,6 +71,35 @@ single-question speed on short inputs, where it is in the same range as nano.
 Only Claude Fable 5.1 and GPT-6 Astra beat opendecider-medium-td here, at 10–20× its latency and with a per-call bill.
 The 200-item set is about ±3 points, so medium-td, DeepSeek V4.1 Flash and MiniMax M3 are close.
 
+## Prompt guard
+
+`opendecider.guard` against Laya's guard on the test splits of three public datasets (2,438 prompts):
+[deepset/prompt-injections](https://huggingface.co/datasets/deepset/prompt-injections) (116, English and German),
+[jackhhao/jailbreak-classification](https://huggingface.co/datasets/jackhhao/jailbreak-classification) (262) and
+[xTRam1/safe-guard-prompt-injection](https://huggingface.co/datasets/xTRam1/safe-guard-prompt-injection) (2,060). Both
+ask the same two questions, the attack questions of Laya's guard preset. Each model's threshold was set on the train
+splits by a rule fixed before any test result was seen (the threshold that maximises balanced accuracy, averaged over
+the three datasets) and applied once to test. No test prompt is in OpenDecider's training data (0 text overlaps).
+
+| model | threshold | all (95% CI) | attacks caught | benign flagged | deepset | jailbreak | safeguard |
+|---|---|---|---|---|---|---|---|
+| **opendecider-small-td** | 0.484 | **0.936** (0.927–0.946) | 0.928 | **0.060** | **0.828** | 0.897 | **0.947** |
+| opendecider-small | 0.500 | 0.900 (0.888–0.912) | 0.914 | 0.108 | 0.802 | 0.863 | 0.910 |
+| Laya (English checkpoint) | 0.271 | 0.898 (0.886–0.910) | 0.934 | 0.121 | 0.767 | 0.969 | 0.897 |
+| Laya (default router) | 0.271 | 0.897 (0.884–0.908) | 0.929 | 0.121 | 0.724 | **0.973** | 0.897 |
+| opendecider-nano | 0.387 | 0.831 (0.816–0.845) | 0.914 | 0.214 | 0.776 | 0.901 | 0.825 |
+
+Accuracy per dataset. Paired with Laya's English checkpoint, opendecider-small-td is ahead by 0.038 overall (95% CI
++0.023 to +0.052) and by 0.050 on safeguard, within noise on deepset (+0.060, CI −0.017 to +0.138), and **behind on
+jailbreak-classification** (−0.073, CI −0.111 to −0.034), where it flags 21% of the benign prompts against Laya's 6.5%.
+safeguard is 85% of the prompts, so it weighs most in the totals; averaged per dataset the two are close (balanced
+accuracy 0.889 vs 0.884). Tuning the threshold on the train splits did not help on test: at 0.5, small-td scores 0.945
+and Laya 0.909, slightly above their tuned results. The guard keeps the train-split thresholds, as the rule set out.
+
+`python benchmarks/guard.py report` prints these tables from the committed results, and two more setups: one yes/no
+question (Laya's published deepset question) and Laya's whole guard preset scored with LayaGuardrail's own rule. See
+[Agent guardrails](guides/agent-guardrails.md#how-accurate-is-it) for what the numbers mean in practice.
+
 ## Speed
 
 | questions per call | nano, NVIDIA L40S | nano, Apple M4 Max | small, NVIDIA L40S | small, Apple M4 Max |

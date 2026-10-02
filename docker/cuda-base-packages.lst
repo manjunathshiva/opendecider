@@ -1,8 +1,9 @@
 # The Python packages pip installed in docker/Dockerfile.cuda's base image (pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime,
 # the digest in the Dockerfile); the ones Ubuntu's apt manages (/usr/lib/python3/dist-packages) are left to apt.
-# docker/lock.sh locks requirements-cuda.txt together with them. Regenerate after changing the base image:
+# docker/lock.sh locks requirements-cuda.txt together with them. (Not a requirements file: nothing installs from it.)
+# Regenerate after changing the base image:
 #   docker run --rm --entrypoint python3 <base image> -m pip list --format=freeze \
-#     --path /usr/local/lib/python3.12/dist-packages > docker/cuda-base-packages.txt
+#     --path /usr/local/lib/python3.12/dist-packages > docker/cuda-base-packages.lst
 asttokens==3.0.1
 build==1.4.0
 certifi==2026.2.25

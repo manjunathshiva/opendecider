@@ -1,6 +1,7 @@
 # OpenDecider benchmark harness
 
-Reproduces every number in the main README and [COMPARISON.md](../COMPARISON.md).
+Reproduces every number in the main README and [COMPARISON.md](../COMPARISON.md), and the prompt guard's
+[benchmark against Laya](#the-prompt-guard-benchmark).
 
 ```bash
 pip install -r benchmarks/requirements.txt
@@ -41,6 +42,33 @@ distribution; Laya's battery uses Laya's own `metrics()`.
 
 Frontier LLM numbers (Claude Fable 5.1, GPT-6 Astra, DeepSeek V4.1 Flash, MiniMax M3, Kimi K3) come from the
 same 200 general decisions in [jev-frontier-bench](https://github.com/manjunathshiva/jev-frontier-bench).
+
+## The prompt guard benchmark
+
+`guard.py` measures `opendecider.guard` against Laya's guard on three public datasets, each pinned to a revision:
+[deepset/prompt-injections](https://huggingface.co/datasets/deepset/prompt-injections),
+[jackhhao/jailbreak-classification](https://huggingface.co/datasets/jackhhao/jailbreak-classification) and
+[xTRam1/safe-guard-prompt-injection](https://huggingface.co/datasets/xTRam1/safe-guard-prompt-injection) (test splits:
+2,438 prompts; prompts cut to 3,000 characters).
+
+```bash
+python benchmarks/guard.py run --model opendecider-small-td               # test split, every setup
+python benchmarks/guard.py run --model opendecider-small-td --split train --setups attack
+python benchmarks/guard.py run --model laya-en                            # pip install laya
+python benchmarks/guard.py report                                          # every table, from the committed results
+```
+
+| setup | questions | rule |
+|---|---|---|
+| `single` | Laya's deepset question, one yes/no | flagged at 0.5 |
+| `preset` | Laya's whole guard preset (`laya.guard_questions()`, copied verbatim) | LayaGuardrail's own rule at 0.5 |
+| `attack` | the preset's two attack questions, as `opendecider.guard` asks them | each model's train-split threshold |
+
+For `attack`, each model's threshold comes from the train splits (a seeded sample of up to 1,000 prompts per dataset)
+by a rule fixed before any test result was seen: the threshold that maximises balanced accuracy averaged over the
+three datasets. It is then applied once to the test splits; `report` prints the test result at that threshold and at
+0.5. Results: `results/guard/<model>.jsonl` (test) and `results/guard/train/<model>.jsonl`, with item ids and
+probabilities only; `*.latency.json` holds the time per preset request on the machine that ran it.
 
 ## Rules we held to
 

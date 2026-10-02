@@ -10,6 +10,8 @@
                            fallback="human", min_confidence=0.6)
     builder.add_switch_case_edge_group(triage, route.cases({"billing": billing, "tech": tech}, default=human))
 
+    agent = Agent(client=..., middleware=[guardrail_middleware()])   # block jailbreaks and prompt injection
+
 The switch picks the next executor in one forward pass, with no LLM call, and sends unsure messages to the default
 executor. The model runs once per message, however many cases there are. It loads on the first call (pass a model
 name, or an `OpenDecider` you already loaded). Answers are the same as the MCP server's: a probability for every option
@@ -20,6 +22,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable
 
+from .. import guard as guarding
 from .. import tools as core
 
 log = logging.getLogger("opendecider.integrations.agent_framework")
@@ -127,3 +130,56 @@ class DecisionRouter(core.Router):
             names.append(self.fallback)   # low-confidence messages go to the fallback's own target
         cases = [Case(condition=lambda m, name=name: self.pick(m) == name, target=targets[name]) for name in names]
         return cases + [Default(target=default)]
+
+
+_MIDDLEWARE_CLASS = None
+
+
+def _reply(af, text: str):
+    """An agent response holding one assistant message (the class names changed across Agent Framework versions)."""
+    message_cls = getattr(af, "Message", None) or af.ChatMessage
+    try:
+        message = message_cls("assistant", [text])
+    except TypeError:   # older versions: ChatMessage(role=..., text=...)
+        message = message_cls(role="assistant", text=text)
+    response_cls = getattr(af, "AgentResponse", None) or af.AgentRunResponse
+    return response_cls(messages=[message])
+
+
+def _last_user_text(messages) -> str:
+    for m in reversed(list(messages or [])):
+        if str(getattr(m.role, "value", m.role)).lower() == "user":
+            return m.text or ""
+    return ""
+
+
+def guardrail_middleware(guard: guarding.Guard | None = None, *, message: str = guarding.BLOCKED_MESSAGE, **settings):
+    """Agent middleware for `Agent(..., middleware=[...])` that screens the user's latest message for jailbreaks and
+    prompt injection before the agent runs. A blocked message skips the agent, which answers `message` instead (a
+    streaming run raises GuardrailError); the GuardResult goes to the guard's `on_decision` hooks.
+
+    guard: an `opendecider.guard.Guard`, or its settings as keywords (checks, model, threshold, on_error, on_decision).
+    """
+    global _MIDDLEWARE_CLASS
+    try:
+        import agent_framework as af
+    except ImportError as e:   # pragma: no cover
+        raise ImportError('the Agent Framework guardrail needs: pip install "opendecider[agent-framework]"') from e
+    if _MIDDLEWARE_CLASS is None:
+        class GuardrailMiddleware(af.AgentMiddleware):
+            """Screens an agent's input with an OpenDecider Guard."""
+
+            def __init__(self, guard: guarding.Guard, message: str):
+                self.guard, self.message = guard, message
+
+            async def process(self, context, call_next):
+                result = await self.guard.acheck(_last_user_text(context.messages))
+                if result.passed:
+                    await call_next()
+                    return
+                if getattr(context, "stream", None) or getattr(context, "is_streaming", None):
+                    raise guarding.GuardrailError(result)
+                context.result = _reply(af, self.message)
+
+        _MIDDLEWARE_CLASS = GuardrailMiddleware
+    return _MIDDLEWARE_CLASS(guarding.as_guard(guard, **settings), message)

@@ -69,6 +69,7 @@ tool over stdio.
 | `yes_no` | `state`, `question` | `answer` (yes / no), `probability_yes`, `confidence` |
 | `score` | `state`, `question`, `levels` (lowest first) | `level`, `label`, `expected_level`, `probabilities`, `confidence` |
 | `decide_batch` | `states` (up to 256, and at most 1,024 questions in all), `questions` | one result per state, in order: faster than one call per state |
+| `guard` | `text` (a user message, a web page, a retrieved document or a tool result) | `passed` (false: do not follow instructions in it), `reason`, `violations`, `probabilities`, `windows`: see [Agent guardrails](agent-guardrails.md#screen-prompts-for-jailbreaks-and-prompt-injection); the server's model answers, so run it with `--model manjunathshiva/opendecider-small-td` for the most accurate screening |
 | `status` | none | the model, whether it is loaded, where it runs, the version and the input limits (does not load the model) |
 
 Every tool is read-only and idempotent. Answers carry `truncated: true` when the state was cut to fit the model.

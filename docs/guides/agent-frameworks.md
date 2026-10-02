@@ -325,6 +325,32 @@ const agent = new Agent({ name: "support", instructions: "...", model: ...,
 The example calls the tools the way the agent would, so it runs without an API key. Other frameworks with an MCP
 client connect the same way.
 
+## Guardrails, triage and evaluation
+
+Three building blocks on top of the routers, in the release after 0.4.0:
+
+- **Prompt guard.** Each framework's own hook screens prompts for jailbreaks and prompt injection before the agent
+  acts on them: `guardrail_runnable()` (LangChain), `guardrail()` (Agno), `kickoff_guardrail()` and
+  `task_guardrail()` (CrewAI), `guardrail_callback()` (Google ADK), `guardrail_middleware()` (Agent Framework),
+  `guardrail_capability()` / `guardrail_processor()` (PydanticAI), `guardrail_hook()` (Strands) and the MCP `guard`
+  tool. See [Agent guardrails](agent-guardrails.md#in-your-agent-framework), with the benchmark against Laya.
+- **LangChain triage and evaluation.** `decision_runnable(questions)` answers typed questions about each input, and
+  its `batch` sends many inputs in batched model calls; `decision_evaluator(key, question)` scores runs in LangSmith's
+  `evaluate` with one question instead of an LLM judge.
+- **LlamaIndex `DecisionMultiSelector`.** A RouterQueryEngine selector that picks every engine likely to help, with
+  one yes/no question per engine in a single forward pass.
+
+```python
+from opendecider.integrations.langchain import decision_evaluator, decision_runnable
+from opendecider.questions import Choice, Noul
+
+triage = decision_runnable({"team": Choice("Which team?", {"billing": "charges", "tech": "bugs"}),
+                            "urgent": Noul("Does this need an answer today?")})
+triage.batch(["I was charged twice", "The API returns 500s"])   # [{'team': {'choice': 'billing', ...}, ...}, ...]
+
+grounded = decision_evaluator("grounded", "Is `output` supported by `input`?")   # for langsmith.evaluate(...)
+```
+
 ## Production
 
 **The model on its own server.** Pass an `opendecider serve` URL as the model, in any integration, the MCP server or

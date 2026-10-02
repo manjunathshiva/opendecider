@@ -3,13 +3,52 @@
 All notable changes to the `opendecider` package. Versions follow [Semantic Versioning](https://semver.org). The public
 API is `load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer fields, the HTTP wire
 format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, arguments and answers,
-`opendecider.tools` and the public names in `opendecider.integrations`.
+`opendecider.tools` and the public names in `opendecider.integrations`, and from the next release `opendecider.guard`.
 
 - **Before 1.0.0** (0.x): patch releases (0.2.x) never change the public API. A breaking change can only ship in a new
   minor release (0.3.0, 0.4.0, …), and only after at least one release in which the old behaviour emits a deprecation
   warning.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
+
+## [Unreleased]
+
+### Added
+
+- `opendecider.guard`: `Guard` screens text for jailbreaks and prompt injection before an agent acts on it, with two
+  yes/no checks (Laya's guard-preset attack questions) and per-model thresholds measured on public datasets.
+  `check`, `check_many` (shared batches), `acheck`, `enforce` / `aenforce` (raise `GuardrailError`); a `GuardResult`
+  for every check (passed, reason, violations, probabilities, thresholds, model, latency, windows); long text in
+  overlapping windows; `on_error="block"` (default) or `"allow"`; `on_decision` hooks and an `opendecider.guard`
+  OpenTelemetry span. Default model opendecider-small-td.
+- The guard in each framework's hook: LangChain `guardrail_runnable()` (modes `raise`, `annotate`, `filter` for
+  retrieved documents; batched), Agno `guardrail()` (Agno 2.1+), CrewAI `kickoff_guardrail()` and `task_guardrail()`,
+  Google ADK `guardrail_callback()`, Microsoft Agent Framework `guardrail_middleware()`, PydanticAI
+  `guardrail_capability()` (2.x) and `guardrail_processor()` (1.x), Strands `guardrail_hook()`, and a `guard` tool in
+  `opendecider mcp`.
+- LangChain `decision_runnable()`: typed answers about each input, with `batch` in batched model calls, and
+  `decision_evaluator()`, an evaluator for LangSmith's `evaluate` that scores runs with one question instead of an LLM
+  judge.
+- LlamaIndex `DecisionMultiSelector`: picks every query engine likely to help, with one yes/no question per engine in a
+  single forward pass.
+- `benchmarks/guard.py`: the guard benchmark against Laya on deepset/prompt-injections,
+  jackhhao/jailbreak-classification and xTRam1/safe-guard-prompt-injection, with the committed results.
+- `examples/prompt_guard.py`.
+
+### Changed
+
+- Loading opendecider-small, -small-td, -medium-td or -large-td without `peft` now says to install
+  `opendecider[small]`, instead of a bare `No module named 'peft'`.
+
+### Security
+
+- Releases are signed: the GitHub Release carries the wheel and sdist with their Sigstore signatures, GitHub build
+  provenance and an SPDX SBOM, beside PyPI's own attestations. The Docker images on GHCR are signed with cosign
+  (keyless) and carry an SBOM and build provenance in the registry. SECURITY.md has the commands to verify each.
+- The Docker images build from base images pinned by digest and install every Python package by hash
+  (`docker/lock.sh`); the CUDA image's copies of click, idna and pygments are updated past published advisories.
+- CI: every GitHub Action pinned to a commit, read-only workflow tokens, OpenSSF Scorecard, a ruff lint job. The
+  project holds the OpenSSF Best Practices passing badge.
 
 ## [0.4.0] - 2026-10-01
 

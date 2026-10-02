@@ -11,6 +11,8 @@
         routes={"billing_agent": "charges, refunds", "tech_agent": "bugs, outages"},
         instructions="Which team should handle this request?", fallback="human_agent", min_confidence=0.6)
 
+    agent = LlmAgent(name="assistant", model="gemini-...", before_agent_callback=guardrail_callback())
+
 `DecisionRouterAgent` picks the sub-agent (by name) from the user's message in one forward pass, with no LLM call, and
 hands unsure requests to the fallback. The model loads on the first call (pass a model name, or an `OpenDecider` you
 already loaded). Answers are the same as the MCP server's: a probability for every option and a calibrated `confidence`.
@@ -22,6 +24,7 @@ from typing import Any, AsyncGenerator
 
 from pydantic import ConfigDict, Field, PrivateAttr
 
+from .. import guard as guarding
 from .. import tools as core
 
 try:
@@ -55,6 +58,25 @@ def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
     for fn in fns:   # ADK describes each tool from its docstring
         fn.__doc__ = core.DESCRIPTIONS[fn.__name__]
     return [FunctionTool(fn) for fn in fns]
+
+
+def guardrail_callback(guard: guarding.Guard | None = None, *, message: str = guarding.BLOCKED_MESSAGE, **settings):
+    """A `before_agent_callback` that screens the user's message for jailbreaks and prompt injection before the agent
+    runs. A blocked message skips the agent, which answers `message` instead; the GuardResult goes to the guard's
+    `on_decision` hooks. Set it on the agent that receives the user's message (the root agent).
+
+    guard: an `opendecider.guard.Guard`, or its settings as keywords (checks, model, threshold, on_error, on_decision).
+    """
+    from google.genai import types
+    screen = guarding.as_guard(guard, **settings)
+
+    async def before_agent(callback_context):
+        text = _user_text(callback_context)
+        if (await screen.acheck(text)).passed:
+            return None
+        return types.Content(role="model", parts=[types.Part(text=message)])
+
+    return before_agent
 
 
 def _user_text(ctx) -> str:

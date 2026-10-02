@@ -4,7 +4,7 @@
 #
 #   requirements-cpu.txt   python:3.14-slim, torch from PyTorch's CPU index; linux amd64 and arm64 (both wheels' hashes)
 #   requirements-cuda.txt  pytorch/pytorch (CUDA 12.8, Python 3.12): what OpenDecider adds, locked together with the
-#                          base image's own packages (docker/cuda-base-packages.txt) at the newest versions they all
+#                          base image's own packages (docker/cuda-base-packages.lst) at the newest versions they all
 #                          accept; its torch and the packages only torch needs are left out, so the image keeps its CUDA
 #                          build of torch
 set -euo pipefail
@@ -23,9 +23,9 @@ cpu=(--index-url https://pypi.org/simple --extra-index-url https://download.pyto
 # nothing the base image ships is broken. Its CUDA stack is left out (the NVIDIA libraries, triton, and its +cu128 builds
 # of torch, torchaudio and torchvision): its torch is not on PyPI (constrained by version instead), and PyPI's torch of
 # that version declares other CUDA libraries.
-grep -q "^torch==$TORCH_CUDA+" docker/cuda-base-packages.txt || {
-    echo "docker/cuda-base-packages.txt is not torch $TORCH_CUDA" >&2; exit 1; }
-grep -vE '^(#|nvidia-|cuda-|triton|torch==)|\+' docker/cuda-base-packages.txt | sed 's/==/>=/' > "$tmp/base.in"
+grep -q "^torch==$TORCH_CUDA+" docker/cuda-base-packages.lst || {
+    echo "docker/cuda-base-packages.lst is not torch $TORCH_CUDA" >&2; exit 1; }
+grep -vE '^(#|nvidia-|cuda-|triton|torch==)|\+' docker/cuda-base-packages.lst | sed 's/==/>=/' > "$tmp/base.in"
 echo "torch==$TORCH_CUDA" > "$tmp/torch.txt"
 "${lock[@]}" "$tmp/base.in" --python-version 3.12 --python-platform x86_64-manylinux_2_28 \
     --constraint "$tmp/torch.txt" -o "$tmp/cuda.txt"

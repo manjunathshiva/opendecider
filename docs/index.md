@@ -46,6 +46,7 @@ r["answers"]["churn_risk"]["noul"]     # probability the answer is yes
 | run a server that existing TypeSafe Jev clients can call | [Serve it](guides/serve.md) |
 | use LM Studio, Ollama or vLLM as the engine | [LM Studio, Ollama and vLLM](guides/model-servers.md) |
 | automate the decisions the model is sure about and send the rest to a person | [Automate the confident decisions](guides/confident-automation.md) |
+| screen prompts for jailbreaks and prompt injection | [Agent guardrails](guides/agent-guardrails.md) |
 | check an AI agent's next step before it runs | [Agent guardrails](guides/agent-guardrails.md) |
 | let Claude, Cursor or another AI assistant call it as a tool | [AI assistants (MCP)](guides/mcp.md) |
 | route an agent workflow (LangGraph, Agno, CrewAI, Microsoft Agent Framework, Google ADK, LlamaIndex, …) or give an agent decision tools | [Agent frameworks](guides/agent-frameworks.md) |
