@@ -18,6 +18,10 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
 
 ### Added
 
+- The CPU Docker image is multi-platform: `ghcr.io/manjunathshiva/opendecider:<version>` and `:latest` run natively on
+  `linux/amd64` and `linux/arm64` (Apple Silicon, AWS Graviton, Ampere), each built on its own architecture and
+  smoke-tested before it is published. On an Apple Silicon Mac the amd64-only image ran emulated and took over 30 s
+  per opendecider-nano request; natively it takes about 0.2 s. The signature covers both platforms.
 - `opendecider-client`: OpenDecider without PyTorch. The same package (`import opendecider`, routers, tools, the guard,
   the MCP server and every framework extra), built by `packaging/build_client.py` without torch, transformers and the
   local-model extras, for models served by `opendecider serve`, Ollama, LM Studio or vLLM. Install it or

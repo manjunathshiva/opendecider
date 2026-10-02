@@ -35,7 +35,10 @@ import re, sys
 tmp = sys.argv[1]
 
 # CPU: one file for both architectures; the two locks differ only in platform-specific wheel hashes
-a, b = (open(f"{tmp}/{x}.txt").read().split("\n") for x in ("amd64", "arm64"))
+def read(name):   # the lock, without this run's temporary directory in its "# via -r" comments
+    return open(f"{tmp}/{name}.txt").read().replace(f"{tmp}/", "")
+
+a, b = (read(x).split("\n") for x in ("amd64", "arm64"))
 if len(a) != len(b):
     sys.exit("the amd64 and arm64 locks resolved different packages; lock them separately")
 out = []
@@ -50,7 +53,7 @@ open("docker/requirements-cpu.txt", "w").write("\n".join(out).rstrip("\n") + "\n
 
 # CUDA: drop torch and every package that only torch (transitively) needs, from uv's "# via" annotations
 blocks, cur = [], None
-for line in open(f"{tmp}/cuda.txt").read().split("\n"):
+for line in read("cuda").split("\n"):
     m = re.match(r"^([A-Za-z0-9_.\-]+)==", line)
     if m:
         cur = {"name": m.group(1).lower(), "lines": [line], "via": set()}

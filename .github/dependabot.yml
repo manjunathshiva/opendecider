@@ -7,6 +7,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     labels: ["dependencies", "python"]
+    # docker/requirements-*.txt are locked together, with both platforms' hashes, by docker/lock.sh: a one-package
+    # bump cannot satisfy the other packages' bounds or the hash check. Refresh them with `bash docker/lock.sh`; their
+    # security alerts still show on the Security tab.
+    exclude-paths: ["docker/**"]
     groups:
       hf-stack:
         patterns: ["transformers", "huggingface_hub", "safetensors", "peft", "accelerate"]
