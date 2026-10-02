@@ -1,9 +1,12 @@
 # Changelog
 
-All notable changes to the `opendecider` package. Versions follow [Semantic Versioning](https://semver.org). The public
-API is `load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer fields, the HTTP wire
-format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, arguments and answers,
-`opendecider.tools` and the public names in `opendecider.integrations`, and, from 0.5.0, `opendecider.guard`.
+All notable changes to the `opendecider` package, and from 0.6.0 to `opendecider-client` (the same package without
+PyTorch) and `@opendecider/client` on npm, which share its version number. Versions follow
+[Semantic Versioning](https://semver.org). The public API is `load`, `OpenDecider.system_one`, `system_one_batch`, the
+question helpers, the answer fields, the HTTP wire format and, from 0.4.0, the agent-facing surfaces: the MCP server's
+tool names, arguments and answers, `opendecider.tools` and the public names in `opendecider.integrations`, from 0.5.0,
+`opendecider.guard`, and from 0.6.0, the exports of `@opendecider/client` and its `/ai-sdk` and `/mastra` entry points
+(where a deprecation is marked `@deprecated` and logs a warning).
 
 - **Before 1.0.0** (0.x): patch releases (0.2.x) never change the public API. A breaking change can only ship in a new
   minor release (0.3.0, 0.4.0, …), and only after at least one release in which the old behaviour emits a deprecation
@@ -19,6 +22,12 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
   the MCP server and every framework extra), built by `packaging/build_client.py` without torch, transformers and the
   local-model extras, for models served by `opendecider serve`, Ollama, LM Studio or vLLM. Install it or
   `opendecider`, not both. CI runs it in a clean environment against a live `opendecider serve`.
+- `@opendecider/client` on npm: OpenDecider for TypeScript (tested on Node 22+, Bun and Deno), with no runtime
+  dependencies. `load`, `systemOne` / `systemOneBatch`, `Router` and `Guard` against `opendecider serve`, or directly
+  against Ollama, LM Studio and vLLM. `@opendecider/client/ai-sdk`: the MCP server's seven tools for the Vercel AI SDK
+  (`ai` 5 to 7) and `guardMiddleware()` for `wrapLanguageModel`. `@opendecider/client/mastra`: the tools for Mastra
+  (`@mastra/core` 1.11 or later) and `GuardProcessor`, an input processor. Its prompt, answers, limits and guard
+  windows are tested against reference outputs from this package. Its version follows this package's.
 
 ### Changed
 

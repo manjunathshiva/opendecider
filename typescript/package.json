@@ -1,0 +1,94 @@
+{
+  "name": "@opendecider/client",
+  "version": "0.5.0",
+  "description": "OpenDecider for TypeScript: typed decisions, routing and a prompt guard from small open decision models served by opendecider serve, Ollama or LM Studio, with tools for the Vercel AI SDK and Mastra.",
+  "license": "Apache-2.0",
+  "author": "Manjunath Janardhan",
+  "homepage": "https://manjunathshiva.github.io/opendecider/guides/typescript/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manjunathshiva/opendecider.git",
+    "directory": "typescript"
+  },
+  "bugs": "https://github.com/manjunathshiva/opendecider/issues",
+  "keywords": [
+    "ai",
+    "agents",
+    "llm",
+    "classification",
+    "routing",
+    "guardrails",
+    "prompt-injection",
+    "ai-sdk",
+    "mastra",
+    "opendecider"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./ai-sdk": {
+      "types": "./dist/ai-sdk.d.ts",
+      "default": "./dist/ai-sdk.js"
+    },
+    "./mastra": {
+      "types": "./dist/mastra.d.ts",
+      "default": "./dist/mastra.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "ai-sdk": [
+        "./dist/ai-sdk.d.ts"
+      ],
+      "mastra": [
+        "./dist/mastra.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-legal.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "peerDependencies": {
+    "@mastra/core": ">=1.11.0 <2",
+    "ai": ">=5.0.0 <8"
+  },
+  "peerDependenciesMeta": {
+    "@mastra/core": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@mastra/core": "^1.74.0",
+    "@types/node": "^26.6.4",
+    "ai": "^7.0.127",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

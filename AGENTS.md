@@ -16,10 +16,11 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
   answer's `score` is the expected score and `level` the most likely level). Keep auth comparisons constant-time, give
   every limit a 4xx with a message, and never return tracebacks or paths to the client.
 - **Change the public API** (`load`, `system_one`, `system_one_batch`, `Choice` / `Score` / `Noul`, the answer fields,
-  the MCP tools, `opendecider.tools`, `opendecider.guard`, the public names in `opendecider.integrations`) outside the
-  versioning policy in [CHANGELOG.md](CHANGELOG.md).
+  the MCP tools, `opendecider.tools`, `opendecider.guard`, the public names in `opendecider.integrations`, and the
+  exports of `@opendecider/client`) outside the versioning policy in [CHANGELOG.md](CHANGELOG.md).
 - Add a dependency to the core package, or one that needs a hosted service. Optional features go in an extra in
-  `pyproject.toml` (`small`, `mlx`, `serve`).
+  `pyproject.toml` (`small`, `mlx`, `serve`). `@opendecider/client` has no runtime dependencies; frameworks are optional
+  peer dependencies.
 - Reformat files wholesale, reorder imports or "modernise" surrounding code. Match the style of the file being edited
   (lines up to 120 characters).
 - Commit secrets, tokens, model weights or other large binaries.
@@ -36,6 +37,7 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 | `opendecider/guard.py` | `tests/test_guard.py`; its framework hooks: `tests/test_guard_frameworks.py` (CrewAI and Strands in their own venv, as below); accuracy: `python benchmarks/guard.py report` |
 | `opendecider/integrations/` (LangChain, LangGraph, LlamaIndex) | `tests/test_integrations.py` |
 | `opendecider/integrations/` (Agno, CrewAI, Agent Framework, Google ADK, PydanticAI, Strands) | `tests/test_frameworks.py`; CrewAI and Strands pin `mcp` 1.x, so run them in a separate venv (`pip install crewai strands-agents`) |
+| `typescript/` (`@opendecider/client` on npm) | `cd typescript && npm ci --ignore-scripts && npm run typecheck && npm test` (fake servers, no network), and `npm run format` (Prettier, 120 columns); behaviour shared with Python must match `test/fixtures/parity.json`: after changing the prompt, questions, tools or guard in either language, run `python typescript/test/fixtures/make_fixtures.py`; live: `OPENDECIDER_LIVE_URL=http://127.0.0.1:8000 npx vitest run test/live.test.ts` |
 | `packaging/` (opendecider-client) | `tests/test_packaging.py`; CI's examples job installs the built client in a clean environment and runs `packaging/check_client.py` against `opendecider serve` |
 | `examples/` | run the script with opendecider-nano on CPU; CI runs them all |
 | `docs/`, `zensical.toml` | `pip install -r requirements-docs.txt && zensical build --strict --clean` |

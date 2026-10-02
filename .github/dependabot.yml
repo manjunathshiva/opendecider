@@ -32,6 +32,18 @@ updates:
       mastra:
         patterns: ["@mastra/*"]
 
+  # @opendecider/client's development dependencies (it has no runtime dependencies). typescript/compat/ is left alone:
+  # it pins the oldest supported versions on purpose.
+  - package-ecosystem: "npm"
+    directory: "/typescript"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "javascript"]
+    groups:
+      typescript-dev:
+        patterns: ["*"]
+
   # GitHub Actions: every action is pinned to a commit (with its version in a comment), so a moved tag cannot change
   # what runs; Dependabot bumps the pins, patches and minors included, or a pin would never pick up a security fix.
   # One grouped PR a week keeps the pins moving together.

@@ -1,0 +1,87 @@
+name: TypeScript
+
+# @opendecider/client (typescript/): types, formatting, tests against fake servers, the reference outputs from the
+# Python package, what npm would publish, and the oldest tested ai and Mastra versions. Runs only when the client or
+# the Python code it mirrors changes; documentation-only changes skip it (it is not a required check, so a skipped run
+# never blocks a merge). The live tests run in examples.yml, against opendecider serve.
+
+on:
+  push:
+    branches: [main]
+    paths: [typescript/**, opendecider/**, .github/workflows/typescript.yml]
+  pull_request:
+    paths: [typescript/**, opendecider/**, .github/workflows/typescript.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:   # Mastra reports usage by default; the tests send nothing
+  MASTRA_TELEMETRY_DISABLED: '1'
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22', '24']
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: The reference outputs match this Python package (torch-free, from the source tree)
+        run: PYTHONPATH=.. python test/fixtures/make_fixtures.py --check
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci --ignore-scripts --no-audit --no-fund   # no dependency runs install scripts
+      - run: npm run typecheck && npm run format:check
+      - run: npm test
+      - name: The package builds, and carries what it should
+        run: |
+          npm run build
+          npm pack --dry-run --json > pack.json
+          # shellcheck disable=SC2016  # the ${...} in single quotes is a JavaScript template literal
+          node -e '
+            const files = require("./pack.json")[0].files.map((f) => f.path);
+            const need = ["LICENSE", "NOTICE", "README.md", "package.json", "dist/index.js", "dist/index.d.ts",
+                          "dist/ai-sdk.js", "dist/ai-sdk.d.ts", "dist/mastra.js", "dist/mastra.d.ts"];
+            const missing = need.filter((f) => !files.includes(f));
+            const extra = files.filter((f) => !need.includes(f) && !/^dist\/[a-z-]+\.(js|d\.ts)$/.test(f));
+            if (missing.length || extra.length) { console.error({ missing, extra }); process.exit(1); }
+            console.log(`${files.length} files, as expected`);'
+
+  # The oldest versions it is tested on (typescript/compat/: ai 5.0.207; ai 6.0.214 with @mastra/core 1.55.0), each locked
+  typescript-oldest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - env: ai5
+            tests: test/ai-sdk.test.ts test/client.test.ts test/decisions.test.ts test/parity.test.ts
+          - env: ai6-mastra
+            tests: ''
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '22'
+      - name: Tests on the oldest versions
+        working-directory: typescript
+        env:
+          COMPAT: ${{ matrix.env }}
+          TESTS: ${{ matrix.tests }}
+        run: |
+          cp -R src test vitest.config.ts tsconfig.json "compat/$COMPAT/"
+          cd "compat/$COMPAT"
+          npm ci --ignore-scripts --no-audit --no-fund
+          # shellcheck disable=SC2086  # TESTS is a list of test files: split on purpose
+          npx vitest run $TESTS

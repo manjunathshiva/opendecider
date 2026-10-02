@@ -45,6 +45,19 @@ opendecider 0.5.0 or later: `pip install "opendecider[agno]>=0.5.0"`, with the e
 | [`mcp_client.py`](https://github.com/manjunathshiva/opendecider/blob/main/examples/agent_frameworks/mcp_client.py) | MCP | what an AI assistant sees: `opendecider mcp`'s tools called over stdio |
 | [`mastra/`](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks/mastra) | Mastra (TypeScript) | the MCP tools through Mastra's `MCPClient` |
 
+## TypeScript
+
+In [typescript/examples/](https://github.com/manjunathshiva/opendecider/tree/main/typescript/examples), for
+[`@opendecider/client`](guides/typescript.md). Each takes the model as its argument (an `opendecider serve` URL, or
+`ollama:...`) and runs without an LLM API key: a scripted stand-in plays the agent's LLM, and the tool calls and the
+guard are real. CI runs them against `opendecider serve` with opendecider-nano.
+
+| script | what it shows |
+|---|---|
+| [`quickstart.mjs`](https://github.com/manjunathshiva/opendecider/blob/main/typescript/examples/quickstart.mjs) | typed decisions, a `Router` with a fallback, and the `Guard` |
+| [`ai-sdk-agent.mjs`](https://github.com/manjunathshiva/opendecider/blob/main/typescript/examples/ai-sdk-agent.mjs) | Vercel AI SDK: the tools in a `generateText` loop, and `guardMiddleware` blocking an attack |
+| [`mastra-agent.mjs`](https://github.com/manjunathshiva/opendecider/blob/main/typescript/examples/mastra-agent.mjs) | Mastra: the tools in an agent, and `GuardProcessor` stopping an attack through the tripwire |
+
 ## Colab notebook
 
 [Open in Colab](https://colab.research.google.com/github/manjunathshiva/opendecider/blob/main/notebooks/opendecider_colab.ipynb){ .md-button .md-button--primary }
