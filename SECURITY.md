@@ -7,7 +7,7 @@ Please report security issues privately through GitHub's
 public issue. You'll get an acknowledgement within 3 working days and a fix or mitigation plan within 14 days for
 confirmed issues. Fixes ship in a patch release, with credit if you want it.
 
-Supported versions: the latest minor release (currently 0.4.x) receives security fixes.
+Supported versions: the latest minor release (currently 0.5.x) receives security fixes.
 
 ## Running the server safely
 
@@ -36,14 +36,14 @@ Supported versions: the latest minor release (currently 0.4.x) receives security
       pypi:opendecider-0.4.0-py3-none-any.whl
   ```
 
-  The attestations are also shown on each file's page on PyPI ("Provenance"). From the next release on, the GitHub
+  The attestations are also shown on each file's page on PyPI ("Provenance"). From 0.5.0 on, the GitHub
   Release carries the same files with their Sigstore signatures (`<file>.sigstore.json`), an SPDX SBOM, and GitHub
   build provenance:
 
   ```bash
   gh attestation verify opendecider-<version>-py3-none-any.whl --repo manjunathshiva/opendecider
   ```
-- **Docker images.** From the next release on, each image on GHCR is signed with cosign (keyless, through GitHub's
+- **Docker images.** From 0.5.0 on, each image on GHCR is signed with cosign (keyless, through GitHub's
   OIDC identity), with an SPDX SBOM and build provenance attested in the registry:
 
   ```bash

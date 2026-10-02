@@ -46,7 +46,7 @@ a specialist, or to a person when unsure) or calls the decision tools as an agen
 | [`mcp_client.py`](agent_frameworks/mcp_client.py) | MCP | what an AI assistant sees: `opendecider mcp`'s tools over stdio | `pip install "opendecider[mcp]"` |
 | [`mastra/`](agent_frameworks/mastra/) | Mastra (TypeScript) | the MCP tools through Mastra's `MCPClient` | `pip install "opendecider[mcp]"`, then `npm ci` in the folder |
 
-These integrations need opendecider 0.4.0 or later: upgrade an older install with
+These integrations need opendecider 0.4.0 or later (`mcp_client.py`'s `guard` call: 0.5.0): upgrade an older install with
 `pip install -U "opendecider[agno]"` (the extra each script needs). Run each with
 `python examples/agent_frameworks/<script>.py` (the Mastra one with `node index.mjs` in its folder).
 The Python ones take a model name as the first argument (`mcp_client.py` and the Mastra one: `--model <name>`). CrewAI

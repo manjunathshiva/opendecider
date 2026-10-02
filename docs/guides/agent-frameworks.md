@@ -5,7 +5,8 @@ OpenDecider plugs into agent frameworks in two ways: as **tools** an agent calls
 routing decision with opendecider-nano takes milliseconds and comes with a calibrated probability, so low-confidence
 cases can go to a fallback (a person, a slower model) instead of the wrong branch.
 
-The integrations need opendecider 0.4.0 or later.
+The routers and tools need opendecider 0.4.0 or later; the guard hooks, `decision_runnable()`, `decision_evaluator()`
+and `DecisionMultiSelector` need 0.5.0.
 
 | framework | install | tools | router | example |
 |---|---|---|---|---|
@@ -51,7 +52,7 @@ fallback without asking the model, which would otherwise guess; without a fallba
 ## LangGraph: route on confidence
 
 ```bash
-pip install "opendecider[langchain]>=0.4.0" langgraph
+pip install "opendecider[langchain]>=0.5.0" langgraph
 ```
 
 ```python
@@ -107,7 +108,7 @@ the event loop.
 ## LlamaIndex: a selector for RouterQueryEngine
 
 ```bash
-pip install "opendecider[llamaindex]>=0.4.0"
+pip install "opendecider[llamaindex]>=0.5.0"
 ```
 
 ```python
@@ -144,7 +145,7 @@ tools = decision_tools()
 ## Agno: a workflow Router and a toolkit
 
 ```bash
-pip install "opendecider[agno]>=0.4.0"
+pip install "opendecider[agno]>=0.5.0"
 ```
 
 ```python
@@ -176,7 +177,7 @@ fallback) has a step. Works with Agno 2.x and 3.x.
 ## CrewAI: a Flow router, task assignment and crew tools
 
 ```bash
-pip install "opendecider[crewai]>=0.4.0"
+pip install "opendecider[crewai]>=0.5.0"
 ```
 
 ```python
@@ -223,7 +224,7 @@ With opendecider-nano, a duplicate charge goes to the billing specialist (0.92),
 ## Microsoft Agent Framework: a switch-case edge
 
 ```bash
-pip install "opendecider[agent-framework]>=0.4.0"
+pip install "opendecider[agent-framework]>=0.5.0"
 ```
 
 ```python
@@ -248,7 +249,7 @@ response or a chat message as its text, JSON as is; `state=` takes a function of
 ## Google ADK: a router agent
 
 ```bash
-pip install "opendecider[google-adk]>=0.4.0"
+pip install "opendecider[google-adk]>=0.5.0"
 ```
 
 ```python
@@ -273,7 +274,7 @@ coordinator's `transfer_to_agent` call. It checks at construction that every rou
 ## PydanticAI: a toolset
 
 ```bash
-pip install "opendecider[pydantic-ai]>=0.4.0"
+pip install "opendecider[pydantic-ai]>=0.5.0"
 ```
 
 ```python
@@ -289,7 +290,7 @@ An invalid call raises `ModelRetry` with what to fix, so the model corrects it a
 ## Strands Agents: tools and a router
 
 ```bash
-pip install "opendecider[strands]>=0.4.0"
+pip install "opendecider[strands]>=0.5.0"
 ```
 
 ```python
@@ -327,7 +328,7 @@ client connect the same way.
 
 ## Guardrails, triage and evaluation
 
-Three building blocks on top of the routers, in the release after 0.4.0:
+Three building blocks on top of the routers, from 0.5.0:
 
 - **Prompt guard.** Each framework's own hook screens prompts for jailbreaks and prompt injection before the agent
   acts on them: `guardrail_runnable()` (LangChain), `guardrail()` (Agno), `kickoff_guardrail()` and

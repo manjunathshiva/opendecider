@@ -3,7 +3,7 @@
 All notable changes to the `opendecider` package. Versions follow [Semantic Versioning](https://semver.org). The public
 API is `load`, `OpenDecider.system_one`, `system_one_batch`, the question helpers, the answer fields, the HTTP wire
 format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, arguments and answers,
-`opendecider.tools` and the public names in `opendecider.integrations`, and from the next release `opendecider.guard`.
+`opendecider.tools` and the public names in `opendecider.integrations`, and, from 0.5.0, `opendecider.guard`.
 
 - **Before 1.0.0** (0.x): patch releases (0.2.x) never change the public API. A breaking change can only ship in a new
   minor release (0.3.0, 0.4.0, …), and only after at least one release in which the old behaviour emits a deprecation
@@ -11,7 +11,7 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.5.0] - 2026-10-02
 
 ### Added
 
