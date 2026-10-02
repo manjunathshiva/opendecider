@@ -23,7 +23,7 @@ filelock==3.25.2
 fsspec==2026.2.0
 httplib2==0.20.4
 hypothesis==6.151.9
-idna==3.11
+idna==3.15
 importlib_metadata==9.0.0
 ipython==9.11.0
 ipython_pygments_lexers==1.1.1
