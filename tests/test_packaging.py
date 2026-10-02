@@ -128,3 +128,19 @@ def test_the_full_package_names_the_missing_extra(monkeypatch, tmp_path):
     (folder / "opendecider.json").write_text(json.dumps({"kind": "small-mlx", "name": "m"}))
     with pytest.raises(ImportError, match=r'this model needs mlx_lm: pip install "opendecider\[mlx\]"'):
         opendecider.load(str(folder))
+
+
+def test_install_hints_name_the_installed_package(monkeypatch):
+    """In opendecider-client, `pip install "opendecider[...]"` would add the full package beside it: hints name the
+    client's own extra."""
+    import opendecider
+    monkeypatch.setattr(opendecider, "_installed_here", lambda: {"opendecider_client"})
+    assert opendecider._install_hint("mcp") == 'pip install "opendecider-client[mcp]"'
+    monkeypatch.setattr(opendecider, "_installed_here", lambda: {"opendecider"})
+    assert opendecider._install_hint("mcp") == 'pip install "opendecider[mcp]"'
+
+    def broken():
+        raise OSError("unreadable")
+
+    monkeypatch.setattr(opendecider, "_installed_here", broken)
+    assert opendecider._install_hint("agno") == 'pip install "opendecider[agno]"'

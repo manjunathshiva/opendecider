@@ -28,6 +28,7 @@ import functools
 from typing import Any, Callable
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 
@@ -49,7 +50,7 @@ def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
     try:
         from langchain_core.tools import StructuredTool, ToolException
     except ImportError as e:   # pragma: no cover
-        raise ImportError('the LangChain integration needs: pip install "opendecider[langchain]"') from e
+        raise ImportError(f"the LangChain integration needs: {_install_hint('langchain')}") from e
 
     decider = core.shared(model)
 
@@ -169,7 +170,7 @@ def guardrail_runnable(guard: guarding.Guard | None = None, *, mode: str = "rais
         try:
             from langchain_core.runnables import Runnable
         except ImportError as e:   # pragma: no cover
-            raise ImportError('the LangChain guardrail needs: pip install "opendecider[langchain]"') from e
+            raise ImportError(f"the LangChain guardrail needs: {_install_hint('langchain')}") from e
 
         class GuardrailRunnable(Runnable):
             """Screens its input with an OpenDecider Guard (see `guardrail_runnable`)."""
@@ -259,7 +260,7 @@ def decision_runnable(questions: dict, model: Any = core.DEFAULT_MODEL, *, key: 
         try:
             from langchain_core.runnables import Runnable
         except ImportError as e:   # pragma: no cover
-            raise ImportError('the LangChain integration needs: pip install "opendecider[langchain]"') from e
+            raise ImportError(f"the LangChain integration needs: {_install_hint('langchain')}") from e
 
         class DecisionRunnable(Runnable):
             """Answers typed questions about its input (see `decision_runnable`)."""

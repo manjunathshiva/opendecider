@@ -61,7 +61,8 @@ def main(argv: list[str] | None = None) -> None:
         try:
             import mcp  # noqa: F401
         except ImportError:
-            sys.exit('the MCP server needs extra packages: pip install "opendecider[mcp]"')
+            from . import _install_hint
+            sys.exit(f"the MCP server needs extra packages: {_install_hint('mcp')}")
         import os
         from .mcp_server import run as run_mcp
         kw = {k: v for k, v in (("revision", a.revision), ("device", a.device), ("dtype", a.dtype)) if v}

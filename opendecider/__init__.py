@@ -122,6 +122,16 @@ def _installed_here() -> set[str]:
     return {p.name.split("-")[0].lower() for p in site.glob("opendecider*.dist-info")}
 
 
+def _install_hint(extra: str) -> str:
+    """The install line for an extra, for the package that is installed: opendecider-client's own extra there, since
+    `pip install "opendecider[...]"` would add the full package beside it."""
+    try:
+        client = "opendecider_client" in _installed_here()
+    except Exception:   # noqa: BLE001 -- an unreadable folder: name the main package
+        client = False
+    return f'pip install "{"opendecider-client" if client else "opendecider"}[{extra}]"'
+
+
 def _warn_if_both_installed() -> None:
     try:
         both = {"opendecider", "opendecider_client"} <= _installed_here()

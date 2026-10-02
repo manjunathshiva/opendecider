@@ -9,7 +9,8 @@ pip install opendecider              # opendecider-nano
 pip install "opendecider[small]"     # adds peft for opendecider-small, -small-td, -medium-td and -large-td
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 8-bit / 4-bit builds of opendecider-small
 pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
-pip install opendecider-client       # no PyTorch, for a model served elsewhere: see Serve, "Without PyTorch"
+pip install opendecider-client       # no PyTorch, for a model served elsewhere: routers, tools and the guard
+pip install "opendecider-client[mcp]"  # ... and the MCP server; see Serve, "Without PyTorch"
 ```
 
 For a clean setup with the right PyTorch for your hardware:

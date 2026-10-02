@@ -34,12 +34,13 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 try:
     from crewai.tools import BaseTool
 except ImportError as e:   # pragma: no cover
-    raise ImportError('the CrewAI integration needs: pip install "opendecider[crewai]"') from e
+    raise ImportError(f"the CrewAI integration needs: {_install_hint('crewai')}") from e
 
 _STATE = Field(description="plain text, or any JSON (a ticket, a log record, an agent trace)")
 

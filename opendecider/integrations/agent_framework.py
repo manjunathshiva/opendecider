@@ -23,6 +23,7 @@ import logging
 from typing import Any, Callable
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 log = logging.getLogger("opendecider.integrations.agent_framework")
@@ -38,7 +39,7 @@ def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:
     try:
         from agent_framework import tool
     except ImportError as e:   # pragma: no cover
-        raise ImportError('the Agent Framework integration needs: pip install "opendecider[agent-framework]"') from e
+        raise ImportError(f"the Agent Framework integration needs: {_install_hint('agent-framework')}") from e
 
     decider = core.shared(model)
 
@@ -164,7 +165,7 @@ def guardrail_middleware(guard: guarding.Guard | None = None, *, message: str = 
     try:
         import agent_framework as af
     except ImportError as e:   # pragma: no cover
-        raise ImportError('the Agent Framework guardrail needs: pip install "opendecider[agent-framework]"') from e
+        raise ImportError(f"the Agent Framework guardrail needs: {_install_hint('agent-framework')}") from e
     if _MIDDLEWARE_CLASS is None:
         class GuardrailMiddleware(af.AgentMiddleware):
             """Screens an agent's input with an OpenDecider Guard."""

@@ -20,10 +20,12 @@ import asyncio
 import logging
 from typing import Any, Sequence
 
+from .. import _install_hint
+
 try:
     from llama_index.core.base.base_selector import BaseSelector, SelectorResult, SingleSelection
 except ImportError as e:   # pragma: no cover
-    raise ImportError('the LlamaIndex integration needs: pip install "opendecider[llamaindex]"') from e
+    raise ImportError(f"the LlamaIndex integration needs: {_install_hint('llamaindex')}") from e
 
 from .. import tools as core
 from ..questions import Noul

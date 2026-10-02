@@ -37,7 +37,8 @@ pip install "opendecider[small]"     # adds peft for opendecider-small, -small-t
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
 pip install "opendecider[mcp]"       # the MCP server, for AI assistants (Claude Code, Claude Desktop, Cursor)
-pip install opendecider-client       # no PyTorch: routers, tools, guard and MCP for a model served elsewhere
+pip install opendecider-client       # no PyTorch, for a model served elsewhere: routers, tools and the guard
+pip install "opendecider-client[mcp]"  # ... and the MCP server (framework extras as for opendecider)
 # LM Studio / Ollama (GGUF builds) and vLLM: see "Run it in LM Studio or Ollama" below (no extra packages)
 ```
 

@@ -21,6 +21,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 
@@ -35,7 +36,7 @@ def decision_toolkit(model: Any = core.DEFAULT_MODEL, name: str = "opendecider")
     try:
         from agno.tools import Toolkit
     except ImportError as e:   # pragma: no cover
-        raise ImportError('the Agno integration needs: pip install "opendecider[agno]"') from e
+        raise ImportError(f"the Agno integration needs: {_install_hint('agno')}") from e
 
     decider = core.shared(model)
 
