@@ -65,13 +65,13 @@ def test_a_quantised_build_uses_its_own_measured_threshold():
     t = guard_module.THRESHOLDS
     for name, key in [("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0", "opendecider-small-td-gguf:q8_0"),
                       ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M", "opendecider-small-td-gguf:q4_k_m"),
-                      ("hf.co/manjunathshiva/opendecider-small-td-GGUF", "opendecider-small-td-gguf:q4_k_m"),
                       ("opendecider-small@q8_0", "opendecider-small-gguf:q8_0"),
                       ("opendecider-small-GGUF@q8_0", "opendecider-small-gguf:q8_0"),   # the variant, not Q4_K_M
                       ("opendecider-small-mlx-4bit", "opendecider-small-mlx-4bit")]:
         assert make(name)[0].thresholds() == {k: t[key] for k in ATTACK_CHECKS}, name
     for name in ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", "opendecider-medium-td",   # not measured
-                 "opendecider-small-td-gguf"):   # a GGUF name that does not say which build: no build's threshold
+                 "opendecider-small-td-gguf", "hf.co/manjunathshiva/opendecider-small-td-GGUF",   # which build?
+                 "lmstudio:hf.co/manjunathshiva/opendecider-small-td-GGUF"):
         assert make(name)[0].thresholds() == {k: 0.5 for k in ATTACK_CHECKS}, name
     lazy = Guard(model="ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M")   # before it is loaded, too
     assert lazy.thresholds() == {k: t["opendecider-small-td-gguf:q4_k_m"] for k in ATTACK_CHECKS}

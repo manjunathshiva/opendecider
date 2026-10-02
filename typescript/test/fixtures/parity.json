@@ -2588,11 +2588,11 @@
   },
   {
    "name": "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF",
-   "key": "opendecider-small-td-gguf:q4_k_m"
+   "key": "opendecider-small-td-gguf"
   },
   {
    "name": "hf.co/manjunathshiva/opendecider-small-td-GGUF:latest",
-   "key": "opendecider-small-td-gguf:q4_k_m"
+   "key": "opendecider-small-td-gguf"
   },
   {
    "name": "opendecider-small-td-GGUF:",
@@ -2672,15 +2672,19 @@
   },
   {
    "name": "HF.CO/manjunathshiva/opendecider-small-GGUF",
-   "key": "opendecider-small-gguf:q4_k_m"
+   "key": "opendecider-small-gguf"
   },
   {
    "name": "ollama:huggingface.co/manjunathshiva/opendecider-small-td-GGUF:latest",
-   "key": "opendecider-small-td-gguf:q4_k_m"
+   "key": "opendecider-small-td-gguf"
   },
   {
    "name": "hf.co/manjunathshiva/opendecider-small-td-GGUF@Q8_0:Q4_K_M",
    "key": "opendecider-small-td-gguf:q8_0:q4_k_m"
+  },
+  {
+   "name": "lmstudio:hf.co/manjunathshiva/opendecider-small-td-GGUF",
+   "key": "opendecider-small-td-gguf"
   }
  ],
  "constants": {

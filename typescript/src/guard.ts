@@ -52,19 +52,16 @@ export const BLOCKED_MESSAGE = "Sorry, I can't help with that request.";
 /** A model name as THRESHOLDS keys it: the last path segment, lowercased, with a GGUF build's quantisation.
  * "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0" -> "opendecider-small-td-gguf:q8_0", LM Studio's
  * "opendecider-small@q8_0" -> "opendecider-small-gguf:q8_0", "manjunathshiva/opendecider-small-mlx-4bit" ->
- * "opendecider-small-mlx-4bit". A named quantisation wins (an LM Studio variant, then an Ollama tag). Without one,
- * only Ollama's form for a Hub repo (hf.co/...) says which build runs, its Q4_K_M; any other GGUF name keys no build,
- * so it uses 0.5 rather than another build's threshold. Not exported from the package: tested against Python's
- * `_threshold_key`. */
+ * "opendecider-small-mlx-4bit". Only a quantisation in the name picks a build (an LM Studio variant, then an Ollama
+ * tag): a GGUF name without one keys no build, so it uses 0.5 rather than a threshold measured on another build. Not
+ * exported from the package: tested against Python's `_threshold_key`. */
 export function thresholdKey(name: string): string {
   const colon = name.indexOf(":");
   if (colon > 0 && ["ollama", "lmstudio", "openai"].includes(name.slice(0, colon))) name = name.slice(colon + 1);
-  const lower = name.toLowerCase();
-  const hub = lower.startsWith("hf.co/") || lower.startsWith("huggingface.co/");
   const [named, variant] = partition(name.split("/").pop()!.toLowerCase(), "@");
   const [base, tag] = partition(named, ":");
   const quant = variant || (tag !== "latest" ? tag : "") || "";
-  if (base.endsWith("-gguf")) return quant ? `${base}:${quant}` : hub ? `${base}:q4_k_m` : base;
+  if (base.endsWith("-gguf")) return quant ? `${base}:${quant}` : base;
   return variant ? `${base}-gguf:${variant}` : base;
 }
 

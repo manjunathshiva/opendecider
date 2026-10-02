@@ -143,7 +143,7 @@ def main() -> dict:
         "a@b:c", "a:b@c", "toString", "__proto__", "opendecider-small-GGUF@q8_0", "lmstudio:opendecider-small-td-gguf",
         "opendecider-small-td-gguf:latest", "HF.CO/manjunathshiva/opendecider-small-GGUF",
         "ollama:huggingface.co/manjunathshiva/opendecider-small-td-GGUF:latest",
-        "hf.co/manjunathshiva/opendecider-small-td-GGUF@Q8_0:Q4_K_M"]]
+        "hf.co/manjunathshiva/opendecider-small-td-GGUF@Q8_0:Q4_K_M", "lmstudio:hf.co/manjunathshiva/opendecider-small-td-GGUF"]]
     letters = []
     for names, top in [
         (["billing", "tech"], [{"token": "A", "logprob": -0.1}, {"token": " A", "logprob": -3.0},

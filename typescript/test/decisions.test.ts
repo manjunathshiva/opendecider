@@ -320,9 +320,12 @@ describe("Guard", () => {
     expect(new Guard({ model: "lmstudio:opendecider-small@q8_0" }).thresholds()).toEqual(both(0.5119));
     expect(new Guard({ model: "lmstudio:opendecider-small-GGUF@q8_0" }).thresholds()).toEqual(both(0.5119));
     expect(new Guard({ model: "lmstudio:opendecider-small-td-gguf" }).thresholds()).toEqual(both(0.5)); // which build?
+    expect(new Guard({ model: "lmstudio:hf.co/manjunathshiva/opendecider-small-td-GGUF" }).thresholds()).toEqual(
+      both(0.5),
+    );
     for (const [name, t] of [
       ["hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0", 0.5056],
-      ["hf.co/manjunathshiva/opendecider-small-td-GGUF", 0.5568],
+      ["hf.co/manjunathshiva/opendecider-small-td-GGUF", 0.5], // no tag: which build?
       ["opendecider-small-mlx-4bit", 0.5467],
       ["hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", 0.5],
     ] as const) {
