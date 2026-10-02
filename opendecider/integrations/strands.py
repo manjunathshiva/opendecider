@@ -70,17 +70,17 @@ class GuardrailHook:
 
     def register_hooks(self, registry, **kwargs) -> None:
         from strands.hooks import BeforeInvocationEvent, MessageAddedEvent
-        if "cancel" in getattr(BeforeInvocationEvent, "__dataclass_fields__", {}):
+        if "cancel" in getattr(BeforeInvocationEvent, "__dataclass_fields__", {}):   # Strands 1.43 and later
             registry.add_callback(BeforeInvocationEvent, self._before_invocation)
         else:   # older Strands: no way to cancel, so a blocked message stops the run
             registry.add_callback(MessageAddedEvent, self._message_added)
 
-    def _before_invocation(self, event) -> None:
+    async def _before_invocation(self, event) -> None:   # async: the model runs off the event loop
         text = _user_text(event.messages)
-        if text and not self.guard.check(text).passed:
+        if text and not (await self.guard.acheck(text)).passed:
             event.cancel = self.message
 
-    def _message_added(self, event) -> None:
+    def _message_added(self, event) -> None:   # sync: Strands before 1.16 does not await async callbacks
         text = _user_text([event.message])
         if text:
             self.guard.enforce(text)

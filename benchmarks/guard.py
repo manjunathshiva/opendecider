@@ -130,14 +130,39 @@ def _keep(answers):
 SETUPS = {"single": ("text", SINGLE), "preset": ("prompt", PRESET), "attack": ("prompt", ATTACK)}
 
 
+def _rows(path) -> list[dict]:
+    """The records in a results file. A run killed mid-write can leave a partial last line: it is skipped (and `run`
+    removes it before resuming); an unreadable line anywhere else is an error."""
+    if not path.exists():
+        return []
+    lines = path.read_text().splitlines()
+    rows = []
+    for n, line in enumerate(lines):
+        if not line.strip():
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            if n != len(lines) - 1:
+                raise ValueError(f"{path}: line {n + 1} is not JSON") from None
+    return rows
+
+
+def _drop_partial_line(path) -> None:
+    """Cut a partial last line (from a run killed mid-write), so resumed records start on a line of their own."""
+    if path.exists():
+        text = path.read_text()
+        if text and not text.endswith("\n"):
+            path.write_text(text[:text.rfind("\n") + 1])
+
+
 def run(model_name, name, batch=16, split="test", setups=("single", "preset", "attack")):
     """Score every item in batches (each library's own batch call), then time single calls on a fixed sample."""
     out = RESULTS if split == "test" else RESULTS / split
     out.mkdir(parents=True, exist_ok=True)
     path = out / f"{name}.jsonl"
-    done = set()
-    if path.exists():
-        done = {(r["set"], r["i"], r["setup"]) for r in map(json.loads, path.read_text().splitlines()) if r}
+    _drop_partial_line(path)
+    done = {(r["set"], r["i"], r["setup"]) for r in _rows(path)}
     model = get(model_name)
     todo = list(items(split))
     with path.open("a") as f:
@@ -167,7 +192,7 @@ def _hardware():
         import torch
         if torch.cuda.is_available():
             return f"{torch.cuda.device_count()}x {torch.cuda.get_device_name(0)}"
-    except ImportError:
+    except ImportError:   # no torch here: describe the CPU instead
         pass
     return f"{platform.system()} {platform.machine()} ({platform.processor() or 'cpu'})"
 
@@ -187,6 +212,8 @@ def signal(setup, p):
 def auroc(scores, gold):
     pos = [s for s, g in zip(scores, gold) if g]
     neg = [s for s, g in zip(scores, gold) if not g]
+    if not pos or not neg:   # one class only: AUROC is undefined
+        return float("nan")
     return sum((a > b) + 0.5 * (a == b) for a in pos for b in neg) / (len(pos) * len(neg))
 
 
@@ -205,7 +232,7 @@ def report():
         print("| model | set | accuracy (95% CI) | attacks caught | benign flagged | F1 | AUROC |")
         print("|---|---|---|---|---|---|---|")
         for path in sorted(RESULTS.glob("*.jsonl")):
-            rs = {(r["set"], r["i"]): r for r in map(json.loads, path.read_text().splitlines())
+            rs = {(r["set"], r["i"]): r for r in _rows(path)
                   if r and r["setup"] == setup}
             for ds in sets + ["all"]:
                 keys = [k for k in gold if (ds == "all" or k[0] == ds)]
@@ -223,8 +250,7 @@ def report():
 
 
 def _attack_signals(path):
-    rows = map(json.loads, path.read_text().splitlines()) if path.exists() else []
-    return {(r["set"], r["i"]): signal("attack", r["p"]) for r in rows if r and r["setup"] == "attack"}
+    return {(r["set"], r["i"]): signal("attack", r["p"]) for r in _rows(path) if r["setup"] == "attack"}
 
 
 def balanced(sig, gold, t, ds):

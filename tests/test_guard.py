@@ -229,12 +229,31 @@ def test_each_check_is_an_opentelemetry_span(spans):
     assert (g.attributes["opendecider.prompts"], g.attributes["opendecider.flagged"]) == (2, 1)
 
 
-def test_the_default_checks_are_the_benchmarked_questions():
-    """The published accuracy and the measured thresholds hold only for the exact questions benchmarks/guard.py asked."""
+def _benchmark():
     import importlib.util
     from pathlib import Path
     path = Path(__file__).resolve().parent.parent / "benchmarks" / "guard.py"
     spec = importlib.util.spec_from_file_location("benchmark_guard", path)
     bench = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(bench)
+    return bench
+
+
+def test_the_default_checks_are_the_benchmarked_questions():
+    """The published accuracy and the measured thresholds hold only for the exact questions benchmarks/guard.py asked."""
+    bench = _benchmark()
     assert {name: q["instructions"] for name, q in bench.ATTACK.items()} == ATTACK_CHECKS
+
+
+def test_benchmark_results_survive_a_run_killed_mid_write(tmp_path):
+    bench = _benchmark()
+    f = tmp_path / "r.jsonl"
+    f.write_text('{"set": "a", "i": 0}\n{"set": "a", "i": 1}\n{"set": "a", "i"')   # killed mid-line
+    assert [r["i"] for r in bench._rows(f)] == [0, 1]   # the partial last line is skipped
+    bench._drop_partial_line(f)
+    assert f.read_text() == '{"set": "a", "i": 0}\n{"set": "a", "i": 1}\n'   # resumed records start on a new line
+    f.write_text('{"set": "a", "i": 0}\nnot json\n{"set": "a", "i": 2}\n')
+    with pytest.raises(ValueError, match="line 2 is not JSON"):   # corruption elsewhere is an error
+        bench._rows(f)
+    assert bench._rows(tmp_path / "missing.jsonl") == []
+    assert bench.auroc([0.9, 0.8], [1, 1]) != bench.auroc([0.9, 0.8], [1, 1])   # one class: NaN, not a crash

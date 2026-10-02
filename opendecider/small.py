@@ -18,7 +18,9 @@ class SmallModel:
     def __init__(self, adapter_path: str, base: str, device: str, device_map: str | None = None):
         try:
             from peft import PeftModel
-        except ImportError as e:
+        except ModuleNotFoundError as e:
+            if e.name != "peft":   # peft is there but something it imports is not: report that as it is
+                raise
             raise ImportError('opendecider-small, -small-td, -medium-td and -large-td need peft: '
                               'pip install "opendecider[small]"') from e
         from transformers import AutoModelForCausalLM, AutoTokenizer
