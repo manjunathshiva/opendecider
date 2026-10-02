@@ -51,8 +51,8 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.12'
-      - name: Install build tooling
-        run: python -m pip install --upgrade build twine
+      - name: Install build tooling (hash-locked; regenerate with the command in requirements-release.in)
+        run: python -m pip install --require-hashes -r .github/requirements-release.txt
       - name: Build
         run: python -m build
       - name: Check distribution metadata
@@ -90,6 +90,50 @@ jobs:
           name: dist
           path: dist/*
           if-no-files-found: error
+
+  attach:
+    name: Sign and attach to the GitHub Release
+    # Apart from publish-pypi, so a signing problem never holds up the PyPI release.
+    needs: [release, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # upload the release assets
+      id-token: write       # Sigstore keyless signing
+      attestations: write   # GitHub build provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: dist
+          path: dist/
+      - name: Build provenance (verify with `gh attestation verify <file> --repo manjunathshiva/opendecider`)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-path: dist/*
+      - name: Sigstore signatures (<file>.sigstore.json)
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9  # v3.5.0
+        with:
+          inputs: dist/*.whl dist/*.tar.gz
+          release-signing-artifacts: false   # attached below with the rest
+      - name: Collect what the SBOM covers (the wheel and the hash-locked dependencies of the CPU image)
+        run: mkdir sbom-src && cp dist/*.whl docker/requirements-cpu.txt sbom-src/
+      - name: SBOM (SPDX)
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26  # v0.24.2
+        with:
+          path: sbom-src
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Attach to the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          cp sbom.spdx.json "opendecider-${TAG#v}.spdx.json"
+          gh release upload "$TAG" dist/* "opendecider-${TAG#v}.spdx.json" --clobber --repo "$GITHUB_REPOSITORY"
 
   publish-pypi:
     name: Publish to PyPI (OIDC)
