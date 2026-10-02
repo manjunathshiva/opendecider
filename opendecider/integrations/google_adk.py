@@ -25,13 +25,14 @@ from typing import Any, AsyncGenerator
 from pydantic import ConfigDict, Field, PrivateAttr
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 try:
     from google.adk.agents import BaseAgent
     from google.adk.tools import FunctionTool
 except ImportError as e:   # pragma: no cover
-    raise ImportError('the Google ADK integration needs: pip install "opendecider[google-adk]"') from e
+    raise ImportError(f"the Google ADK integration needs: {_install_hint('google-adk')}") from e
 
 
 def decision_tools(model: Any = core.DEFAULT_MODEL) -> list:

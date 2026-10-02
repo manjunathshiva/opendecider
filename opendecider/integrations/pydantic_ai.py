@@ -18,13 +18,14 @@ from __future__ import annotations
 from typing import Any
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 try:
     from pydantic_ai import ModelRetry, Tool
     from pydantic_ai.toolsets import FunctionToolset
 except ImportError as e:   # pragma: no cover
-    raise ImportError('the PydanticAI integration needs: pip install "opendecider[pydantic-ai]"') from e
+    raise ImportError(f"the PydanticAI integration needs: {_install_hint('pydantic-ai')}") from e
 
 DecisionRouter = core.Router   # route names for your own code or a graph's nodes
 

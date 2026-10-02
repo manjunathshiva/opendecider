@@ -11,6 +11,23 @@ format and, from 0.4.0, the agent-facing surfaces: the MCP server's tool names, 
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [Unreleased]
+
+### Added
+
+- `opendecider-client`: OpenDecider without PyTorch. The same package (`import opendecider`, routers, tools, the guard,
+  the MCP server and every framework extra), built by `packaging/build_client.py` without torch, transformers and the
+  local-model extras, for models served by `opendecider serve`, Ollama, LM Studio or vLLM. Install it or
+  `opendecider`, not both. CI runs it in a clean environment against a live `opendecider serve`.
+
+### Changed
+
+- A model that needs a missing package now says what to install, instead of a bare `No module named ...`: in
+  `opendecider-client`, the full package (for a local model, `opendecider serve` or `bench-speed`); in `opendecider`,
+  the extra (`pip install "opendecider[mlx]"`). Such a load failure is logged as one line, without a traceback.
+- `import opendecider` warns when both `opendecider` and `opendecider-client` are installed: they share the same
+  files, so uninstalling either one removes them for both.
+
 ## [0.5.0] - 2026-10-02
 
 ### Added

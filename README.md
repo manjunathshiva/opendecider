@@ -37,6 +37,8 @@ pip install "opendecider[small]"     # adds peft for opendecider-small, -small-t
 pip install "opendecider[mlx]"       # Apple Silicon: the MLX 4-bit / 8-bit builds of opendecider-small
 pip install "opendecider[serve]"     # the HTTP server (Jev-compatible /v1/systemone)
 pip install "opendecider[mcp]"       # the MCP server, for AI assistants (Claude Code, Claude Desktop, Cursor)
+pip install opendecider-client       # no PyTorch, for a model served elsewhere: routers, tools and the guard
+pip install "opendecider-client[mcp]"  # ... and the MCP server (framework extras as for opendecider)
 # LM Studio / Ollama (GGUF builds) and vLLM: see "Run it in LM Studio or Ollama" below (no extra packages)
 ```
 
@@ -443,8 +445,8 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
-* **Beyond Python and PyTorch.** A client for `opendecider serve` that installs without PyTorch, a TypeScript client
-  with tools for Mastra and the Vercel AI SDK, and opendecider-nano as ONNX in the browser.
+* **Beyond Python and PyTorch.** `opendecider-client`, which installs without PyTorch, is done (next release); next are
+  a TypeScript client with tools for Mastra and the Vercel AI SDK, and opendecider-nano as ONNX in the browser.
 
 **Next**
 

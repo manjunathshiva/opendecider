@@ -7,9 +7,9 @@ name: Examples
 on:
   push:
     branches: [main]
-    paths: [opendecider/**, examples/**, pyproject.toml, .github/workflows/examples.yml]
+    paths: [opendecider/**, examples/**, packaging/**, pyproject.toml, .github/workflows/examples.yml]
   pull_request:
-    paths: [opendecider/**, examples/**, pyproject.toml, .github/workflows/examples.yml]
+    paths: [opendecider/**, examples/**, packaging/**, pyproject.toml, .github/workflows/examples.yml]
   workflow_dispatch:
 
 permissions:
@@ -61,8 +61,14 @@ jobs:
       - name: Mastra (TypeScript) through opendecider mcp
         working-directory: examples/agent_frameworks/mastra
         run: npm ci --ignore-scripts --no-audit --no-fund && node index.mjs   # no dependency runs install scripts
-      - name: serve_client.py against opendecider serve
+      - name: serve_client.py, production_router.py and opendecider-client against opendecider serve
         run: |
           opendecider serve --model manjunathshiva/opendecider-nano > serve.log 2>&1 &
           python examples/serve_client.py --wait 300 || { tail -50 serve.log; exit 1; }
           python examples/production_router.py http://127.0.0.1:8000 --otel || { tail -50 serve.log; exit 1; }
+          # opendecider-client, the PyTorch-free package, in a clean environment against the same server
+          python -m venv buildenv && buildenv/bin/python -m pip install --require-hashes -r .github/requirements-release.txt
+          buildenv/bin/python packaging/build_client.py --outdir client-dist
+          python -m venv client && client/bin/python -m pip install client-dist/*.whl
+          client/bin/python packaging/check_client.py http://127.0.0.1:8000 || { tail -50 serve.log; exit 1; }
+          client/bin/python examples/production_router.py http://127.0.0.1:8000 || { tail -50 serve.log; exit 1; }

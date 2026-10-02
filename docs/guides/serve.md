@@ -60,6 +60,31 @@ From Python, the MCP server and every agent framework integration, pass the serv
 same answers as in-process, and the client loads none. Set `OPENDECIDER_REMOTE_API_KEY` to the server's key. See
 [Production](agent-frameworks.md#production).
 
+### Without PyTorch: opendecider-client
+
+A process that only calls the server does not need PyTorch (about 2 GB) or transformers. `opendecider-client` is the
+same package, `import opendecider` included, built without them:
+
+```bash
+pip install opendecider-client                 # or "opendecider-client[langchain]", [mcp], ... as for opendecider
+```
+
+```python
+from opendecider import load
+from opendecider.guard import Guard
+from opendecider.integrations.langchain import DecisionRouter
+
+model = load("http://localhost:8000")          # every router, tool and guard takes the URL as model=
+route = DecisionRouter({"billing": "charges, refunds", "tech": "bugs"}, "Which team?", model="http://localhost:8000")
+guard = Guard(model="http://localhost:8000")   # the measured threshold of the served model applies
+```
+
+It cannot run a model on this machine: `load("manjunathshiva/opendecider-nano")` and `opendecider serve` say to
+install `opendecider` instead. Install one of the two packages, not both: they share the `opendecider` files (like
+opencv-python and opencv-python-headless), so uninstalling one removes them for the other. `import opendecider` warns
+when both are installed; to keep one, `pip uninstall -y opendecider-client && pip install --force-reinstall opendecider`
+(or the reverse). Ollama, LM Studio and vLLM models work too (`ollama:...`).
+
 | endpoint | what it does |
 |---|---|
 | `POST /v1/systemone` | one state, any number of typed questions (Jev's request and response shape) |

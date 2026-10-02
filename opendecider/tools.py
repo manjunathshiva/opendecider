@@ -131,8 +131,8 @@ class Decider:
                         self._model = self._loader(self.name, **self.load_kw)
                 except Exception as e:   # noqa: BLE001 -- remembered for LOAD_RETRY_S, then tried again
                     from .remote import ServerError
-                    if isinstance(e, ServerError):   # a server that is down or refusing: the message says it all
-                        log.error("could not load %s: %s", self.name, e)
+                    if isinstance(e, (ServerError, ImportError)):   # a server down or a package missing: the message
+                        log.error("could not load %s: %s", self.name, e)   # says it all, no traceback needed
                     else:
                         log.exception("could not load %s", self.name)
                     message = f"could not load model {self.name!r}: {type(e).__name__}: {e}"

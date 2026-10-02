@@ -5,8 +5,8 @@
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
-* **Beyond Python and PyTorch.** A client for `opendecider serve` that installs without PyTorch, a TypeScript client
-  with tools for Mastra and the Vercel AI SDK, and opendecider-nano as ONNX in the browser.
+* **Beyond Python and PyTorch.** `opendecider-client`, which installs without PyTorch, is done (next release); next are
+  a TypeScript client with tools for Mastra and the Vercel AI SDK, and opendecider-nano as ONNX in the browser.
 
 **Next**
 

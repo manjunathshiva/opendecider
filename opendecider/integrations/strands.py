@@ -16,12 +16,13 @@ from __future__ import annotations
 from typing import Any
 
 from .. import guard as guarding
+from .. import _install_hint
 from .. import tools as core
 
 try:
     from strands import tool
 except ImportError as e:   # pragma: no cover
-    raise ImportError('the Strands integration needs: pip install "opendecider[strands]"') from e
+    raise ImportError(f"the Strands integration needs: {_install_hint('strands')}") from e
 
 DecisionRouter = core.Router   # route names for your own code
 

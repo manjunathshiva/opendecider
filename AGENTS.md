@@ -36,6 +36,7 @@ HTTP server compatible with TypeSafe Jev's `/v1/systemone` protocol.
 | `opendecider/guard.py` | `tests/test_guard.py`; its framework hooks: `tests/test_guard_frameworks.py` (CrewAI and Strands in their own venv, as below); accuracy: `python benchmarks/guard.py report` |
 | `opendecider/integrations/` (LangChain, LangGraph, LlamaIndex) | `tests/test_integrations.py` |
 | `opendecider/integrations/` (Agno, CrewAI, Agent Framework, Google ADK, PydanticAI, Strands) | `tests/test_frameworks.py`; CrewAI and Strands pin `mcp` 1.x, so run them in a separate venv (`pip install crewai strands-agents`) |
+| `packaging/` (opendecider-client) | `tests/test_packaging.py`; CI's examples job installs the built client in a clean environment and runs `packaging/check_client.py` against `opendecider serve` |
 | `examples/` | run the script with opendecider-nano on CPU; CI runs them all |
 | `docs/`, `zensical.toml` | `pip install -r requirements-docs.txt && zensical build --strict --clean` |
 | `benchmarks/` | `python benchmarks/report.py` rebuilds every table from the committed results |

@@ -10,3 +10,8 @@ site/
 
 # Node examples
 node_modules/
+
+# opendecider-client builds and the environments CI uses to test them (packaging/, examples.yml)
+/client-dist/
+/buildenv/
+/client/
