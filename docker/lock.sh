@@ -3,9 +3,10 @@
 # Run from the repository root after changing dependencies, or to pick up new releases:  bash docker/lock.sh
 #
 #   requirements-cpu.txt   python:3.14-slim, torch from PyTorch's CPU index; linux amd64 and arm64 (both wheels' hashes)
-#   requirements-cuda.txt  pytorch/pytorch (CUDA 12.8, Python 3.12): what OpenDecider adds, locked against the base
-#                          image's own packages (docker/cuda-base-packages.txt); its torch and the packages only torch
-#                          needs are left out, so the image keeps its CUDA build of torch
+#   requirements-cuda.txt  pytorch/pytorch (CUDA 12.8, Python 3.12): what OpenDecider adds, locked together with the
+#                          base image's own packages (docker/cuda-base-packages.txt) at the newest versions they all
+#                          accept; its torch and the packages only torch needs are left out, so the image keeps its CUDA
+#                          build of torch
 set -euo pipefail
 cd "$(dirname "$0")/.."
 TORCH_CUDA="2.11.0"   # the torch in docker/Dockerfile.cuda's base image
@@ -17,14 +18,17 @@ cpu=(--index-url https://pypi.org/simple --extra-index-url https://download.pyto
 
 "${lock[@]}" "${cpu[@]}" --python-platform x86_64-manylinux_2_28 -o "$tmp/amd64.txt"
 "${lock[@]}" "${cpu[@]}" --python-platform aarch64-manylinux_2_28 -o "$tmp/arm64.txt"
-# the base image's packages as constraints, apart from its CUDA stack (its torch is a +cu128 build that is not on PyPI,
-# so it is constrained by version, and PyPI's torch of that version declares other CUDA libraries; both are left to the
-# base image below anyway)
-grep -vE '^(#|nvidia-|cuda-|triton)' docker/cuda-base-packages.txt | sed -E 's/^torch==([0-9.]+)\+.*/torch==\1/' \
-    > "$tmp/torch.txt"
-grep -q "^torch==$TORCH_CUDA$" "$tmp/torch.txt" || { echo "docker/cuda-base-packages.txt is not torch $TORCH_CUDA" >&2; exit 1; }
-"${lock[@]}" --python-version 3.12 --python-platform x86_64-manylinux_2_28 --constraint "$tmp/torch.txt" \
-    -o "$tmp/cuda.txt"
+# The base image's packages are locked with ours, as minimum versions: each resolves to the newest release that every
+# package in the image accepts (its own tools' bounds included), so a security fix in a shared package is picked up and
+# nothing the base image ships is broken. Its CUDA stack is left out (the NVIDIA libraries, triton, and its +cu128 builds
+# of torch, torchaudio and torchvision): its torch is not on PyPI (constrained by version instead), and PyPI's torch of
+# that version declares other CUDA libraries.
+grep -q "^torch==$TORCH_CUDA+" docker/cuda-base-packages.txt || {
+    echo "docker/cuda-base-packages.txt is not torch $TORCH_CUDA" >&2; exit 1; }
+grep -vE '^(#|nvidia-|cuda-|triton|torch==)|\+' docker/cuda-base-packages.txt | sed 's/==/>=/' > "$tmp/base.in"
+echo "torch==$TORCH_CUDA" > "$tmp/torch.txt"
+"${lock[@]}" "$tmp/base.in" --python-version 3.12 --python-platform x86_64-manylinux_2_28 \
+    --constraint "$tmp/torch.txt" -o "$tmp/cuda.txt"
 
 python3 - "$tmp" <<'PY'
 import re, sys
@@ -61,7 +65,7 @@ for line in open(f"{tmp}/cuda.txt").read().split("\n"):
     body = s.lstrip("#").strip()
     if body.startswith("via"):
         body = body[3:].strip()
-    if "pyproject.toml" in body or body.startswith(("-r", "-c")) or "build.in" in body or "torch.txt" in body:
+    if "pyproject.toml" in body or body.startswith(("-r", "-c")) or any(f in body for f in ("build.in", "base.in", "torch.txt")):
         cur["via"].add("<root>")
     elif body:
         cur["via"].add(body.split()[0].lower())

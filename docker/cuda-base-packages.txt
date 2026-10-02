@@ -1,27 +1,23 @@
-# The packages already installed in docker/Dockerfile.cuda's base image (pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime,
-# the digest in the Dockerfile). docker/lock.sh locks requirements-cuda.txt against them, so what OpenDecider adds keeps
-# the versions the base image's own tools need. Regenerate after changing the base image:
-#   docker run --rm --entrypoint python3 <base image> -m pip list --format=freeze > docker/cuda-base-packages.txt
+# The Python packages pip installed in docker/Dockerfile.cuda's base image (pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime,
+# the digest in the Dockerfile); the ones Ubuntu's apt manages (/usr/lib/python3/dist-packages) are left to apt.
+# docker/lock.sh locks requirements-cuda.txt together with them. Regenerate after changing the base image:
+#   docker run --rm --entrypoint python3 <base image> -m pip list --format=freeze \
+#     --path /usr/local/lib/python3.12/dist-packages > docker/cuda-base-packages.txt
 asttokens==3.0.1
-blinker==1.7.0
 build==1.4.0
 certifi==2026.2.25
 charset-normalizer==3.4.6
 click==8.3.1
 cmake==4.2.3
-cryptography==41.0.7
 cuda-bindings==12.9.4
 cuda-pathfinder==1.2.2
 cuda-toolkit==12.8.1
-dbus-python==1.3.2
 decorator==5.2.1
-distro==1.9.0
 dnspython==2.8.0
 executing==2.2.1
 expecttest==0.3.0
 filelock==3.25.2
 fsspec==2026.2.0
-httplib2==0.20.4
 hypothesis==6.151.9
 idna==3.11
 importlib_metadata==9.0.0
@@ -29,9 +25,6 @@ ipython==9.11.0
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2
 Jinja2==3.1.6
-launchpadlib==1.11.0
-lazr.restfulclient==0.14.6
-lazr.uri==1.0.6
 lintrunner==0.13.0
 MarkupSafe==3.0.3
 matplotlib-inline==0.2.1
@@ -54,7 +47,6 @@ nvidia-nccl-cu12==2.28.9
 nvidia-nvjitlink-cu12==12.8.93
 nvidia-nvshmem-cu12==3.4.5
 nvidia-nvtx-cu12==12.8.90
-oauthlib==3.2.2
 optree==0.19.0
 packaging==26.0
 parso==0.8.6
@@ -66,9 +58,6 @@ psutil==7.2.2
 ptyprocess==0.7.0
 pure_eval==0.2.3
 Pygments==2.19.2
-PyGObject==3.48.2
-PyJWT==2.7.0
-pyparsing==3.1.1
 pyproject_hooks==1.2.0
 python-etcd==0.4.5
 PyYAML==6.0.3
@@ -77,7 +66,6 @@ setuptools==81.0.0
 six==1.17.0
 sortedcontainers==2.4.0
 spin==0.17
-ssh-import-id==5.11
 stack-data==0.6.3
 sympy==1.14.0
 torch==2.11.0+cu128
@@ -89,7 +77,6 @@ triton==3.6.0
 typing_extensions==4.15.0
 urllib3==2.6.3
 uv==0.10.12
-wadllib==1.3.6
 wcwidth==0.6.0
 wheel==0.46.3
 zipp==3.23.0

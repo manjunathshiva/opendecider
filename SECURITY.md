@@ -78,3 +78,8 @@ published advisories and no fixed release yet: `nltk` (through `llama-index-core
 `chromadb` (through `crewai`, `opendecider[crewai]`). OpenDecider calls neither; they come with the frameworks
 themselves. Dependabot picks up fixes when they ship.
 
+**The CUDA image keeps setuptools 81.** Its base image's torch (2.11) requires `setuptools<82`, so the fix for
+PYSEC-2026-3447 (setuptools 83) cannot be installed alongside it. That advisory concerns building source distributions
+on macOS file systems; the image runs the server and builds nothing. It moves to a fixed setuptools with the next
+base-image update that allows one.
+
