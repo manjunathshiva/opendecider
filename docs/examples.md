@@ -29,7 +29,7 @@ python examples/support_triage.py
 One script per framework, in
 [examples/agent_frameworks/](https://github.com/manjunathshiva/opendecider/tree/main/examples/agent_frameworks). Each
 runs without an LLM API key; [Agent frameworks](guides/agent-frameworks.md) explains each integration. They need
-opendecider 0.4.0 or later: `pip install "opendecider[agno]>=0.4.0"`, with the extra each script needs.
+opendecider 0.5.0 or later: `pip install "opendecider[agno]>=0.5.0"`, with the extra each script needs.
 
 | script | framework | what it shows |
 |---|---|---|
