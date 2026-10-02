@@ -48,17 +48,21 @@ BLOCKED_MESSAGE = "Sorry, I can't help with that request."   # the agent's answe
 
 def _threshold_key(name: str) -> str:
     """A model name as THRESHOLDS keys it: the last path segment, lowercased, with a GGUF build's quantisation.
-    "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0" -> "opendecider-small-td-gguf:q8_0" (with no tag,
-    Ollama runs a GGUF repo's Q4_K_M), LM Studio's "opendecider-small@q8_0" -> "opendecider-small-gguf:q8_0", and
-    "manjunathshiva/opendecider-small-mlx-4bit" -> "opendecider-small-mlx-4bit"."""
+    "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0" -> "opendecider-small-td-gguf:q8_0", LM Studio's
+    "opendecider-small@q8_0" -> "opendecider-small-gguf:q8_0", "manjunathshiva/opendecider-small-mlx-4bit" ->
+    "opendecider-small-mlx-4bit". A named quantisation wins (an LM Studio variant, then an Ollama tag). Without one,
+    only Ollama's form for a Hub repo (hf.co/...) says which build runs, its Q4_K_M; any other GGUF name keys no
+    build, so it uses 0.5 rather than another build's threshold."""
     scheme, sep, rest = name.partition(":")
     if sep and scheme in ("ollama", "lmstudio", "openai"):
         name = rest
-    name, at, variant = name.rsplit("/", 1)[-1].lower().partition("@")
-    name, _, tag = name.partition(":")
-    if name.endswith("-gguf"):
-        return f"{name}:{tag if tag and tag != 'latest' else 'q4_k_m'}"
-    return f"{name}-gguf:{variant}" if at and variant else name
+    hub = name.lower().startswith(("hf.co/", "huggingface.co/"))
+    name, _, variant = name.rsplit("/", 1)[-1].lower().partition("@")
+    base, _, tag = name.partition(":")
+    quant = variant or (tag if tag != "latest" else "")
+    if base.endswith("-gguf"):
+        return f"{base}:{quant}" if quant else f"{base}:q4_k_m" if hub else base
+    return f"{base}-gguf:{variant}" if variant else base
 
 
 @dataclass(frozen=True)

@@ -67,9 +67,11 @@ def test_a_quantised_build_uses_its_own_measured_threshold():
                       ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M", "opendecider-small-td-gguf:q4_k_m"),
                       ("hf.co/manjunathshiva/opendecider-small-td-GGUF", "opendecider-small-td-gguf:q4_k_m"),
                       ("opendecider-small@q8_0", "opendecider-small-gguf:q8_0"),
+                      ("opendecider-small-GGUF@q8_0", "opendecider-small-gguf:q8_0"),   # the variant, not Q4_K_M
                       ("opendecider-small-mlx-4bit", "opendecider-small-mlx-4bit")]:
         assert make(name)[0].thresholds() == {k: t[key] for k in ATTACK_CHECKS}, name
-    for name in ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", "opendecider-medium-td"):   # not measured
+    for name in ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", "opendecider-medium-td",   # not measured
+                 "opendecider-small-td-gguf"):   # a GGUF name that does not say which build: no build's threshold
         assert make(name)[0].thresholds() == {k: 0.5 for k in ATTACK_CHECKS}, name
     lazy = Guard(model="ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M")   # before it is loaded, too
     assert lazy.thresholds() == {k: t["opendecider-small-td-gguf:q4_k_m"] for k in ATTACK_CHECKS}
@@ -78,6 +80,14 @@ def test_a_quantised_build_uses_its_own_measured_threshold():
     assert make(q4, threshold={"jailbreak": 0.6})[0].thresholds() == {
         "jailbreak": 0.6, "prompt_injection": t["opendecider-small-td-gguf:q4_k_m"]}
     assert make(q4, checks={"pii": "Does `prompt` contain a phone number?"})[0].thresholds() == {"pii": 0.5}
+
+
+def test_a_builds_threshold_is_never_below_its_models_or_the_default():
+    # so a name that does not say which build runs (its model's threshold, or 0.5) flags at least as much as the build
+    for key, t in guard_module.THRESHOLDS.items():
+        base = key.split(":")[0].removesuffix("-gguf").removesuffix("-mlx-4bit").removesuffix("-mlx-8bit")
+        if base != key:
+            assert t >= max(guard_module.THRESHOLDS[base], guard_module.DEFAULT_THRESHOLD), key
 
 
 def test_a_threshold_is_inclusive():

@@ -140,7 +140,10 @@ def main() -> dict:
         "opendecider-small-td-GGUF:", "ollama:opendecider-small-td:latest", "lmstudio:opendecider-small@q8_0",
         "opendecider-small-td@Q4_K_M", "opendecider-small@", "manjunathshiva/opendecider-small-mlx-4bit",
         "openai:opendecider-small-mlx-8bit", "opendecider-medium-td", "http://localhost:8000", "ollama:", ":x", "",
-        "a@b:c", "a:b@c", "toString", "__proto__"]]
+        "a@b:c", "a:b@c", "toString", "__proto__", "opendecider-small-GGUF@q8_0", "lmstudio:opendecider-small-td-gguf",
+        "opendecider-small-td-gguf:latest", "HF.CO/manjunathshiva/opendecider-small-GGUF",
+        "ollama:huggingface.co/manjunathshiva/opendecider-small-td-GGUF:latest",
+        "hf.co/manjunathshiva/opendecider-small-td-GGUF@Q8_0:Q4_K_M"]]
     letters = []
     for names, top in [
         (["billing", "tech"], [{"token": "A", "logprob": -0.1}, {"token": " A", "logprob": -3.0},

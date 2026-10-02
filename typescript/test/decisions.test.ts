@@ -318,6 +318,8 @@ describe("Guard", () => {
     });
     expect(new Guard({ model: q4, checks: { x: "Is `prompt` odd?" } }).thresholds()).toEqual({ x: 0.5 });
     expect(new Guard({ model: "lmstudio:opendecider-small@q8_0" }).thresholds()).toEqual(both(0.5119));
+    expect(new Guard({ model: "lmstudio:opendecider-small-GGUF@q8_0" }).thresholds()).toEqual(both(0.5119));
+    expect(new Guard({ model: "lmstudio:opendecider-small-td-gguf" }).thresholds()).toEqual(both(0.5)); // which build?
     for (const [name, t] of [
       ["hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0", 0.5056],
       ["hf.co/manjunathshiva/opendecider-small-td-GGUF", 0.5568],

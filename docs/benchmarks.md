@@ -115,7 +115,9 @@ far more benign prompts; at its own threshold it screens as well as the full mod
 
 The guard uses each build's threshold when the model name says which build it is: an Ollama name with its tag
 (`hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M`; with no tag Ollama runs Q4_K_M), an LM Studio name with its
-variant (`opendecider-small-td@q4_k_m`), or the MLX build's name. Averaged per dataset (balanced accuracy), the
+variant (`opendecider-small-td@q4_k_m`), or the MLX build's name. A name that does not say (an LM Studio model loaded
+without its variant in the name, or a GGUF given a plain name in Ollama) gets its model's threshold or 0.5, both at or
+below every build's, so it flags more rather than less. Averaged per dataset (balanced accuracy), the
 builds' thresholds and 0.5 are within 0.005 of each other except small's Q4_K_M (0.885 vs 0.853); the totals move
 more because two thirds of the test prompts are benign (1,589 of 2,438, 1,410 of them in safeguard), and a 4-bit
 build's extra flags at 0.5 fall on them.
