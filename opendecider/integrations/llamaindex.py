@@ -7,10 +7,12 @@
     tools = decision_tools()                                  # decide, choose, yes_no, score as FunctionTools
 
     engine = RouterQueryEngine(selector=DecisionSelector(), query_engine_tools=[sql_tool, docs_tool])
+    engine = RouterQueryEngine(selector=DecisionMultiSelector(), query_engine_tools=[sql_tool, docs_tool, web_tool])
 
 `DecisionSelector` picks one query engine from the tools' descriptions in a single forward pass, in place of an LLM
-selector. The model loads on the first call (pass a model name, or an `OpenDecider` you already loaded). Answers are the
-same as the MCP server's: a probability for every option and a calibrated `confidence`.
+selector; `DecisionMultiSelector` picks every engine likely to help (the router then combines their answers). The model
+loads on the first call (pass a model name, or an `OpenDecider` you already loaded). Answers are the same as the MCP
+server's: a probability for every option and a calibrated `confidence`.
 """
 from __future__ import annotations
 
@@ -24,6 +26,7 @@ except ImportError as e:   # pragma: no cover
     raise ImportError('the LlamaIndex integration needs: pip install "opendecider[llamaindex]"') from e
 
 from .. import tools as core
+from ..questions import Noul
 
 
 log = logging.getLogger("opendecider.integrations.llamaindex")
@@ -107,3 +110,45 @@ class DecisionSelector(BaseSelector):
 
     def _update_prompts(self, prompts: dict) -> None:
         pass
+
+
+class DecisionMultiSelector(DecisionSelector):
+    """Selects every query engine (or tool) likely to help answer a query, for a RouterQueryEngine that combines their
+    answers. Each choice gets its own yes/no question ("would this source help?"), all answered in one forward pass, so
+    each has its own probability rather than a share of one.
+
+    min_probability: select the choices whose probability reaches this; at least the most likely one is selected.
+    max_outputs: at most this many, the most likely first (None: no limit).
+    model, max_description_chars: as for `DecisionSelector`. `.last` holds the last query's {choice: probability}.
+    """
+
+    def __init__(self, model: Any = core.DEFAULT_MODEL, min_probability: float = 0.5, max_outputs: int | None = None,
+                 max_description_chars: int = 400):
+        if not 0 < min_probability <= 1:
+            raise ValueError(f"min_probability must be above 0 and at most 1 (got {min_probability})")
+        if max_outputs is not None and max_outputs < 1:
+            raise ValueError(f"max_outputs must be at least 1 (got {max_outputs})")
+        super().__init__(model, max_description_chars=max_description_chars)
+        self.min_probability, self.max_outputs = min_probability, max_outputs
+        self.last: dict | None = None   # concurrent queries overwrite it
+
+    def _select(self, choices: Sequence, query) -> SelectorResult:
+        if not choices:
+            raise ValueError("no choices to select from")
+        labels = core._unique_labels([(c.name or "").strip() or f"option {i + 1}" for i, c in enumerate(choices)])
+        cap = self.max_description_chars
+        questions = {}
+        for label, c in zip(labels, choices):
+            about = f"{label}: {(c.description or '')[:cap]}" if c.description else label
+            questions[label] = Noul(f"Would this source help answer the query? Source: {about}")
+        text = query.query_str if hasattr(query, "query_str") else str(query)
+        answers = self.decider.system_one(text, questions)["answers"]
+        probs = {label: float(answers[label]["noul"]) for label in labels}
+        self.last = probs
+        ranked = sorted(range(len(labels)), key=lambda i: -probs[labels[i]])
+        picked = [i for i in ranked if probs[labels[i]] >= self.min_probability] or ranked[:1]
+        if self.max_outputs is not None:
+            picked = picked[:self.max_outputs]
+        return SelectorResult(selections=[SingleSelection(
+            index=i, reason=f"OpenDecider: {labels[i]!r} would help with probability {probs[labels[i]]:.3f}")
+            for i in picked])

@@ -6,6 +6,9 @@ The code in this repository is licensed under the Apache License, Version 2.0 (L
 Model weights
 - opendecider-nano: fine-tuned from Ettin-encoder-400m (jhu-clsp/ettin-encoder-400m, MIT).
 - opendecider-small: LoRA adapter for Qwen3-4B-Instruct-2507 (Qwen/Qwen3-4B-Instruct-2507, Apache-2.0).
+- opendecider-small-td: LoRA adapter for Qwen3-4B-Instruct-2507 (Qwen/Qwen3-4B-Instruct-2507, Apache-2.0).
+- opendecider-medium-td: LoRA adapter for Qwen3-30B-A3B-Instruct-2507 (Qwen/Qwen3-30B-A3B-Instruct-2507, Apache-2.0).
+- opendecider-large-td: LoRA adapter for Qwen3-Next-80B-A3B-Instruct (Qwen/Qwen3-Next-80B-A3B-Instruct, Apache-2.0).
 
 Training data (used for training only; no dataset text is redistributed)
 - knowledgator/gliclass-v2.0 (Apache-2.0)
@@ -25,3 +28,9 @@ Training data (used for training only; no dataset text is redistributed)
   Qwen3-30B-A3B-Instruct-2507 (Apache-2.0)
 
 Teacher models (soft labels): Qwen3-235B-A22B-Instruct-2507 (Apache-2.0), DeepSeek V4.1 Flash (MIT).
+
+Third-party text
+- The prompt guard's default checks (opendecider/guard.py, ATTACK_CHECKS) are the two attack questions of Laya's guard
+  preset, and benchmarks/guard.py copies that preset and Laya's deepset question verbatim to compare with Laya. Laya:
+  https://github.com/NandhaKishorM/laya, Apache-2.0.
+

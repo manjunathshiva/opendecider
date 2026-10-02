@@ -39,6 +39,7 @@ jobs:
       - run: python examples/quickstart.py
       - run: python examples/support_triage.py
       - run: python examples/agent_guardrail.py
+      - run: python examples/prompt_guard.py --model manjunathshiva/opendecider-nano   # small-td is 4B: too big for CPU CI
       - run: python examples/confident_automation.py --limit 10
       - run: python examples/agent_frameworks/langgraph_router.py
       - run: python examples/agent_frameworks/llamaindex_selector.py

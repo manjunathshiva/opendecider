@@ -152,6 +152,102 @@ def test_llamaindex_selector_in_a_router_query_engine():
     assert r.ind == 1 and "probability" in r.reason
 
 
+
+def test_llamaindex_multi_selector_picks_every_helpful_source():
+    pytest.importorskip("llama_index.core")
+    from llama_index.core.base.response.schema import Response
+    from llama_index.core.llms.mock import MockLLM
+    from llama_index.core.query_engine import CustomQueryEngine, RouterQueryEngine
+    from llama_index.core.tools import QueryEngineTool, ToolMetadata
+    from opendecider.integrations.llamaindex import DecisionMultiSelector
+
+    class Relevance:
+        """'yes' gets 0.9 when the source's name is in the query, else 0.2; records the questions asked."""
+        def __init__(self):
+            self.calls = 0
+
+        def decide_many(self, items, info=None):
+            self.calls += 1
+            out = []
+            for state, question, _ in items:
+                name = question.split("Source: ")[1].split(":")[0]
+                p = 0.9 if name in state else 0.2
+                out.append({"yes": p, "no": 1 - p})
+                if info is not None:
+                    info.append({"input_tokens": 5, "truncated": False})
+            return out
+
+    class Echo(CustomQueryEngine):
+        label: str
+
+        def custom_query(self, query_str: str):
+            return Response(response=self.label)
+
+    tools = [QueryEngineTool(query_engine=Echo(label=n), metadata=ToolMetadata(name=n, description=d))
+             for n, d in (("sql", "sales figures"), ("docs", "manuals"), ("web", "news"))]
+    fake = Relevance()
+    selector = DecisionMultiSelector(model=decider(fake))
+    r = selector.select([t.metadata for t in tools], "compare sql totals with the docs")
+    assert sorted(r.inds) == [0, 1] and fake.calls == 1   # one forward pass for every source
+    assert selector.last == {"sql": 0.9, "docs": 0.9, "web": 0.2}
+    assert selector.select([t.metadata for t in tools], "nothing relevant").inds == [0]   # at least the most likely
+    assert DecisionMultiSelector(model=decider(fake), max_outputs=1).select(
+        [t.metadata for t in tools], "sql and docs and web").inds == [0]
+    engine = RouterQueryEngine(selector=selector, query_engine_tools=tools, llm=MockLLM())   # combines the answers
+    assert engine.query("what do sql and the web say?").metadata["selector_result"].inds in ([0, 2], [2, 0])
+    with pytest.raises(ValueError, match="min_probability"):
+        DecisionMultiSelector(model=decider(), min_probability=0)
+    with pytest.raises(ValueError, match="max_outputs"):
+        DecisionMultiSelector(model=decider(), max_outputs=0)
+
+
+def test_langchain_decision_runnable_answers_and_batches():
+    pytest.importorskip("langchain_core")
+    from langchain_core.documents import Document
+    from langchain_core.messages import HumanMessage
+    from opendecider.integrations.langchain import decision_runnable
+    from opendecider.questions import Choice, Noul
+    fake = Fake()
+    qs = {"team": Choice("Which team?", {"billing": "charges", "tech": "bugs"}), "urgent": Noul("Is it urgent?")}
+    triage = decision_runnable(qs, model=decider(fake))
+    a = triage.invoke("the tech dashboard is down")
+    assert a["team"]["choice"] == "tech" and "probability_yes" in a["urgent"]
+    assert triage.invoke([HumanMessage("refund my billing")])["team"]["choice"] == "billing"   # a message list
+    assert triage.invoke(Document(page_content="tech outage"))["team"]["choice"] == "tech"
+    keyed = decision_runnable(qs, model=decider(fake), key="body")
+    assert keyed.invoke({"body": "tech", "subject": "billing"})["team"]["choice"] == "tech"
+
+    fake.calls = 0
+    out = triage.batch(["billing please", "tech is down", "billing again"])
+    assert [o["team"]["choice"] for o in out] == ["billing", "tech", "billing"] and fake.calls == 1   # one call
+    out = keyed.batch([{"body": "tech"}, {"nobody": 1}], return_exceptions=True)
+    assert out[0]["team"]["choice"] == "tech" and isinstance(out[1], KeyError)   # each input gets its own result
+    with pytest.raises(KeyError):
+        keyed.batch([{"body": "tech"}, {"nobody": 1}])
+    assert asyncio.run(triage.abatch(["tech"]))[0]["team"]["choice"] == "tech"
+    with pytest.raises(ValueError, match="at least 2 options"):
+        decision_runnable({"q": Choice("Which?", ["only"])}, model=decider())   # checked when it is made
+
+
+def test_langchain_decision_evaluator_scores_runs():
+    pytest.importorskip("langchain_core")
+    from opendecider.integrations.langchain import decision_evaluator
+    yes_no = decision_evaluator("grounded", "Is `output` supported by `input`?", model=decider())
+    r = yes_no(inputs={"q": "2+2"}, outputs={"a": "4"})
+    assert r["key"] == "grounded" and 0 <= r["score"] <= 1 and "probability" in r["comment"]
+    rating = decision_evaluator("quality", "How good is `output`?", levels=["poor", "ok", "great"], model=decider())
+    r = rating(inputs={"q": "x"}, outputs={"a": "y"}, reference_outputs={"a": "y"})
+    assert r["value"] in ("poor", "ok", "great") and 0 <= r["score"] <= 1
+    with pytest.raises(ValueError):
+        decision_evaluator("bad", "How?", levels=["one"], model=decider())
+    langsmith = pytest.importorskip("langsmith")
+    import uuid
+
+    from langsmith.schemas import Example
+    data = [Example(id=uuid.uuid4(), dataset_id=uuid.uuid4(), inputs={"q": "2+2"}, outputs={"a": "4"})]
+    results = langsmith.evaluate(lambda inputs: {"answer": "4"}, data=data, evaluators=[yes_no], upload_results=False)
+    assert [e.key for r in results for e in r["evaluation_results"]["results"]] == ["grounded"]
+
 # ---- review fixes --------------------------------------------------------------------------------------------------
 
 def test_router_reads_text_from_content_blocks():

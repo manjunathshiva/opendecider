@@ -5,6 +5,7 @@
     from opendecider.integrations.agno import DecisionRouter, decision_toolkit
 
     agent = Agent(model=..., tools=[decision_toolkit()])        # decide, choose, yes_no, score
+    agent = Agent(model=..., pre_hooks=[guardrail()])          # block jailbreaks and prompt injection
 
     route = DecisionRouter({"billing": "charges, refunds", "tech": "bugs, outages"}, "Which team should handle this?",
                            fallback="human", min_confidence=0.6)
@@ -19,6 +20,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+from .. import guard as guarding
 from .. import tools as core
 
 
@@ -95,3 +97,43 @@ class DecisionRouter(core.Router):
             return [steps[self._decide_from(step_input, self._state).route]]
 
         return select
+
+
+_GUARDRAIL_CLASS = None
+
+
+def guardrail(guard: guarding.Guard | None = None, **settings):
+    """An Agno guardrail for `Agent(pre_hooks=[...])` (or a Team's): screens the input for jailbreaks and prompt
+    injection before the agent runs, and raises Agno's `InputCheckError` (trigger PROMPT_INJECTION, the GuardResult in
+    `additional_data`) when it is blocked.
+
+    guard: an `opendecider.guard.Guard`, or its settings as keywords (checks, model, threshold, on_error, on_decision).
+    """
+    global _GUARDRAIL_CLASS
+    if _GUARDRAIL_CLASS is None:
+        try:
+            from agno.exceptions import CheckTrigger, InputCheckError
+            from agno.guardrails import BaseGuardrail
+        except ImportError as e:   # pragma: no cover
+            raise ImportError('the Agno guardrail needs Agno 2.1 or later: pip install -U "agno>=2.1"') from e
+
+        class OpenDeciderGuardrail(BaseGuardrail):
+            """Screens an agent's input with an OpenDecider Guard."""
+
+            def __init__(self, guard: guarding.Guard):
+                self.guard = guard
+
+            @staticmethod
+            def _raise(result) -> None:
+                if not result.passed:
+                    raise InputCheckError(str(guarding.GuardrailError(result)),
+                                          check_trigger=CheckTrigger.PROMPT_INJECTION, additional_data=result.to_dict())
+
+            def check(self, run_input) -> None:
+                self._raise(self.guard.check(run_input.input_content_string()))
+
+            async def async_check(self, run_input) -> None:
+                self._raise(await self.guard.acheck(run_input.input_content_string()))
+
+        _GUARDRAIL_CLASS = OpenDeciderGuardrail
+    return _GUARDRAIL_CLASS(guarding.as_guard(guard, **settings))

@@ -5,6 +5,8 @@
     from opendecider.integrations.pydantic_ai import decision_toolset
 
     agent = Agent("openai:gpt-...", toolsets=[decision_toolset()])     # decide, choose, yes_no, score
+    agent = Agent("openai:gpt-...", capabilities=[guardrail_capability()])         # pydantic-ai 2.x: block attacks
+    agent = Agent("openai:gpt-...", history_processors=[guardrail_processor()])    # pydantic-ai 1.x
 
 Invalid input raises `ModelRetry` with what to fix, so the model corrects its call and tries again. To route a
 pydantic-graph or your own code, call `DecisionRouter` (the route name, or the fallback when unsure). The model loads on
@@ -15,6 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .. import guard as guarding
 from .. import tools as core
 
 try:
@@ -55,3 +58,43 @@ def decision_toolset(model: Any = core.DEFAULT_MODEL) -> FunctionToolset:
 
     return FunctionToolset([Tool(fn, takes_ctx=False, name=fn.__name__, description=core.DESCRIPTIONS[fn.__name__])
                             for fn in (decide, choose, yes_no, score)])
+
+
+def _prompt_text(message) -> str | None:
+    """The user's prompt in a model request, or None when the request carries none (tool results, retries)."""
+    texts = []
+    for part in getattr(message, "parts", None) or []:
+        if getattr(part, "part_kind", None) != "user-prompt":
+            continue
+        content = part.content
+        texts += [content] if isinstance(content, str) else [c for c in content if isinstance(c, str)]
+    return "\n".join(texts) if texts else None
+
+
+def guardrail_processor(guard: guarding.Guard | None = None, **settings):
+    """A history processor that screens each new user prompt for jailbreaks and prompt injection before the model
+    sees it, and raises GuardrailError (from `agent.run`) when it is blocked; the GuardResult goes to the guard's
+    `on_decision` hooks. Requests that carry no new prompt (tool results, retries) pass unchecked.
+    pydantic-ai 1.x: `Agent(..., history_processors=[guardrail_processor()])`; 2.x: `guardrail_capability()`.
+
+    guard: an `opendecider.guard.Guard`, or its settings as keywords (checks, model, threshold, on_error, on_decision).
+    """
+    screen = guarding.as_guard(guard, **settings)
+
+    async def guardrail(messages: list) -> list:
+        text = _prompt_text(messages[-1]) if messages else None
+        if text is not None:
+            await screen.aenforce(text)
+        return messages
+
+    return guardrail
+
+
+def guardrail_capability(guard: guarding.Guard | None = None, **settings):
+    """`guardrail_processor` as a pydantic-ai 2.x capability: `Agent(..., capabilities=[guardrail_capability()])`."""
+    try:
+        from pydantic_ai.capabilities import ProcessHistory
+    except ImportError as e:
+        raise ImportError("capabilities need pydantic-ai 2 or later; on 1.x use "
+                          "Agent(..., history_processors=[guardrail_processor()])") from e
+    return ProcessHistory(guardrail_processor(guard, **settings))

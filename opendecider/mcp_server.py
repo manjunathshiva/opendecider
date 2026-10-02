@@ -4,10 +4,11 @@
     opendecider mcp                                               # opendecider-nano over stdio
     claude mcp add opendecider -- opendecider mcp                 # register it with Claude Code
 
-Tools: `decide` (any number of typed questions about one state), and the shortcuts `choose`, `yes_no` and `score` for a
-single question (the shared core in `opendecider.tools`). Every answer has a probability for each option, so the calling
-agent can act on confident answers and ask the user about the rest. The model loads on the first call, so the client's
-handshake never waits for a download; inference runs one call at a time, off the event loop.
+Tools: `decide` (any number of typed questions about one state), the shortcuts `choose`, `yes_no` and `score` for a
+single question (the shared core in `opendecider.tools`), `decide_batch`, `status`, and `guard` (checks text for
+jailbreaks and prompt injection, with `opendecider.guard`). Every answer has a probability for each option, so the
+calling agent can act on confident answers and ask the user about the rest. The model loads on the first call, so the
+client's handshake never waits for a download; inference runs one call at a time, off the event loop.
 
 The server speaks MCP over stdio: stdout carries the protocol, and logs and download progress go to stderr.
 """
@@ -44,13 +45,14 @@ class Decider(tools.Decider):
 
 
 def build_server(decider: Decider):
-    """The MCP server with its six tools, around `decider` (tests pass a fake model through it)."""
+    """The MCP server with its seven tools, around `decider` (tests pass a fake model through it)."""
     import anyio
     from mcp.server.mcpserver import MCPServer
     from mcp.server.mcpserver.exceptions import ToolError
     from mcp.types import ToolAnnotations
 
     from . import __version__
+    from .guard import Guard
 
     server = MCPServer(name="opendecider", title="OpenDecider", version=__version__, instructions=INSTRUCTIONS,
                        website_url="https://manjunathshiva.github.io/opendecider/")
@@ -84,6 +86,13 @@ def build_server(decider: Decider):
     @server.tool(annotations=pure, description=tools.DESCRIPTIONS["decide_batch"])
     async def decide_batch(states: list[str | dict | list], questions: dict[str, dict]) -> dict[str, Any]:
         return await ask(tools.decide_batch, states, questions)
+
+    screen = Guard(model=decider)   # the default checks, at this model's measured threshold
+
+    @server.tool(annotations=pure, description=tools.DESCRIPTIONS["guard"])
+    async def guard(text: str) -> dict[str, Any]:
+        result = await anyio.to_thread.run_sync(screen.check, text)
+        return {k: v for k, v in result.to_dict().items() if k not in ("thresholds", "latency_ms")}
 
     @server.tool(annotations=pure, description=tools.DESCRIPTIONS["status"])
     async def status() -> dict[str, Any]:

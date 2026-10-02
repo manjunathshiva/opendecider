@@ -101,14 +101,14 @@ The integrations need opendecider 0.4.0 or later (see [Agent frameworks](../guid
 
 | integration | install | provides |
 |---|---|---|
-| `opendecider.integrations.langchain` | `opendecider[langchain]` | `decision_tools()`, `DecisionRouter` |
-| `opendecider.integrations.llamaindex` | `opendecider[llamaindex]` | `decision_tools()`, `DecisionSelector` |
-| `opendecider.integrations.agno` | `opendecider[agno]` | `decision_toolkit()`, `DecisionRouter` (`.selector()`) |
-| `opendecider.integrations.crewai` | `opendecider[crewai]` | `decision_tools()`, `DecisionRouter`, `TaskAssigner` |
-| `opendecider.integrations.agent_framework` | `opendecider[agent-framework]` | `decision_tools()`, `DecisionRouter` (`.cases()`) |
-| `opendecider.integrations.google_adk` | `opendecider[google-adk]` | `decision_tools()`, `DecisionRouterAgent` |
-| `opendecider.integrations.pydantic_ai` | `opendecider[pydantic-ai]` | `decision_toolset()`, `DecisionRouter` |
-| `opendecider.integrations.strands` | `opendecider[strands]` | `decision_tools()`, `DecisionRouter` |
+| `opendecider.integrations.langchain` | `opendecider[langchain]` | `decision_tools()`, `DecisionRouter`, `decision_runnable()`, `decision_evaluator()`, `guardrail_runnable()` |
+| `opendecider.integrations.llamaindex` | `opendecider[llamaindex]` | `decision_tools()`, `DecisionSelector`, `DecisionMultiSelector` |
+| `opendecider.integrations.agno` | `opendecider[agno]` | `decision_toolkit()`, `DecisionRouter` (`.selector()`), `guardrail()` |
+| `opendecider.integrations.crewai` | `opendecider[crewai]` | `decision_tools()`, `DecisionRouter`, `TaskAssigner`, `kickoff_guardrail()`, `task_guardrail()` |
+| `opendecider.integrations.agent_framework` | `opendecider[agent-framework]` | `decision_tools()`, `DecisionRouter` (`.cases()`), `guardrail_middleware()` |
+| `opendecider.integrations.google_adk` | `opendecider[google-adk]` | `decision_tools()`, `DecisionRouterAgent`, `guardrail_callback()` |
+| `opendecider.integrations.pydantic_ai` | `opendecider[pydantic-ai]` | `decision_toolset()`, `DecisionRouter`, `guardrail_capability()`, `guardrail_processor()` |
+| `opendecider.integrations.strands` | `opendecider[strands]` | `decision_tools()`, `DecisionRouter`, `guardrail_hook()` |
 
 `tools.Router(routes, instructions, *, model=..., fallback=None, min_confidence=0.0, on_error="raise",
 on_decision=None)` is the router every integration builds on. Calling it with a state returns a route name (the
@@ -125,6 +125,30 @@ fallback when the top route's probability is below `min_confidence`); `.decide(s
 Invalid input raises `ValueError`, a model that cannot load raises `tools.ModelError`, and a model server that cannot
 answer raises `remote.ServerError`, each naming the problem. `tools.as_result(fn, *args)` returns those as
 `{"error": "..."}` instead, for frameworks that hide a tool's exception text from the model.
+
+## Prompt guard
+
+```python
+from opendecider.guard import Guard, GuardrailError
+
+guard = Guard(checks=None, model="manjunathshiva/opendecider-small-td", threshold=None, on_error="block",
+              on_decision=None, window_chars=4000)
+guard.check(text)          # GuardResult (also guard(text)); guard.acheck(text) in async code
+guard.check_many(texts)    # one GuardResult per text, short texts in shared batches
+guard.enforce(text)        # the GuardResult, or raises GuardrailError (a ValueError) when the text is blocked
+```
+
+- `checks`: `{"name": "question"}`, yes/no questions that call the text `` `prompt` ``; the default is
+  `opendecider.guard.ATTACK_CHECKS` (`jailbreak`, `prompt_injection`).
+- `threshold`: a probability for every check, or `{"check": probability}`; by default the model's measured threshold
+  for the default checks (`opendecider.guard.THRESHOLDS`), else 0.5. A check is flagged at or above its threshold.
+- `on_error`: `"block"` blocks text that could not be checked, `"allow"` lets it through; either way `reason="error"`.
+- `on_decision`: a function or list, called with every `GuardResult`; a hook that raises is logged and ignored.
+- `GuardResult`: `passed`, `reason` (`passed`, `flagged`, `empty_input`, `error`), `violations`, `probabilities`,
+  `thresholds`, `model`, `latency_ms`, `windows`, `truncated`, `error`, and `to_dict()`.
+
+The framework hooks take a `Guard` or its settings as keywords; see
+[Agent guardrails](../guides/agent-guardrails.md#in-your-agent-framework).
 
 ## Environment variables for served models
 

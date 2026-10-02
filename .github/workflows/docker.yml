@@ -104,7 +104,7 @@ jobs:
           persist-credentials: false
       - name: Free disk space for the CUDA base image
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc && df -h /
-      - name: Build the CUDA image (no GPU on CI runners; the image is exercised on AWS before a release)
+      - name: Build the CUDA image (no GPU on CI runners; the image is exercised on a cloud GPU before a release)
         run: docker build -f docker/Dockerfile.cuda -t opendecider:ci-cuda .
       - name: Check the entry point imports
         run: docker run --rm --entrypoint python3 opendecider:ci-cuda -c "import torch, opendecider.serve, opendecider.cli, fastapi, uvicorn, peft; print('torch', torch.__version__, 'cuda build', torch.version.cuda)"
