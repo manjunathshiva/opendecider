@@ -24,6 +24,7 @@
 [![Ollama](https://img.shields.io/badge/Ollama-GGUF-black)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
 [![vLLM](https://img.shields.io/badge/vLLM-LoRA-30A2FF)](https://github.com/manjunathshiva/opendecider#run-it-in-lm-studio-or-ollama)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/manjunathshiva/opendecider/badge)](https://scorecard.dev/viewer/?uri=github.com/manjunathshiva/opendecider)
 
 </div>
 

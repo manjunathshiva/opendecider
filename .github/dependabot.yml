@@ -32,18 +32,15 @@ updates:
       mastra:
         patterns: ["@mastra/*"]
 
-  # GitHub Actions (see the ignore rules below)
+  # GitHub Actions: every action is pinned to a commit (with its version in a comment), so a moved tag cannot change
+  # what runs; Dependabot bumps the pins, patches and minors included, or a pin would never pick up a security fix.
+  # One grouped PR a week keeps the pins moving together.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
     labels: ["dependencies", "github-actions"]
-    # GitHub's own actions track floating major tags (actions/checkout@v7, ...), which already receive patches: only
-    # majors open a PR. Third-party actions are pinned to a commit (pypa/gh-action-pypi-publish), so those get
-    # patch and minor PRs too, or the pin would never pick up a security fix.
-    ignore:
-      - dependency-name: "actions/*"
-        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
-      - dependency-name: "github/codeql-action*"
-        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+    groups:
+      actions:
+        patterns: ["*"]
