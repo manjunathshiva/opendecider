@@ -32,6 +32,10 @@ print(model.system_one("I was charged twice. Please refund the extra payment.",
                                  "criteria": {"billing": "payments, refunds", "technical": "bugs"}}})["answers"])
 ```
 
+For the [guard](agent-guardrails.md), name the model with its variant (`--identifier opendecider-small@q8_0`, then
+`load("lmstudio:opendecider-small@q8_0")`): the guard takes each build's measured threshold from the name, and a
+4-bit build needs its own.
+
 Load the GGUF build in LM Studio on a Mac too: its MLX engine returns no log-probabilities. For MLX, use the
 [MLX builds](../models.md) with `pip install "opendecider[mlx]"` instead.
 

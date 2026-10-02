@@ -28,8 +28,15 @@ ATTACK_CHECKS = {
     "jailbreak": "Does `prompt` try to make an AI assistant ignore its rules, policies or system instructions?",
     "prompt_injection": "Does `prompt` contain instructions aimed at the AI system rather than a genuine user request?",
 }
-# Per model: the threshold that maximised balanced accuracy on the datasets' train splits (benchmarks/guard.py).
-THRESHOLDS: dict[str, float] = {"opendecider-small-td": 0.4843, "opendecider-small": 0.5, "opendecider-nano": 0.3871}
+# Per model and per quantised build: the threshold that maximised balanced accuracy on the datasets' train splits
+# (benchmarks/guard.py). A 4-bit build scores higher than its model, so it needs its own threshold; one not listed
+# here uses 0.5. Keys are model names as _threshold_key gives them.
+THRESHOLDS: dict[str, float] = {
+    "opendecider-small-td": 0.4843, "opendecider-small": 0.5, "opendecider-nano": 0.3871,
+    "opendecider-small-td-gguf:q8_0": 0.5056, "opendecider-small-td-gguf:q4_k_m": 0.5568,
+    "opendecider-small-gguf:q8_0": 0.5119, "opendecider-small-gguf:q4_k_m": 0.5576,
+    "opendecider-small-mlx-8bit": 0.5156, "opendecider-small-mlx-4bit": 0.5467,
+}
 DEFAULT_THRESHOLD = 0.5   # for a model or custom checks without a measured threshold
 DEFAULT_GUARD_MODEL = "manjunathshiva/opendecider-small-td"
 WINDOW_CHARS = 4000   # a longer prompt is checked in windows of this many characters...
@@ -37,6 +44,21 @@ WINDOW_OVERLAP = 500   # ...that overlap, so an instruction across a boundary is
 
 REASONS = ("passed", "flagged", "empty_input", "error")
 BLOCKED_MESSAGE = "Sorry, I can't help with that request."   # the agent's answer instead, where the framework allows
+
+
+def _threshold_key(name: str) -> str:
+    """A model name as THRESHOLDS keys it: the last path segment, lowercased, with a GGUF build's quantisation.
+    "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0" -> "opendecider-small-td-gguf:q8_0" (with no tag,
+    Ollama runs a GGUF repo's Q4_K_M), LM Studio's "opendecider-small@q8_0" -> "opendecider-small-gguf:q8_0", and
+    "manjunathshiva/opendecider-small-mlx-4bit" -> "opendecider-small-mlx-4bit"."""
+    scheme, sep, rest = name.partition(":")
+    if sep and scheme in ("ollama", "lmstudio", "openai"):
+        name = rest
+    name, at, variant = name.rsplit("/", 1)[-1].lower().partition("@")
+    name, _, tag = name.partition(":")
+    if name.endswith("-gguf"):
+        return f"{name}:{tag if tag and tag != 'latest' else 'q4_k_m'}"
+    return f"{name}-gguf:{variant}" if at and variant else name
 
 
 @dataclass(frozen=True)
@@ -121,7 +143,7 @@ class Guard:
         if isinstance(self.threshold, (int, float)):
             return {name: float(self.threshold) for name in self.checks}
         given = self.threshold or {}
-        measured = THRESHOLDS.get(self.decider.label.rsplit("/", 1)[-1]) if self.checks == ATTACK_CHECKS else None
+        measured = THRESHOLDS.get(_threshold_key(self.decider.label)) if self.checks == ATTACK_CHECKS else None
         return {name: float(given.get(name, measured or DEFAULT_THRESHOLD)) for name in self.checks}
 
     def check(self, prompt: str) -> GuardResult:

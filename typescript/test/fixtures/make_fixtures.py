@@ -133,6 +133,14 @@ def main() -> dict:
                  {"text": "🙂", "count": 3600, "tail": "x" * 1000}):
         ws = g._windows(build(spec))
         windows.append({"prompt": spec, "windows": [{"length": len(w), "head": w[:12], "tail": w[-12:]} for w in ws]})
+    threshold_keys = [{"name": n, "key": guarding._threshold_key(n)} for n in [
+        "manjunathshiva/opendecider-small-td", "opendecider-small", "OpenDecider-Nano", "/models/opendecider-small-td",
+        "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0", "hf.co/manjunathshiva/opendecider-small-GGUF:Q4_K_M",
+        "ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF", "hf.co/manjunathshiva/opendecider-small-td-GGUF:latest",
+        "opendecider-small-td-GGUF:", "ollama:opendecider-small-td:latest", "lmstudio:opendecider-small@q8_0",
+        "opendecider-small-td@Q4_K_M", "opendecider-small@", "manjunathshiva/opendecider-small-mlx-4bit",
+        "openai:opendecider-small-mlx-8bit", "opendecider-medium-td", "http://localhost:8000", "ollama:", ":x", "",
+        "a@b:c", "a:b@c", "toString", "__proto__"]]
     letters = []
     for names, top in [
         (["billing", "tech"], [{"token": "A", "logprob": -0.1}, {"token": " A", "logprob": -3.0},
@@ -155,6 +163,7 @@ def main() -> dict:
         "descriptions": tools.DESCRIPTIONS,
         "attack_checks": guarding.ATTACK_CHECKS,
         "thresholds": guarding.THRESHOLDS,
+        "threshold_keys": threshold_keys,
         "constants": {"MAX_QUESTIONS": tools.MAX_QUESTIONS, "MAX_OPTIONS": tools.MAX_OPTIONS,
                       "MAX_STATE_CHARS": tools.MAX_STATE_CHARS, "MAX_BATCH_STATES": tools.MAX_BATCH_STATES,
                       "MAX_BATCH_ITEMS": tools.MAX_BATCH_ITEMS, "WINDOW_CHARS": guarding.WINDOW_CHARS,

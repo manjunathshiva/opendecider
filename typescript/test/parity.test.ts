@@ -12,6 +12,7 @@ import {
   THRESHOLDS,
   WINDOW_CHARS,
   WINDOW_OVERLAP,
+  thresholdKey,
 } from "../src/guard.js";
 import { SYSTEM, render } from "../src/prompt.js";
 import { answer, prepare, prepareQuestion } from "../src/questions.js";
@@ -97,6 +98,10 @@ describe("parity with the Python package", () => {
         })),
       ).toEqual(c.windows);
     }
+  });
+
+  it("keys model names for their thresholds the same way", () => {
+    for (const c of fx.threshold_keys) expect(thresholdKey(c.name), c.name).toBe(c.key);
   });
 
   it("reads option probabilities from log-probabilities the same way", () => {

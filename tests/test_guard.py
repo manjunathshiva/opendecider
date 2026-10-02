@@ -61,6 +61,25 @@ def test_the_default_checks_use_the_models_measured_threshold():
     assert one.check(ATTACK).passed   # 0.9 is under 0.95
 
 
+def test_a_quantised_build_uses_its_own_measured_threshold():
+    t = guard_module.THRESHOLDS
+    for name, key in [("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q8_0", "opendecider-small-td-gguf:q8_0"),
+                      ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M", "opendecider-small-td-gguf:q4_k_m"),
+                      ("hf.co/manjunathshiva/opendecider-small-td-GGUF", "opendecider-small-td-gguf:q4_k_m"),
+                      ("opendecider-small@q8_0", "opendecider-small-gguf:q8_0"),
+                      ("opendecider-small-mlx-4bit", "opendecider-small-mlx-4bit")]:
+        assert make(name)[0].thresholds() == {k: t[key] for k in ATTACK_CHECKS}, name
+    for name in ("hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", "opendecider-medium-td"):   # not measured
+        assert make(name)[0].thresholds() == {k: 0.5 for k in ATTACK_CHECKS}, name
+    lazy = Guard(model="ollama:hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M")   # before it is loaded, too
+    assert lazy.thresholds() == {k: t["opendecider-small-td-gguf:q4_k_m"] for k in ATTACK_CHECKS}
+    q4 = "hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M"   # a given threshold still wins
+    assert make(q4, threshold=0.6)[0].thresholds() == {"jailbreak": 0.6, "prompt_injection": 0.6}
+    assert make(q4, threshold={"jailbreak": 0.6})[0].thresholds() == {
+        "jailbreak": 0.6, "prompt_injection": t["opendecider-small-td-gguf:q4_k_m"]}
+    assert make(q4, checks={"pii": "Does `prompt` contain a phone number?"})[0].thresholds() == {"pii": 0.5}
+
+
 def test_a_threshold_is_inclusive():
     guard, _ = make(threshold=0.9)
     assert guard.check(ATTACK).violations == ("jailbreak", "prompt_injection")
