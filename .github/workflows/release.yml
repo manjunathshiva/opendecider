@@ -5,10 +5,12 @@ name: Release
 #   2. build        - build sdist + wheel (pure Python), verify contents and version
 #   3. publish-pypi - upload to PyPI via OIDC Trusted Publishing (no API tokens;
 #                     the "pypi" environment requires a maintainer's approval)
+# The build makes two distributions from the same source: opendecider and opendecider-client (no PyTorch,
+# packaging/build_client.py). Each PyPI project needs its own trusted publisher, set up as below.
 #
 # One-time setup on PyPI (pending publisher, before the first release):
 #   https://pypi.org/manage/account/publishing/
-#     PyPI project name: opendecider
+#     PyPI project name: opendecider   (and again for: opendecider-client)
 #     Owner:             manjunathshiva
 #     Repository name:   opendecider
 #     Workflow filename: release.yml
@@ -54,15 +56,16 @@ jobs:
       - name: Install build tooling (hash-locked; regenerate with the command in requirements-release.in)
         run: python -m pip install --require-hashes -r .github/requirements-release.txt
       - name: Build
-        run: python -m build
+        run: python -m build && python packaging/build_client.py --outdir dist
       - name: Check distribution metadata
         run: twine check dist/*
       - name: Verify the wheel carries every module
         run: |
           python - <<'PY'
           import glob, sys, zipfile
-          whl = glob.glob("dist/*.whl")[0]
-          names = set(zipfile.ZipFile(whl).namelist())
+          wheels = sorted(glob.glob("dist/*.whl"))
+          if [w.split("/")[-1].split("-")[0] for w in wheels] != ["opendecider", "opendecider_client"]:
+              sys.exit(f"expected the opendecider and opendecider-client wheels, got {wheels}")
           need = ["opendecider/__init__.py", "opendecider/questions.py", "opendecider/nano.py",
                   "opendecider/small.py", "opendecider/bench_speed.py", "opendecider/mlx_small.py",
                   "opendecider/serve.py", "opendecider/cli.py", "opendecider/prompt.py", "opendecider/remote.py",
@@ -72,10 +75,12 @@ jobs:
                   "opendecider/integrations/agno.py", "opendecider/integrations/crewai.py",
                   "opendecider/integrations/agent_framework.py", "opendecider/integrations/google_adk.py",
                   "opendecider/integrations/pydantic_ai.py", "opendecider/integrations/strands.py"]
-          missing = [n for n in need if n not in names]
-          if missing:
-              sys.exit(f"{whl} is missing {missing}")
-          print(f"{whl} carries all {len(need)} modules")
+          for whl in wheels:
+              names = set(zipfile.ZipFile(whl).namelist())
+              missing = [n for n in need if n not in names]
+              if missing:
+                  sys.exit(f"{whl} is missing {missing}")
+              print(f"{whl} carries all {len(need)} modules")
           PY
       - name: Verify tag matches package version
         run: |

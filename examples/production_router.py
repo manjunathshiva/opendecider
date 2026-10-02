@@ -1,7 +1,7 @@
 """A router set up for production: the model behind `opendecider serve`, one JSON log line per decision, a fallback
 when the decision fails, and OpenTelemetry spans.
 
-    pip install opendecider                                   # this script
+    pip install opendecider-client                            # this script, without PyTorch (or: pip install opendecider)
     opendecider serve --model manjunathshiva/opendecider-nano # the model, elsewhere (pip install "opendecider[serve]")
     python examples/production_router.py http://127.0.0.1:8000
     python examples/production_router.py http://127.0.0.1:8000 --otel   # with spans: pip install opentelemetry-sdk

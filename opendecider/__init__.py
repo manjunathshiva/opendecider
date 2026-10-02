@@ -103,6 +103,55 @@ class OpenDecider:
         return [self.assemble(qs, probs[i * n:(i + 1) * n], info[i * n:(i + 1) * n]) for i in range(len(states))]
 
 
+LOCAL_MODELS_NEED = (
+    "running a model on this machine needs the full package: pip install opendecider (with [small] or [mlx] for the 4B "
+    "models). opendecider-client, the PyTorch-free package, calls served models only: an `opendecider serve` URL, "
+    "ollama:..., lmstudio:... or openai:... (uninstall opendecider-client before installing opendecider)")
+
+
+BOTH_INSTALLED = (
+    "both opendecider and opendecider-client are installed. They share the `opendecider` files, so uninstalling either "
+    "one removes them for both. Keep one: pip uninstall -y opendecider-client && pip install --force-reinstall "
+    "opendecider (or the reverse)")
+
+
+def _installed_here() -> set[str]:
+    """The opendecider distributions installed beside this package (their *.dist-info folders in site-packages). A
+    directory listing: importing importlib.metadata would cost more than the rest of `import opendecider`."""
+    site = Path(__file__).resolve().parent.parent
+    return {p.name.split("-")[0].lower() for p in site.glob("opendecider*.dist-info")}
+
+
+def _warn_if_both_installed() -> None:
+    try:
+        both = {"opendecider", "opendecider_client"} <= _installed_here()
+    except Exception:   # noqa: BLE001 -- an unreadable folder: a warning must never break the import
+        return
+    if both:
+        import warnings
+        warnings.warn(BOTH_INSTALLED, RuntimeWarning, stacklevel=3)
+
+
+_warn_if_both_installed()
+
+
+def _need(*modules: str, extra: str | None = None) -> None:
+    """Raise a clear ImportError when a package for running a model locally is missing: in opendecider-client, say to
+    install the full package; in opendecider, the extra that brings it (or a reinstall, for a core dependency)."""
+    import importlib.metadata
+    import importlib.util
+    missing = [m for m in modules if importlib.util.find_spec(m) is None]
+    if not missing:
+        return
+    try:
+        importlib.metadata.distribution("opendecider-client")
+        raise ImportError(LOCAL_MODELS_NEED)
+    except importlib.metadata.PackageNotFoundError:
+        pass
+    fix = f'pip install "opendecider[{extra}]"' if extra else "pip install --force-reinstall opendecider"
+    raise ImportError(f"this model needs {', '.join(missing)}: {fix}")
+
+
 def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | None = None,
          revision: str | None = None, dtype: str | None = None, base_url: str | None = None,
          api_key: str | None = None, timeout: float | None = None) -> OpenDecider:
@@ -125,10 +174,12 @@ def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | No
         return OpenDecider(impl, {"name": target[0], "kind": "remote", "base_url": target[1]})
     path = Path(name_or_path).expanduser()
     if not (path / "opendecider.json").exists():
+        _need("huggingface_hub")
         from huggingface_hub import snapshot_download
         path = Path(snapshot_download(name_or_path, revision=revision))
     meta = json.loads((path / "opendecider.json").read_text())
     if meta["kind"] != "small-mlx":   # MLX builds need neither torch nor a device choice
+        _need("torch", "transformers")
         device = device or default_device()
     if meta["kind"] == "nano":
         from .nano import NanoModel
@@ -138,6 +189,7 @@ def load(name_or_path: str = "manjunathshiva/opendecider-nano", device: str | No
         impl = SmallModel(str(path), meta["base_model"], device,
                           meta.get("device_map") if device == "cuda" else None)
     elif meta["kind"] == "small-mlx":   # merged + quantised build for Apple Silicon (pip install "opendecider[mlx]")
+        _need("mlx_lm", extra="mlx")
         from .mlx_small import MLXSmallModel
         impl = MLXSmallModel(str(path), meta.get("mlx_base"))
     else:

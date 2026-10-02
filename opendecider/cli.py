@@ -42,6 +42,11 @@ def main(argv: list[str] | None = None) -> None:
     bs.add_argument("model")
 
     a = ap.parse_args(argv)
+    if a.cmd in ("serve", "bench-speed"):
+        import importlib.util
+        if importlib.util.find_spec("torch") is None:
+            sys.exit(f"opendecider {a.cmd} runs the model on this machine and needs the full package: "
+                     'pip install "opendecider[serve]" (uninstall opendecider-client first)')
     if a.cmd == "serve":
         try:
             import fastapi  # noqa: F401

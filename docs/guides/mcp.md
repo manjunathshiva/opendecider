@@ -93,13 +93,15 @@ and get back `{"choice": "finance", "probabilities": {...}, "confidence": ...}`.
 ```bash
 opendecider mcp --model manjunathshiva/opendecider-small-td        # pip install "opendecider[small,mcp]"
 opendecider mcp --model ollama:hf.co/manjunathshiva/opendecider-small-GGUF:Q8_0   # a model Ollama serves
+opendecider mcp --model http://gpu-box:8000                         # pip install "opendecider-client[mcp]": no PyTorch
 ```
 
 `--model` takes anything [`load`](../reference/python-api.md#load) does, including an `opendecider serve` URL (or set
 `OPENDECIDER_MODEL`); `--device`,
 `--dtype` and `--revision` work as for [`opendecider serve`](../reference/cli.md). nano is the default: it is fast on
 any machine. Use small or small-td on a GPU or a Mac with 16 GB for higher accuracy; see
-[Choose a model](../models.md).
+[Choose a model](../models.md). With [opendecider-client](serve.md#without-pytorch-opendecider-client), which has no
+PyTorch, always pass `--model`: an `opendecider serve` URL, `ollama:...` or `lmstudio:...`.
 
 A model downloads on its first call (small: about 8 GB), which can take longer than a client waits for a tool. Download it
 first (`hf download manjunathshiva/opendecider-small-td`), or run one decision with it from Python.

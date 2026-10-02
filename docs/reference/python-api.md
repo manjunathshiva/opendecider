@@ -24,7 +24,9 @@ load(name_or_path="manjunathshiva/opendecider-nano", device=None, revision=None,
 | `timeout` | served models: seconds to wait for each request (default 30 for `opendecider serve`, 120 for the apps) |
 
 Which package extra a model needs: nano none; small, small-td, medium-td and large-td `opendecider[small]`; the MLX
-builds `opendecider[mlx]`; served models none.
+builds `opendecider[mlx]`; served models none. A missing one raises `ImportError` with the install line. With
+[`opendecider-client`](../guides/serve.md#without-pytorch-opendecider-client) (no PyTorch), only served models load:
+a Hub name or local folder raises `ImportError` saying to install `opendecider` instead.
 
 ## `OpenDecider.system_one`
 
