@@ -73,7 +73,7 @@ pyproject_hooks==1.2.0
 python-etcd==0.4.5
 PyYAML==6.0.3
 requests==2.32.5
-setuptools==81.0.0
+setuptools==83.0.0
 six==1.17.0
 sortedcontainers==2.4.0
 spin==0.17
