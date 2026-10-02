@@ -1,0 +1,5 @@
+# Build tooling for release.yml. Regenerate the hash-locked requirements-release.txt with:
+#   uv pip compile .github/requirements-release.in --generate-hashes --python-version 3.12 \
+#     --python-platform x86_64-manylinux_2_28 -o .github/requirements-release.txt
+build
+twine

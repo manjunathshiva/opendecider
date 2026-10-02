@@ -2,7 +2,10 @@
 #   docker build -f docker/Dockerfile.cuda -t opendecider:cuda .
 #   docker run --gpus all -p 8000:8000 -v opendecider-models:/models \
 #     -e OPENDECIDER_MODEL=manjunathshiva/opendecider-small opendecider:cuda
-FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
+# The base image is pinned by digest and every package OpenDecider adds by hash (docker/requirements-cuda.txt, from
+# docker/lock.sh; the base image's own CUDA build of torch is kept). Dependabot updates the base image's digest;
+# refresh the packages with `bash docker/lock.sh`.
+FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime@sha256:eee11b3b3872a8c838e35ef48f08b2d5def2080902c7f666831310ca1a0ef2be
 
 # the base image uses the system Python (PEP 668); inside a container installing into it is the intended use
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_BREAK_SYSTEM_PACKAGES=1 \
@@ -10,9 +13,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_BREAK_SY
     OPENDECIDER_MODEL=manjunathshiva/opendecider-nano
 
 WORKDIR /app
+COPY docker/requirements-cuda.txt ./
+RUN python3 -m pip install --require-hashes -r requirements-cuda.txt
 COPY pyproject.toml README.md LICENSE NOTICE ./
 COPY opendecider ./opendecider
-RUN python3 -m pip install ".[serve,small]" && python3 -c "import torch, opendecider.serve; print(torch.__version__)"
+RUN python3 -m pip install --no-deps --no-build-isolation . && python3 -m pip check \
+    && python3 -c "import torch, opendecider.serve; print(torch.__version__, torch.version.cuda)"
 
 RUN useradd --create-home --uid 10001 app && mkdir -p /models && chown app /models
 USER app
