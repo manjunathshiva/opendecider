@@ -23,3 +23,38 @@ Supported versions: the latest minor release (currently 0.4.x) receives security
   a human or a rule-based check for them.
 - The container runs as a non-root user (uid 10001). Server errors never return tracebacks or paths to the client;
   they are logged server-side with the request id.
+
+## Verifying a release
+
+- **PyPI.** Releases are built and published by this repository's `release.yml` workflow through PyPI trusted
+  publishing (no long-lived API token), and every file carries a Sigstore attestation of where it was built. Check a
+  file before you install it:
+
+  ```bash
+  pip install pypi-attestations
+  pypi-attestations verify pypi --repository https://github.com/manjunathshiva/opendecider \
+      pypi:opendecider-0.4.0-py3-none-any.whl
+  ```
+
+  The attestations are also shown on each file's page on PyPI ("Provenance").
+- **Models.** The weights are safetensors files on the Hugging Face Hub under `manjunathshiva/`; OpenDecider never
+  runs code from a model repository. Pin a revision (`load(name, revision="<commit>")`) so what you tested is what
+  you run.
+
+## Supply chain
+
+- **Static analysis:** CodeQL (Python and the GitHub Actions workflows) on every pull request, every push to `main`
+  and weekly.
+- **Dependencies:** Dependabot for the Python dependencies, the Docker base images, the Mastra example's npm lockfile
+  and the GitHub Actions.
+- **Secrets:** GitHub secret scanning with push protection.
+- **Workflows:** every GitHub Action is pinned to a commit, and every workflow starts from read-only token
+  permissions, granting writes per job.
+- **Scorecard:** [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/manjunathshiva/opendecider) runs
+  weekly and on every push to `main`.
+
+**Known issues in optional dependencies.** The core package has none. Two framework extras pull in packages with
+published advisories and no fixed release yet: `nltk` (through `llama-index-core`, `opendecider[llamaindex]`) and
+`chromadb` (through `crewai`, `opendecider[crewai]`). OpenDecider calls neither; they come with the frameworks
+themselves. Dependabot picks up fixes when they ship.
+
