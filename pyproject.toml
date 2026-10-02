@@ -59,3 +59,10 @@ Models = "https://huggingface.co/manjunathshiva/opendecider-nano"
 
 [tool.setuptools]
 packages = ["opendecider", "opendecider.integrations"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# pyflakes (undefined names, unused imports and variables, ...) and syntax errors; CI runs it on every pull request
+select = ["F", "E9"]
