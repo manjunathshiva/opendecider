@@ -72,6 +72,8 @@ Supported versions: the latest minor release (currently 0.4.x) receives security
   framework release that breaks OpenDecider shows up in CI.
 - **Scorecard:** [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/manjunathshiva/opendecider) runs
   weekly and on every push to `main`.
+- **Best practices:** the project holds the [OpenSSF Best Practices](https://www.bestpractices.dev/projects/15152)
+  passing badge.
 
 **Known issues in optional dependencies.** The core package has none. Two framework extras pull in packages with
 published advisories and no fixed release yet: `nltk` (through `llama-index-core`, `opendecider[llamaindex]`) and
