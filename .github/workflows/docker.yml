@@ -7,7 +7,8 @@ name: Docker
 #                                                               from the per-platform :<version>-amd64 / -arm64)
 #   ghcr.io/<owner>/opendecider:<version>-cuda and :latest-cuda (NVIDIA, linux/amd64)
 # and sign each with cosign (keyless, Sigstore; the CPU image's index and both platforms), with an SBOM and build
-# provenance attested in the registry for each platform's image (and provenance for the CPU index):
+# provenance attested in the registry for each platform's image (and provenance for the CPU index). Verify with
+# cosign 3 or later (cosign 2 does not read cosign 3's signatures and reports none):
 #   cosign verify ghcr.io/manjunathshiva/opendecider:<version> \
 #     --certificate-identity-regexp '^https://github.com/manjunathshiva/opendecider/' \
 #     --certificate-oidc-issuer https://token.actions.githubusercontent.com
