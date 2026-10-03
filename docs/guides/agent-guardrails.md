@@ -84,8 +84,8 @@ its per-dataset tables and how to reproduce them are in [Benchmarks](../benchmar
 ### Settings
 
 - **`model`**: any model OpenDecider loads: a Hub name, an `opendecider serve` URL, `ollama:...`, or a loaded model.
-  The default checks use the threshold measured for opendecider-small-td, opendecider-small, opendecider-nano and
-  the published GGUF (Q8_0, Q4_K_M) and MLX (8-bit, 4-bit) builds of the 4B models, each its own: a 4-bit build
+  The default checks use the threshold measured for opendecider-small-td, opendecider-small, opendecider-nano and,
+  from 0.6.0, the published GGUF (Q8_0, Q4_K_M) and MLX (8-bit, 4-bit) builds of the 4B models, each its own: a 4-bit build
   scores higher than its model, and at its own threshold screens as well
   ([Benchmarks](../benchmarks.md#quantised-builds)). The guard reads the build from the model's name: an Ollama tag
   (`hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M`), an LM Studio variant (`opendecider-small-td@q4_k_m`, set

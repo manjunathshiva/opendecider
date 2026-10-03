@@ -5,14 +5,13 @@
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
-* **Beyond Python and PyTorch.** `opendecider-client`, which installs without PyTorch, and `@opendecider/client` for
-  TypeScript, with tools and a guard for Mastra and the Vercel AI SDK, are done (next release); next is
-  opendecider-nano as ONNX in the browser.
+* **In the browser.** opendecider-nano as ONNX, so a web page or an edge function decides without a server
+  (`opendecider-client` and `@opendecider/client` shipped in 0.6.0).
 
 **Next**
 
 * **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
-  ships (0.5).
+  ships.
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.

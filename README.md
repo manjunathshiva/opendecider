@@ -342,6 +342,22 @@ these workflows, not as general superiority.
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
 
+## What's new in 0.6.0
+
+* **TypeScript.** `@opendecider/client` on npm: decisions, routers and the guard from Node, Bun or Deno, against
+  `opendecider serve` or straight against Ollama, LM Studio or vLLM, with no runtime dependencies. The MCP server's
+  tools and a guard come for the Vercel AI SDK (`@opendecider/client/ai-sdk`) and Mastra
+  (`@opendecider/client/mastra`), and its answers are tested against this package's. See
+  [TypeScript](https://manjunathshiva.github.io/opendecider/guides/typescript/).
+* **No PyTorch.** `pip install opendecider-client` is the same package without PyTorch and transformers, for an app
+  that calls a model served elsewhere: routers, tools, the guard, the MCP server and every framework extra.
+* **Guard thresholds for each build.** The GGUF (Q8_0, Q4_K_M) and MLX (8-bit, 4-bit) builds get their own measured
+  threshold: a 4-bit build at 0.5 flagged up to 22.5% of benign prompts, and 3.1% to 10.5% at its own. See
+  [Benchmarks](https://manjunathshiva.github.io/opendecider/benchmarks/#quantised-builds).
+* **Docker on Apple Silicon and ARM servers.** The CPU image runs natively on `linux/arm64` as well as
+  `linux/amd64`: about 0.2 s per opendecider-nano request on an Apple Silicon Mac, where the amd64 image took over
+  30 s.
+
 ## What's new in 0.5.0
 
 * **Guardrails.** `opendecider.guard` screens what the user types and what an agent reads (documents, web pages, tool
@@ -467,14 +483,13 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
-* **Beyond Python and PyTorch.** `opendecider-client`, which installs without PyTorch, and `@opendecider/client` for
-  TypeScript, with tools and a guard for Mastra and the Vercel AI SDK, are done (next release); next is
-  opendecider-nano as ONNX in the browser.
+* **In the browser.** opendecider-nano as ONNX, so a web page or an edge function decides without a server
+  (`opendecider-client` and `@opendecider/client` shipped in 0.6.0).
 
 **Next**
 
 * **More than 26 options:** shortlist-then-letters for the Qwen-based models, measured on every benchmark before it
-  ships (0.5).
+  ships.
 * **Rule-labelled evaluation:** every model on tasksource/procedural-typed-decisions, whose answers are computed exactly
   from rules, so it measures correctness rather than agreement with a teacher model.
 * **Fine-tune nano on your own labels:** a script and a guide for adapting opendecider-nano to your decisions.

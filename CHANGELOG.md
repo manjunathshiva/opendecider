@@ -14,14 +14,10 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.6.0] - 2026-10-03
 
 ### Added
 
-- The CPU Docker image is multi-platform: `ghcr.io/manjunathshiva/opendecider:<version>` and `:latest` run natively on
-  `linux/amd64` and `linux/arm64` (Apple Silicon, AWS Graviton, Ampere), each built on its own architecture and
-  smoke-tested before it is published. On an Apple Silicon Mac the amd64-only image ran emulated and took over 30 s
-  per opendecider-nano request; natively it takes about 0.2 s. The signature covers both platforms.
 - `opendecider-client`: OpenDecider without PyTorch. The same package (`import opendecider`, routers, tools, the guard,
   the MCP server and every framework extra), built by `packaging/build_client.py` without torch, transformers and the
   local-model extras, for models served by `opendecider serve`, Ollama, LM Studio or vLLM. Install it or
@@ -32,6 +28,10 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
   (`ai` 5 to 7) and `guardMiddleware()` for `wrapLanguageModel`. `@opendecider/client/mastra`: the tools for Mastra
   (`@mastra/core` 1.11 or later) and `GuardProcessor`, an input processor. Its prompt, answers, limits and guard
   windows are tested against reference outputs from this package. Its version follows this package's.
+- The CPU Docker image is multi-platform: `ghcr.io/manjunathshiva/opendecider:<version>` and `:latest` run natively on
+  `linux/amd64` and `linux/arm64` (Apple Silicon, AWS Graviton, Ampere), each built on its own architecture and
+  smoke-tested before it is published. On an Apple Silicon Mac the amd64-only image ran emulated and took over 30 s
+  per opendecider-nano request; natively it takes about 0.2 s. The signature covers both platforms.
 
 ### Changed
 
@@ -41,10 +41,10 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
 - `import opendecider` warns when both `opendecider` and `opendecider-client` are installed: they share the same
   files, so uninstalling either one removes them for both.
 - The guard has a measured threshold for each published GGUF build (Q8_0 and Q4_K_M; in LM Studio, loaded with its
-  variant in the name) and MLX build of opendecider-small-td and opendecider-small, in Python and TypeScript. They used 0.5, and a 4-bit
-  build, which scores higher than its model, then flagged too much: on the guard benchmark's test splits the Q4_K_M
-  builds of small-td and small flagged 10.6% and 22.5% of the benign prompts at 0.5, and 3.1% and 5.7% at their own
-  thresholds (accuracy 0.922 to 0.957 and 0.842 to 0.934). A threshold you pass still wins.
+  variant in the name) and MLX build of opendecider-small-td and opendecider-small, in Python and TypeScript. They
+  used 0.5, and a 4-bit build, which scores higher than its model, then flagged too much: on the guard benchmark's
+  test splits the Q4_K_M builds of small-td and small flagged 10.6% and 22.5% of the benign prompts at 0.5, and 3.1%
+  and 5.7% at their own thresholds (accuracy 0.922 to 0.957 and 0.842 to 0.934). A threshold you pass still wins.
 
 ## [0.5.0] - 2026-10-02
 

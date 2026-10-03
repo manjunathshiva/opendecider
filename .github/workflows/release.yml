@@ -9,8 +9,10 @@ name: Release
 #   attach-npm   - the same for the npm package, in its own job so neither side holds up the other
 #   publish-pypi - upload to PyPI via OIDC Trusted Publishing (no API tokens;
 #                  the "pypi" environment requires a maintainer's approval)
-#   publish-npm  - publish @opendecider/client to npm via OIDC Trusted Publishing, with npm provenance (no tokens;
-#                  the "npm" environment requires a maintainer's approval)
+#   publish-npm  - stage @opendecider/client on npm via OIDC Trusted Publishing, with npm provenance (no tokens;
+#                  the "npm" environment requires a maintainer's approval). Staged is not yet public: a maintainer
+#                  then publishes it with two-factor authentication:
+#                    npm stage list @opendecider/client && npm stage approve <stage-id>
 # The build makes two distributions from the same source: opendecider and opendecider-client (no PyTorch,
 # packaging/build_client.py). Each PyPI project needs its own trusted publisher, set up as below.
 #
@@ -24,6 +26,7 @@ name: Release
 # One-time setup on npm (trusted publishing can only be added to a package that exists, so the package is first
 # published once by hand): npmjs.com -> @opendecider/client -> Settings -> Trusted publishing
 #     Organization or user: manjunathshiva   Repository: opendecider   Workflow filename: release.yml   Environment: npm
+#     Allowed actions: neither "npm publish" nor "npm dist-tag", so CI can only stage a version
 # One-time setup on GitHub: Settings -> Environments -> "pypi" and "npm" -> required reviewers.
 
 on:
@@ -253,15 +256,16 @@ jobs:
         with:
           name: npm
           path: npm-dist/
-      - name: Publish (skipped when this version is already on npm, so a re-run is safe)
+      - name: Stage (skipped when this version is already on npm; a re-run stages it again, so reject the extra one)
         run: |
           # shellcheck disable=SC2016  # the ${...} in single quotes are JavaScript template literals
-          node -e 'const [maj, min, pat] = process.argv[1].split(".").map(Number);
-                   if (maj < 11 || (maj === 11 && (min < 5 || (min === 5 && pat < 1)))) {
-                     console.error(`trusted publishing needs npm 11.5.1 or later, this is ${process.argv[1]}`); process.exit(1); }' "$(npm --version)"
+          node -e 'const [maj, min] = process.argv[1].split(".").map(Number);
+                   if (maj < 11 || (maj === 11 && min < 15)) {
+                     console.error(`staged publishing needs npm 11.15.0 or later, this is ${process.argv[1]}`); process.exit(1); }' "$(npm --version)"
           TGZ=$(ls ./npm-dist/*.tgz)   # (with ./: npm reads "dir/file.tgz" as a GitHub repository)
           # shellcheck disable=SC2016  # (as above)
           NAME=$(tar -xOzf "$TGZ" package/package.json | node -p 'const p = JSON.parse(require("fs").readFileSync(0)); `${p.name}@${p.version}`')
           # (by its output: some npm versions print nothing, and succeed, for a version that does not exist)
           if [ -n "$(npm view "$NAME" version 2>/dev/null)" ]; then echo "$NAME is already on npm"; exit 0; fi
-          npm publish "$TGZ" --access public
+          npm stage publish "$TGZ" --access public --provenance
+          echo "::notice title=npm::$NAME is staged, not yet public. Publish it with two-factor authentication: npm stage list @opendecider/client, then npm stage approve <stage-id>"
