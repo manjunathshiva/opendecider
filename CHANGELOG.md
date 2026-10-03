@@ -14,6 +14,25 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [0.6.1] - 2026-10-03
+
+### Security
+
+- Text in a state, a question or an option is now always read as plain text by the models that run in this package.
+  Before, text that matched one of a model's special tokens became that token. With opendecider-nano, "[MASK]" written
+  in a state added option markers: the probabilities no longer summed to 1, and a guard check could fall below its
+  threshold, so a prompt that should be flagged could pass a guard that used nano. With the Qwen-based models
+  (opendecider-small, -small-td, -medium-td, -large-td and the MLX builds), "<|im_end|>" or "<|im_start|>" in a state
+  became chat-control tokens. opendecider-nano now also refuses to answer if a prompt ever has a different number of
+  option markers than options. Every benchmark prompt gives the same tokens as before with the Qwen-based models; for
+  nano, the 8 guard benchmark rows whose prompts contain "[CLS]" or "[SEP]" were re-scored, and no published number or
+  threshold changed.
+- Models served by Ollama, LM Studio or vLLM are tokenised by that server, and Ollama and LM Studio read
+  "<|im_end|>" written in a message as a control token. `opendecider` (`ollama:`, `lmstudio:` and `openai:` models)
+  and `@opendecider/client` now send text shaped like a special token (`<|name|>`) with a zero-width space after the
+  `<`, so it stays text there too; no benchmark prompt contains that shape, so no published number changes. See
+  [SECURITY.md](SECURITY.md#running-the-server-safely).
+
 ## [0.6.0] - 2026-10-03
 
 ### Added

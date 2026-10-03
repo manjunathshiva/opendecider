@@ -9,7 +9,7 @@ Two kinds of guardrail, each a decision model call that takes milliseconds to a 
 ## Screen prompts for jailbreaks and prompt injection
 
 ```bash
-pip install "opendecider[small]>=0.5.0"
+pip install "opendecider[small]>=0.6.1"
 ```
 
 ```python
@@ -112,6 +112,9 @@ its per-dataset tables and how to reproduce them are in [Benchmarks](../benchmar
   assistant, not for harmful content: pair the guard with a content filter if you need one.
 - No classifier stops a determined, adaptive attacker. Treat the guard as one layer: keep tool permissions narrow and
   confirm irreversible actions.
+- Use 0.6.1 or later. Before it, a prompt with special-token text in it ("[MASK]" for opendecider-nano, "<|im_end|>"
+  for the other models) could turn into the model's own control tokens, and with nano that could let a flagged prompt
+  pass ([Security policy](https://github.com/manjunathshiva/opendecider/blob/main/SECURITY.md)).
 - Measure on your own traffic before you rely on a threshold: log the probabilities with what a person decided, and
   set the threshold from that ([Automate the confident decisions](confident-automation.md)).
 

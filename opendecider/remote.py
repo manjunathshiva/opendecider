@@ -41,7 +41,7 @@ import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-from .prompt import LETTERS, SYSTEM, render
+from .prompt import LETTERS, SYSTEM, for_server, render
 
 DEFAULT_URLS = {"lmstudio": "http://127.0.0.1:1234/v1", "ollama": "http://127.0.0.1:11434/v1"}
 RETRY_STATUS = {429, 500, 502, 503, 504}   # a busy or restarting server: try again before failing the request
@@ -150,7 +150,7 @@ class RemoteModel(_Client):
 
     def _complete(self, prompt: str) -> dict:
         body = {"model": self.model, "messages": [{"role": "system", "content": SYSTEM},
-                                                  {"role": "user", "content": prompt}],
+                                                  {"role": "user", "content": for_server(prompt)}],
                 "max_tokens": 1, "temperature": 0, "logprobs": True, "top_logprobs": 20}
         return self._post("/chat/completions", body)
 

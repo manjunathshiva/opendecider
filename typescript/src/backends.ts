@@ -5,7 +5,7 @@
 import { InputError, ServerError } from "./errors.js";
 import { HttpClient, mapLimit, type ConnectionOptions } from "./http.js";
 import { pyJson, type JsonValue } from "./json.js";
-import { LETTERS, SYSTEM, render, type Option } from "./prompt.js";
+import { LETTERS, SYSTEM, forServer, render, type Option } from "./prompt.js";
 import type { Prepared } from "./questions.js";
 
 /** One question to answer: the state, the instructions and the options. */
@@ -284,7 +284,7 @@ export class LogprobBackend implements Backend {
         model: this.model,
         messages: [
           { role: "system", content: SYSTEM },
-          { role: "user", content: render(item.state, item.instructions, item.options) },
+          { role: "user", content: forServer(render(item.state, item.instructions, item.options)) },
         ],
         max_tokens: 1,
         temperature: 0,

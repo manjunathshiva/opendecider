@@ -13,6 +13,8 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
+from .prompt import text_ids
+
 
 class NanoModel(nn.Module):
     def __init__(self, path: str, device: str, max_len: int = 2048, dtype: str = "float32"):
@@ -41,11 +43,12 @@ class NanoModel(nn.Module):
     def _build(self, state, instructions: str, options: dict) -> tuple[list[int], bool]:
         t = self.tok
         st = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
-        q = t.encode(f"question: {instructions}", add_special_tokens=False)
+        # every text is read as plain text: "[MASK]" written in a state must not become an option marker
+        q = text_ids(t, f"question: {instructions}")
         opts = []
         for k, v in options.items():
-            opts += [self.mask_id] + t.encode(f" {k}: {v}" if v and v != k else f" {k}", add_special_tokens=False)
-        s = t.encode(f"input: {st}", add_special_tokens=False)
+            opts += [self.mask_id] + text_ids(t, f" {k}: {v}" if v and v != k else f" {k}")
+        s = text_ids(t, f"input: {st}")
         room = max(self.max_len - len(q) - len(opts) - 4, 0)
         ids = [t.cls_token_id] + q + [t.sep_token_id] + opts + [t.sep_token_id] + s[:room] + [t.sep_token_id]
         return ids, len(s) > room
@@ -65,6 +68,8 @@ class NanoModel(nn.Module):
         out = []
         for r, (row, (_, _, opts)) in enumerate(zip(ids, items)):
             pos = torch.tensor([i for i, t in enumerate(row) if t == self.mask_id], device=self.device)
+            if len(pos) != len(opts):   # one marker per option, always: anything else would mis-assign probabilities
+                raise RuntimeError(f"expected {len(opts)} option markers, found {len(pos)}")
             p = torch.softmax(self.head(h[r, pos]).squeeze(-1).float(), -1).tolist()
             out.append(dict(zip(opts, p)))
         return out

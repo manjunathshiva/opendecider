@@ -14,7 +14,7 @@ import {
   WINDOW_OVERLAP,
   thresholdKey,
 } from "../src/guard.js";
-import { SYSTEM, render } from "../src/prompt.js";
+import { SYSTEM, forServer, render } from "../src/prompt.js";
 import { answer, prepare, prepareQuestion } from "../src/questions.js";
 import * as tools from "../src/tools.js";
 import { VERSION } from "../src/version.js";
@@ -56,6 +56,7 @@ describe("parity with the Python package", () => {
     for (const r of fx.renders) {
       const q = prepareQuestion(r.question);
       expect(render(r.state, q.instructions, q.options)).toBe(r.prompt);
+      expect(forServer(r.prompt)).toBe(r.sent); // what Ollama, LM Studio and vLLM receive
     }
   });
 

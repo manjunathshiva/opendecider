@@ -11,7 +11,8 @@ import math
 import torch
 import torch.nn.functional as F
 
-from .prompt import LETTERS, SYSTEM, render  # noqa: F401  (re-exported: opendecider.small.render)
+from .prompt import LETTERS, chat_ids, text_ids
+from .prompt import render  # noqa: F401  (re-exported: opendecider.small.render)
 
 
 class SmallModel:
@@ -42,9 +43,7 @@ class SmallModel:
         self.max_input_tokens = int(getattr(self.m.config, "max_position_embeddings", 32768))
 
     def ids(self, prompt: str) -> list[int]:
-        msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}]
-        s = self.tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False)
-        ids = self.tok.encode(s, add_special_tokens=False)
+        ids = chat_ids(self.tok, prompt)
         if len(ids) > getattr(self, "max_input_tokens", 1 << 30):
             raise ValueError(f"input is {len(ids)} tokens, longer than this model's {self.max_input_tokens}-token context")
         self._last_tokens = len(ids)
@@ -59,7 +58,7 @@ class SmallModel:
             logits = self.m.lm_head(h.to(self.m.lm_head.weight.device))[self.letters[:len(names)]].float()
             return dict(zip(names, torch.softmax(logits, -1).tolist()))
         pre = self.ids(render(state, instructions, options, lettered=False))
-        labs = [self.tok.encode(n, add_special_tokens=False) for n in names]
+        labs = [text_ids(self.tok, n) for n in names]
         L = len(pre) + max(len(t) for t in labs)
         pad = self.tok.pad_token_id or 0
         rows = [pre + t + [pad] * (L - len(pre) - len(t)) for t in labs]
