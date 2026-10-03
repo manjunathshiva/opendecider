@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import string
+import threading
 
 LETTERS = string.ascii_uppercase
 SYSTEM = "You make one decision for a software system."
@@ -36,14 +37,19 @@ def chat_ids(tok, prompt: str) -> list[int]:
     head, slot, tail = s.partition(_SLOT)
     if not slot or _SLOT in tail:
         raise ValueError("the chat template did not place the prompt exactly once")
-    return (tok.encode(head, add_special_tokens=False) + text_ids(tok, prompt)
-            + tok.encode(tail, add_special_tokens=False))
+    with _ENCODING:   # the template's tokens with special tokens, the prompt without: no other call in between
+        return (tok.encode(head, add_special_tokens=False) + text_ids(tok, prompt)
+                + tok.encode(tail, add_special_tokens=False))
 
 
 def text_ids(tok, text: str) -> list[int]:
     """`text` as token ids with no special tokens: one written in the text is read as plain characters."""
-    return tok.encode(text, add_special_tokens=False, split_special_tokens=True)
+    with _ENCODING:
+        return tok.encode(text, add_special_tokens=False, split_special_tokens=True)
 
 
 _SPECIAL_SHAPE = re.compile(r"<\|(?=[A-Za-z0-9_]+\|>)")   # every Qwen special token is <|name|>
+# A fast tokenizer keeps split_special_tokens as state for its next encode, so two threads sharing one could swap it
+# mid-prompt: every encode here holds this lock (reentrant: chat_ids holds it across text_ids).
+_ENCODING = threading.RLock()
 _SLOT = "\x00opendecider-prompt\x00"   # marks where the prompt goes; the template and SYSTEM never contain it

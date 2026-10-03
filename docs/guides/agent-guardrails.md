@@ -9,7 +9,7 @@ Two kinds of guardrail, each a decision model call that takes milliseconds to a 
 ## Screen prompts for jailbreaks and prompt injection
 
 ```bash
-pip install "opendecider[small]>=0.5.0"
+pip install "opendecider[small]>=0.6.1"
 ```
 
 ```python

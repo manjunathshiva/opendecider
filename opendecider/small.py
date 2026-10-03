@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 
 from .prompt import LETTERS, chat_ids, text_ids
-from .prompt import SYSTEM, render  # noqa: F401  (re-exported: opendecider.small.render)
+from .prompt import render  # noqa: F401  (re-exported: opendecider.small.render)
 
 
 class SmallModel:
