@@ -8,7 +8,7 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
-from .prompt import LETTERS, SYSTEM, render
+from .prompt import LETTERS, chat_ids, render, text_ids
 
 
 class MLXSmallModel:
@@ -25,9 +25,7 @@ class MLXSmallModel:
         self.device = "mlx"
 
     def ids(self, prompt: str) -> list[int]:
-        msgs = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}]
-        s = self.tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False)
-        ids = self.tok.encode(s, add_special_tokens=False)
+        ids = chat_ids(self.tok, prompt)
         self._last_tokens = len(ids)
         return ids
 
@@ -41,7 +39,7 @@ class MLXSmallModel:
             p = mx.softmax(sel, axis=-1)
             return dict(zip(names, p.tolist()))
         pre = self.ids(render(state, instructions, options, lettered=False))
-        labs = [self.tok.encode(n, add_special_tokens=False) for n in names]
+        labs = [text_ids(self.tok, n) for n in names]
         pad = self.tok.pad_token_id or 0
         scores = []
         for i in range(0, len(labs), 16):

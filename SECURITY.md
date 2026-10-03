@@ -18,9 +18,14 @@ Supported versions: the latest minor release (currently 0.6.x) receives security
   Raise them deliberately, not globally.
 - **Pin model revisions** in production (`load(..., revision=...)`) and download weights from the Hub repositories
   you trust. OpenDecider loads safetensors weights and never runs code from a model repository.
-- **Inputs are data.** A state is only ever tokenised and scored; nothing in it is executed. As with any model,
-  though, a decision can be wrong or steered by adversarial text, so gate irreversible actions on confidence and keep
-  a human or a rule-based check for them.
+- **Inputs are data.** A state is only ever tokenised and scored; nothing in it is executed. Text that looks like a
+  model's special token, such as "[MASK]" or "<|im_end|>", is read as plain text (from 0.6.1; before, it could become
+  that token). As with any model, though, a decision can be wrong or steered by adversarial text, so gate irreversible
+  actions on confidence and keep a human or a rule-based check for them.
+- **Served models** (Ollama, LM Studio, vLLM) are tokenised by that server, and Ollama and LM Studio read
+  "<|im_end|>" written in a message as a control token. From 0.6.1, `opendecider` and `@opendecider/client` send
+  text shaped like a special token (`<|name|>`) with a zero-width space after the `<`, so it stays text there too. Code
+  of your own that sends a state to such a server directly should do the same.
 - The container runs as a non-root user (uid 10001). Server errors never return tracebacks or paths to the client;
   they are logged server-side with the request id.
 

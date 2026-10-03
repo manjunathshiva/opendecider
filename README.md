@@ -342,6 +342,15 @@ these workflows, not as general superiority.
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
 
+## What's new in 0.6.1
+
+* **Security fix: special-token text in a state is plain text.** Text such as "[MASK]" or "<|im_end|>" in a state was
+  read as a model's special token: with opendecider-nano it could change the probabilities and let a flagged prompt
+  pass a nano guard, and Ollama and LM Studio read "<|im_end|>" in a message as a control token. Every input now
+  reaches the model as plain text, locally and through those servers; no published number changed. Upgrade:
+  `pip install -U opendecider` (or `opendecider-client`), and `npm i @opendecider/client@latest`. See the
+  [changelog](CHANGELOG.md).
+
 ## What's new in 0.6.0
 
 * **TypeScript.** `@opendecider/client` on npm: decisions, routers and the guard from Node, Bun or Deno, against
