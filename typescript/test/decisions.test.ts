@@ -6,6 +6,7 @@ import {
   GuardrailError,
   InputError,
   Router,
+  VERSION,
   setLogger,
   toolSpecs,
   type Decision,
@@ -468,7 +469,7 @@ describe("agent tools", () => {
     expect(await t.status!.run({})).toMatchObject({
       model: URL_,
       loaded: true,
-      version: "0.5.0",
+      version: VERSION,
       limits: { questions: 64, options: 256, state_chars: 200000, batch_states: 256, batch_items: 1024 },
     });
   });
