@@ -84,6 +84,14 @@ describe("the model (tiny, random weights, opendecider-nano's architecture)", ()
     await expect(backend.decideMany(items, ctl.signal)).rejects.toThrow(/abort/i);
   });
 
+  it("says when a question and its options are longer than the model reads, before running anything", async () => {
+    const backend = new NanoBackend(await session(), encode, "wasm", "q8");
+    const options: Option[] = Array.from({ length: 60 }, (_, i) => [`opt${i}`, "a long description ".repeat(30)]);
+    await expect(backend.decideMany([{ state: "short", instructions: "Which?", options }])).rejects.toThrow(
+      /more than opendecider-nano's 2048/,
+    );
+  });
+
   it("refuses a prompt whose markers do not match its options", async () => {
     const leaky: Encode = (text) => (text.includes("input:") ? [SPECIAL.mask] : encode(text)); // a broken tokenizer
     const backend = new NanoBackend(await session(), leaky, "wasm", "q8");

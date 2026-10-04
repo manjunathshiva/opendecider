@@ -115,6 +115,27 @@ describe("loadFile", () => {
     }
   });
 
+  it("resolves a relative baseUrl against the page, and says when there is no page", async () => {
+    const s = server(BYTES);
+    (globalThis as { location?: unknown }).location = { href: "https://app.example/inbox/today" };
+    try {
+      expect(await loadFile(SPEC, { baseUrl: "/models/nano", fetch: s.fetch })).toEqual(BYTES);
+      expect(s.calls).toEqual(["https://app.example/models/nano/onnx/model.onnx"]);
+    } finally {
+      delete (globalThis as { location?: unknown }).location;
+    }
+    await expect(loadFile(SPEC, { baseUrl: "/models/nano", fetch: s.fetch })).rejects.toThrow(/absolute URL/);
+  });
+
+  it("stops before reading anything when the call is already cancelled", async () => {
+    const ctl = new AbortController();
+    ctl.abort();
+    let read = 0;
+    const files = async () => (read++, BYTES);
+    await expect(loadFile(SPEC, { baseUrl: BASE, files, signal: ctl.signal })).rejects.toThrow(/abort/i);
+    expect(read).toBe(0);
+  });
+
   it("checks a file you read yourself", async () => {
     expect(await loadFile(SPEC, { baseUrl: BASE, files: async () => BYTES.buffer.slice(0) })).toEqual(BYTES);
     await expect(loadFile(SPEC, { baseUrl: BASE, files: async () => BYTES.slice(1) })).rejects.toThrow(ModelFileError);

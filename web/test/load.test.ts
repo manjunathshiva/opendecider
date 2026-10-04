@@ -10,6 +10,15 @@ describe("loadNano", () => {
     await expect(loadNano({ device: "wasm", dtype: "q4" as never, fetch: never })).rejects.toThrow(/dtype must be/);
   });
 
+  it("reads no file and builds no model when the call is already cancelled", async () => {
+    const ctl = new AbortController();
+    ctl.abort();
+    let read = 0;
+    const files = async () => (read++, new Uint8Array(1));
+    await expect(loadNano({ device: "wasm", files, signal: ctl.signal })).rejects.toThrow(/abort/i);
+    expect(read).toBe(0);
+  });
+
   it("downloads nothing when the call is already cancelled", async () => {
     const ctl = new AbortController();
     ctl.abort();

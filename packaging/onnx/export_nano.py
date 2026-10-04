@@ -1,7 +1,8 @@
 """Export opendecider-nano (encoder + head) to one ONNX graph: (input_ids, attention_mask) -> logits [batch, tokens].
 The head runs on every token; @opendecider/web keeps the logits at the [MASK] markers and applies softmax.
 
-    python packaging/onnx/export_nano.py --out build/          # writes build/model.onnx (+ .data), float32
+    python packaging/onnx/export_nano.py --out build/          # writes build/model.onnx (+ .data), float32, from the
+                                                                # pinned opendecider-nano revision
 Then quantize.py. Built with torch 2.14.1, transformers 5.18.0, onnx 1.23.1, onnxscript 0.7.2, onnxruntime 1.30.0.
 """
 from __future__ import annotations
@@ -13,6 +14,8 @@ import torch
 from huggingface_hub import snapshot_download
 
 from opendecider.nano import NanoModel
+
+NANO_REVISION = "beeeb640f3333aec4ef78ed3b7bd0605f973a590"   # the weights of manjunathshiva/opendecider-nano-ONNX
 
 
 class Graph(torch.nn.Module):
@@ -28,7 +31,8 @@ class Graph(torch.nn.Module):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--revision", default=None, help="opendecider-nano's Hub revision (default: main)")
+    ap.add_argument("--revision", default=NANO_REVISION,
+                    help="opendecider-nano's Hub revision (default: the one the published builds come from)")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     nano = NanoModel(snapshot_download("manjunathshiva/opendecider-nano", revision=a.revision), "cpu", 2048, "float32")

@@ -37,10 +37,12 @@ const CACHE = "opendecider-web-v1";
 
 /** The file's bytes, after its size and SHA-256 matched the spec. */
 export async function loadFile(spec: FileSpec, o: FetchOptions): Promise<Uint8Array> {
+  o.signal?.throwIfAborted();
   const progress = (loaded: number, cached: boolean) =>
     o.onProgress?.({ file: spec.path, loaded, total: spec.bytes, cached });
   if (o.files) {
     const got = await o.files(spec.path);
+    o.signal?.throwIfAborted();
     const bytes = got instanceof Uint8Array ? got : new Uint8Array(got);
     await check(spec, bytes);
     progress(bytes.length, false);
@@ -52,6 +54,7 @@ export async function loadFile(spec: FileSpec, o: FetchOptions): Promise<Uint8Ar
     const hit = await cache.match(key).catch(() => undefined);
     if (hit) {
       const bytes = new Uint8Array(await hit.arrayBuffer());
+      o.signal?.throwIfAborted();
       try {
         await check(spec, bytes);
         progress(bytes.length, true);
@@ -76,7 +79,16 @@ async function openCache(): Promise<Cache | null> {
 }
 
 async function download(spec: FileSpec, o: FetchOptions, onBytes: (n: number) => void): Promise<Uint8Array> {
-  const url = new URL(spec.path, o.baseUrl.endsWith("/") ? o.baseUrl : `${o.baseUrl}/`).href;
+  let url: string;
+  try {
+    // a relative baseUrl ("/models/") is the page's: resolved against its address, where there is a page
+    const base = new URL(o.baseUrl.endsWith("/") ? o.baseUrl : `${o.baseUrl}/`, globalThis.location?.href);
+    url = new URL(spec.path, base).href;
+  } catch {
+    throw new ModelFileError(
+      "baseUrl must be an absolute URL here (there is no page to resolve a relative one against)",
+    );
+  }
   let res: Response;
   try {
     res = await (o.fetch ?? globalThis.fetch)(url, { signal: o.signal ?? null });

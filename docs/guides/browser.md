@@ -103,7 +103,8 @@ For a server, [`opendecider serve`](serve.md) is faster: it batches requests and
 - **Memory:** about 2.2 GiB (q8f16) or 2.8 GiB (q8) with a 2,048-token question. Phones with little memory may not load
   it.
 - **Input length:** 2,048 tokens, as opendecider-nano was trained; a longer state is shortened (the answer is marked
-  `truncated`).
+  `truncated`). A question whose options alone are longer is refused with an `InputError` (the Python package runs it,
+  but the browser runs out of memory).
 - **English:** like opendecider-nano itself, evaluated in English only.
 - **Edge functions:** not supported. Cloudflare Workers and similar runtimes have far less memory than the model needs.
 - **A background tab:** browsers slow down hidden tabs, and WebGPU answers there take up to a second each.

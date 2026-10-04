@@ -1,6 +1,14 @@
 /** opendecider-nano on this device: ONNX Runtime Web (WebGPU or WebAssembly) behind @opendecider/client's API. */
 import { Tokenizer } from "@huggingface/tokenizers";
-import { OpenDecider, type Backend, type CallOptions, type Decided, type Info, type Item } from "@opendecider/client";
+import {
+  InputError,
+  OpenDecider,
+  type Backend,
+  type CallOptions,
+  type Decided,
+  type Info,
+  type Item,
+} from "@opendecider/client";
 import type { InferenceSession, Tensor } from "onnxruntime-web";
 import { loadFile, type FetchOptions, type LoadProgress } from "./hub.js";
 import { ort } from "./ort.js";
@@ -49,6 +57,16 @@ export class NanoBackend implements Backend {
 
   async decideMany(items: readonly Item[], signal?: AbortSignal): Promise<Decided> {
     const built = items.map((it) => nanoIds(this.encode, it.state, it.instructions, it.options, MAX_TOKENS));
+    for (const b of built) {
+      // the state is shortened to fit, the question and its options are not; past 2,048 tokens the browser runs out of
+      // memory (Python runs the longer input), so say so before anything runs
+      if (b.ids.length > MAX_TOKENS) {
+        throw new InputError(
+          `a question and its options need ${b.ids.length} tokens, more than opendecider-nano's ${MAX_TOKENS}: ` +
+            "shorten the option descriptions or split the question",
+        );
+      }
+    }
     const probs: Record<string, number>[] = new Array(items.length);
     const info: Info[] = built.map((b) => ({ input_tokens: b.ids.length, truncated: b.truncated }));
     for (const batch of batches(
@@ -148,7 +166,9 @@ export async function loadNano(options: LoadOptions = {}): Promise<OpenDecider> 
     onProgress: options.onProgress,
     signal: options.signal,
   };
+  options.signal?.throwIfAborted();
   const [tokJson, modelBytes] = await Promise.all([loadFile(TOKENIZER, fo), loadFile(MODELS[dtype], fo)]);
+  options.signal?.throwIfAborted(); // cancelled while the files arrived: no model is built
   const tok = new Tokenizer(JSON.parse(new TextDecoder().decode(tokJson)), {});
   const encode: Encode = (text) => tok.encode(text, { add_special_tokens: false }).ids;
   let session: InferenceSession;
