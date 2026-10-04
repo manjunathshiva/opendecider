@@ -1,6 +1,6 @@
 {
   "name": "@opendecider/web",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "OpenDecider on the device: opendecider-nano in the browser (WebGPU or WebAssembly), Node, Bun or Deno, so the text never leaves it. Typed decisions, routing and a prompt guard with the API of @opendecider/client.",
   "license": "Apache-2.0",
   "author": "Manjunath Janardhan",
