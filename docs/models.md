@@ -44,8 +44,8 @@ Load any of them by name: `load("manjunathshiva/opendecider-small-td")`. The Qwe
 | several NVIDIA GPUs | | | ✅ 214 ms on 4× L40S (~64 GB in total) | ✅ 440 ms on 4× L40S (~170 GB in total) |
 
 Latency is one question, median. Answers are identical to four decimals across the tested Macs and NVIDIA machines.
-Models larger than one GPU are spread across all visible GPUs automatically. large-td needs transformers 4.57 or newer;
-`pip install flash-linear-attention` speeds it up.
+Models larger than one GPU are spread across all visible GPUs automatically. `pip install flash-linear-attention` speeds
+up large-td.
 
 ## How they work
 

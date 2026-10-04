@@ -3,16 +3,18 @@ name: Release
 # Triggered by a tag push (vX.Y.Z). The jobs:
 #   release      - create the GitHub Release with auto-generated notes
 #   build        - build sdist + wheel (pure Python), verify contents and version
-#   build-npm    - test, build and pack @opendecider/client (typescript/) and verify its version (stable tags only:
-#                  a pre-release tag such as v0.6.0rc1 is not a valid npm version, so it releases Python only)
+#   build-npm    - test, build and pack @opendecider/client (typescript/) and @opendecider/web (web/, which depends on
+#                  exactly this version of the client) and verify their versions (stable tags only: a pre-release
+#                  tag such as v0.6.0rc1 is not a valid npm version, so it releases Python only)
 #   attach       - sign the Python files (Sigstore, build provenance, SBOM) and attach them to the GitHub Release
-#   attach-npm   - the same for the npm package, in its own job so neither side holds up the other
+#   attach-npm   - the same for the npm packages, in its own job so neither side holds up the other
 #   publish-pypi - upload to PyPI via OIDC Trusted Publishing (no API tokens;
 #                  the "pypi" environment requires a maintainer's approval)
-#   publish-npm  - stage @opendecider/client on npm via OIDC Trusted Publishing, with npm provenance (no tokens;
-#                  the "npm" environment requires a maintainer's approval). Staged is not yet public: a maintainer
-#                  then publishes it with two-factor authentication:
+#   publish-npm  - stage both npm packages via OIDC Trusted Publishing, with npm provenance (no tokens; the "npm"
+#                  environment requires a maintainer's approval). Staged is not yet public: a maintainer then
+#                  publishes each with two-factor authentication, the client first (web depends on it):
 #                    npm stage list @opendecider/client && npm stage approve <stage-id>
+#                    npm stage list @opendecider/web && npm stage approve <stage-id>
 # The build makes two distributions from the same source: opendecider and opendecider-client (no PyTorch,
 # packaging/build_client.py). Each PyPI project needs its own trusted publisher, set up as below.
 #
@@ -24,7 +26,8 @@ name: Release
 #     Workflow filename: release.yml
 #     Environment name:  pypi
 # One-time setup on npm (trusted publishing can only be added to a package that exists, so the package is first
-# published once by hand): npmjs.com -> @opendecider/client -> Settings -> Trusted publishing
+# published once by hand): npmjs.com -> @opendecider/client (and again for @opendecider/web) -> Settings -> Trusted
+# publishing
 #     Organization or user: manjunathshiva   Repository: opendecider   Workflow filename: release.yml   Environment: npm
 #     Allowed actions: neither "npm publish" nor "npm dist-tag", so CI can only stage a version
 # One-time setup on GitHub: Settings -> Environments -> "pypi" and "npm" -> required reviewers.
@@ -110,7 +113,7 @@ jobs:
           if-no-files-found: error
 
   build-npm:
-    name: Test, build and pack @opendecider/client
+    name: Test, build and pack @opendecider/client and @opendecider/web
     # A pre-release tag (v0.6.0rc1: PEP 440, not a valid npm version) releases the Python packages only.
     if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
     runs-on: ubuntu-latest
@@ -139,6 +142,24 @@ jobs:
           fi
       - name: Build and pack
         run: npm run build && mkdir -p ../npm-dist && npm pack --pack-destination ../npm-dist
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: "@opendecider/web: the Python package's token ids and prompts, then its tests"
+        working-directory: web
+        run: |
+          python -m pip install "transformers>=5,<6" huggingface_hub
+          PYTHONPATH=.. python test/fixtures/make_fixtures.py --check
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run typecheck && npm test
+      - name: "@opendecider/web: verify its version, depend on exactly this client, build and pack"
+        working-directory: web
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          PKG=$(node -p 'require("./package.json").version')
+          if [ "$TAG" != "$PKG" ]; then echo "Tag v$TAG does not match web/package.json $PKG" >&2; exit 1; fi
+          npm pkg set "dependencies.@opendecider/client=$TAG"   # was the checkout's typescript/ (file:)
+          npm run build && npm pack --pack-destination ../npm-dist
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: npm
@@ -191,7 +212,7 @@ jobs:
           gh release upload "$TAG" dist/* "opendecider-${TAG#v}.spdx.json" --clobber --repo "$GITHUB_REPOSITORY"
 
   attach-npm:
-    name: Sign and attach @opendecider/client to the GitHub Release
+    name: Sign and attach the npm packages to the GitHub Release
     needs: [release, build-npm]
     runs-on: ubuntu-latest
     permissions:
@@ -238,7 +259,7 @@ jobs:
           skip-existing: true
 
   publish-npm:
-    name: Publish @opendecider/client to npm (OIDC)
+    name: Publish the npm packages to npm (OIDC)
     needs: build-npm
     runs-on: ubuntu-latest
     environment:
@@ -256,16 +277,17 @@ jobs:
         with:
           name: npm
           path: npm-dist/
-      - name: Stage (skipped when this version is already on npm; a re-run stages it again, so reject the extra one)
+      - name: Stage (each one skipped when its version is already on npm; a re-run stages it again, so reject the extra one)
         run: |
           # shellcheck disable=SC2016  # the ${...} in single quotes are JavaScript template literals
           node -e 'const [maj, min] = process.argv[1].split(".").map(Number);
                    if (maj < 11 || (maj === 11 && min < 15)) {
                      console.error(`staged publishing needs npm 11.15.0 or later, this is ${process.argv[1]}`); process.exit(1); }' "$(npm --version)"
-          TGZ=$(ls ./npm-dist/*.tgz)   # (with ./: npm reads "dir/file.tgz" as a GitHub repository)
-          # shellcheck disable=SC2016  # (as above)
-          NAME=$(tar -xOzf "$TGZ" package/package.json | node -p 'const p = JSON.parse(require("fs").readFileSync(0)); `${p.name}@${p.version}`')
-          # (by its output: some npm versions print nothing, and succeed, for a version that does not exist)
-          if [ -n "$(npm view "$NAME" version 2>/dev/null)" ]; then echo "$NAME is already on npm"; exit 0; fi
-          npm stage publish "$TGZ" --access public --provenance
-          echo "::notice title=npm::$NAME is staged, not yet public. Publish it with two-factor authentication: npm stage list @opendecider/client, then npm stage approve <stage-id>"
+          for TGZ in ./npm-dist/opendecider-client-*.tgz ./npm-dist/opendecider-web-*.tgz; do   # (./: npm reads "dir/file.tgz" as a GitHub repository)
+            # shellcheck disable=SC2016  # (as above)
+            NAME=$(tar -xOzf "$TGZ" package/package.json | node -p 'const p = JSON.parse(require("fs").readFileSync(0)); `${p.name}@${p.version}`')
+            # (by its output: some npm versions print nothing, and succeed, for a version that does not exist)
+            if [ -n "$(npm view "$NAME" version 2>/dev/null)" ]; then echo "$NAME is already on npm"; continue; fi
+            npm stage publish "$TGZ" --access public --provenance
+            echo "::notice title=npm::$NAME is staged, not yet public. Publish it with two-factor authentication: npm stage list ${NAME%@*}, then npm stage approve <stage-id>"
+          done

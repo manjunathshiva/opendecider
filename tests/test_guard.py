@@ -83,11 +83,17 @@ def test_a_quantised_build_uses_its_own_measured_threshold():
 
 
 def test_a_builds_threshold_is_never_below_its_models_or_the_default():
-    # so a name that does not say which build runs (its model's threshold, or 0.5) flags at least as much as the build
+    # so a name that does not say which build runs flags at least as much as the build: it gets its model's threshold,
+    # or 0.5 for a GGUF name without a quantisation (the ONNX builds are always named in full by @opendecider/web)
     for key, t in guard_module.THRESHOLDS.items():
-        base = key.split(":")[0].removesuffix("-gguf").removesuffix("-mlx-4bit").removesuffix("-mlx-8bit")
+        name = key.split(":")[0]
+        base = name.removesuffix("-gguf")
+        for build in ("-mlx-4bit", "-mlx-8bit", "-onnx-q8f16", "-onnx-q8"):
+            base = base.removesuffix(build)
         if base != key:
-            assert t >= max(guard_module.THRESHOLDS[base], guard_module.DEFAULT_THRESHOLD), key
+            assert t >= guard_module.THRESHOLDS[base], key
+            if name.endswith("-gguf"):
+                assert t >= guard_module.DEFAULT_THRESHOLD, key
 
 
 def test_a_threshold_is_inclusive():

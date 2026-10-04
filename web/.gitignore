@@ -1,0 +1,7 @@
+/node_modules/
+/dist/
+/LICENSE
+/NOTICE
+*.tgz
+/pack.json
+/test/fixtures/tokenizer.web.json

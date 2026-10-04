@@ -76,6 +76,13 @@ Supported versions: the latest minor release (currently 0.6.x) receives security
 
   The GitHub Release carries the same `.tgz` with its Sigstore signature and build provenance
   (`gh attestation verify opendecider-client-<version>.tgz --repo manjunathshiva/opendecider`).
+- **`@opendecider/web`** (from 0.7.0) is built, staged and approved the same way, and the GitHub Release carries its
+  `.tgz` too. Its runtime dependencies are pinned to exact versions (`@opendecider/client` of the same version,
+  `onnxruntime-web`, `@huggingface/tokenizers`). It loads only the model files it pins: one revision of
+  manjunathshiva/opendecider-nano-ONNX, each file by size and SHA-256, checked on every load (from the network, the
+  browser's cache or your own server); a file that does not match is never used. `packaging/onnx/` rebuilds the files
+  byte for byte, so the pinned hashes can be checked against this source. ONNX Runtime's WebAssembly comes with your
+  bundle, never from a CDN, and the page needs only `'wasm-unsafe-eval'` added to its `script-src` (and `worker-src 'self'` for threads).
 - **Models.** The weights are safetensors files on the Hugging Face Hub under `manjunathshiva/`; OpenDecider never
   runs code from a model repository. Pin a revision (`load(name, revision="<commit>")`) so what you tested is what
   you run.

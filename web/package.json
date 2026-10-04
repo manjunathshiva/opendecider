@@ -1,0 +1,73 @@
+{
+  "name": "@opendecider/web",
+  "version": "0.6.1",
+  "description": "OpenDecider on the device: opendecider-nano in the browser (WebGPU or WebAssembly), Node, Bun or Deno, so the text never leaves it. Typed decisions, routing and a prompt guard with the API of @opendecider/client.",
+  "license": "Apache-2.0",
+  "author": "Manjunath Janardhan",
+  "homepage": "https://manjunathshiva.github.io/opendecider/guides/browser/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manjunathshiva/opendecider.git",
+    "directory": "web"
+  },
+  "bugs": "https://github.com/manjunathshiva/opendecider/issues",
+  "keywords": [
+    "ai",
+    "onnx",
+    "webgpu",
+    "webassembly",
+    "browser",
+    "classification",
+    "routing",
+    "guardrails",
+    "prompt-injection",
+    "opendecider"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "imports": {
+    "#ort": {
+      "node": "onnxruntime-web",
+      "default": "onnxruntime-web/webgpu"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-legal.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@huggingface/tokenizers": "0.2.0",
+    "@opendecider/client": "file:../typescript",
+    "onnxruntime-web": "1.30.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

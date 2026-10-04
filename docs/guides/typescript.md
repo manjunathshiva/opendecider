@@ -164,6 +164,7 @@ Mastra reports usage to its developers by default. Set `MASTRA_TELEMETRY_DISABLE
 | Audit and logs | `onDecision` on `Router` and `Guard` receives every decision. `setLogger(logger)` sends the package's warnings to your logger, or `setLogger(null)` to nowhere. |
 | Tracing | The AI SDK's and Mastra's own telemetry traces each tool call. `Router` and `Guard` emit no OpenTelemetry spans yet (the Python package does): record their `onDecision` results, which carry the model, the reason and the latency. |
 | Limits | As `opendecider serve`: 64 questions per call, 256 options, 200,000 characters of state, 256 states and 1,024 questions per batch. Through Ollama, LM Studio and vLLM: at most 26 options per question. |
+| A model that runs here | `new OpenDecider(backend, meta)` takes any `Backend` (types `Item`, `Info`, `Decided`, `JsonValue`, `Option`); [`@opendecider/web`](browser.md) is one: opendecider-nano in the browser. |
 | Supply chain | No runtime dependencies. Built in GitHub Actions with npm provenance (`npm audit signatures`), and published only when a maintainer approves it with two-factor authentication. |
 
 ## Same answers as Python
@@ -183,4 +184,5 @@ Two differences come from JavaScript itself:
 ## Browsers
 
 `opendecider serve` sends no CORS headers, so a web page should call it through your own backend, which also keeps any
-API key off the page. opendecider-nano running in the browser itself is on the [roadmap](../roadmap.md).
+API key off the page. To run opendecider-nano in the page itself, with nothing sent anywhere, use
+[`@opendecider/web`](browser.md).

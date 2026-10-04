@@ -117,6 +117,9 @@ r.tripwire;   // set when the guard blocked the message: the reason, and the Gua
   batch. Through Ollama, LM Studio and vLLM, at most 26 options per question.
 - **Same answers as Python:** the prompt, typed answers, limits and guard windows are tested against reference outputs
   from the Python package; through `opendecider serve` and Ollama, both clients give the same probabilities.
+- **A model that runs here:** `new OpenDecider(backend, meta)` takes any `Backend` (with the types `Item`, `Info`,
+  `Decided`, `JsonValue` and `Option`); [`@opendecider/web`](https://www.npmjs.com/package/@opendecider/web) is one, and
+  runs opendecider-nano in the browser.
 
 JavaScript orders object keys that look like integers first, so give options with labels such as `"10"` and `"2"` as a
 list to keep your order.

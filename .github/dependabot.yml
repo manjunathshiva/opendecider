@@ -48,6 +48,34 @@ updates:
       typescript-dev:
         patterns: ["*"]
 
+  # @opendecider/web: onnxruntime-web and @huggingface/tokenizers are pinned exactly (a new version can change the
+  # numbers or the token ids, so each bump runs the web tests: parity with Python and the tiny model), apart from the
+  # development dependencies. @opendecider/client is the checkout's own (file:), not from npm.
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "javascript"]
+    ignore:
+      - dependency-name: "@opendecider/client"
+    groups:
+      web-runtime:
+        patterns: ["onnxruntime-web", "@huggingface/tokenizers"]
+      web-dev:
+        patterns: ["*"]
+        exclude-patterns: ["onnxruntime-web", "@huggingface/tokenizers", "@opendecider/client"]
+
+  # The docs site's demo of @opendecider/web (vite only)
+  - package-ecosystem: "npm"
+    directory: "/web/demo"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 1
+    labels: ["dependencies", "javascript"]
+    ignore:
+      - dependency-name: "@opendecider/web"
+
   # GitHub Actions: every action is pinned to a commit (with its version in a comment), so a moved tag cannot change
   # what runs; Dependabot bumps the pins, patches and minors included, or a pin would never pick up a security fix.
   # One grouped PR a week keeps the pins moving together.

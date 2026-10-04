@@ -1,0 +1,15 @@
+{
+  "name": "opendecider-web-demo",
+  "private": true,
+  "type": "module",
+  "description": "The docs site's demo of @opendecider/web (built by .github/workflows/docs.yml into /demo/)",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@opendecider/web": "file:.."
+  },
+  "devDependencies": {
+    "vite": "^8.3.2"
+  }
+}

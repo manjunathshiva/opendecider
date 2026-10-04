@@ -7,13 +7,12 @@ options are read together in one pass, so a question with 78 options costs one f
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import torch
 import torch.nn as nn
 
-from .prompt import text_ids
+from .prompt import nano_ids
 
 
 class NanoModel(nn.Module):
@@ -41,17 +40,7 @@ class NanoModel(nn.Module):
         return self._build(state, instructions, options)[0]
 
     def _build(self, state, instructions: str, options: dict) -> tuple[list[int], bool]:
-        t = self.tok
-        st = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
-        # every text is read as plain text: "[MASK]" written in a state must not become an option marker
-        q = text_ids(t, f"question: {instructions}")
-        opts = []
-        for k, v in options.items():
-            opts += [self.mask_id] + text_ids(t, f" {k}: {v}" if v and v != k else f" {k}")
-        s = text_ids(t, f"input: {st}")
-        room = max(self.max_len - len(q) - len(opts) - 4, 0)
-        ids = [t.cls_token_id] + q + [t.sep_token_id] + opts + [t.sep_token_id] + s[:room] + [t.sep_token_id]
-        return ids, len(s) > room
+        return nano_ids(self.tok, state, instructions, options, self.max_len)
 
     @torch.no_grad()
     def decide_many(self, items: list[tuple], info: list | None = None) -> list[dict]:

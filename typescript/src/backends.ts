@@ -24,8 +24,11 @@ export interface Decided {
   info: Info[];
 }
 
+/** Where a model runs, for packages that run one themselves (@opendecider/web runs opendecider-nano in the browser):
+ * an OpenDecider wraps any Backend. */
 export interface Backend {
-  readonly kind: "served" | "remote";
+  /** "served" (opendecider serve), "remote" (an OpenAI-compatible server) or "local" (in this process). */
+  readonly kind: "served" | "remote" | "local";
   /** Where the model runs, for status reports. */
   readonly device: string;
   decideMany(items: readonly Item[], signal?: AbortSignal): Promise<Decided>;

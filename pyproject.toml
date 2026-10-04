@@ -20,15 +20,15 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "torch>=2.1",
-    "transformers>=4.51",
+    "torch>=2.4",   # the oldest checked with transformers 5: 2.4.1 gives nano's probabilities, 2.2 did not load ModernBERT
+    "transformers>=5.0",   # opendecider-nano's tokenizer needs transformers 5; nano and small were checked on 5.0.0
     "safetensors>=0.4",
     "huggingface_hub>=0.23",
 ]
 
 [project.optional-dependencies]
-# opendecider-small is a LoRA adapter on Qwen3-4B-Instruct-2507
-small = ["peft>=0.11", "accelerate"]
+# opendecider-small is a LoRA adapter on Qwen3-4B-Instruct-2507 (peft 0.11 cannot read it; 0.17 fails on transformers 5)
+small = ["peft>=0.18", "accelerate"]
 # opendecider-small-mlx-*: Apple Silicon builds run through MLX
 mlx = ["mlx-lm>=0.28; sys_platform == 'darwin' and platform_machine == 'arm64'"]
 # `opendecider serve`: HTTP server speaking the Jev /v1/systemone protocol

@@ -36,6 +36,7 @@ THRESHOLDS: dict[str, float] = {
     "opendecider-small-td-gguf:q8_0": 0.5056, "opendecider-small-td-gguf:q4_k_m": 0.5568,
     "opendecider-small-gguf:q8_0": 0.5119, "opendecider-small-gguf:q4_k_m": 0.5576,
     "opendecider-small-mlx-8bit": 0.5156, "opendecider-small-mlx-4bit": 0.5467,
+    "opendecider-nano-onnx-q8": 0.3905, "opendecider-nano-onnx-q8f16": 0.3903,   # @opendecider/web's builds
 }
 DEFAULT_THRESHOLD = 0.5   # for a model or custom checks without a measured threshold
 DEFAULT_GUARD_MODEL = "manjunathshiva/opendecider-small-td"
