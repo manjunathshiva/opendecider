@@ -1,10 +1,11 @@
 """Reference token ids from the Python package for @opendecider/web's tests (torch-free: tokenizers only).
 
     PYTHONPATH=.. python test/fixtures/make_fixtures.py           # writes parity.json and tokenizer.web.json
-    PYTHONPATH=.. python test/fixtures/make_fixtures.py --check   # CI: parity.json is up to date
+    PYTHONPATH=.. python test/fixtures/make_fixtures.py --check   # CI: both are up to date
 
-tokenizer.web.json (not committed) is rebuilt from opendecider-nano's tokenizer.json at NANO_REVISION; its SHA-256
-must be the one src/manifest.ts pins, so the published file is the one this source makes.
+tokenizer.web.json is committed (so `npm test` needs no Python) and rebuilt here from opendecider-nano's tokenizer.json
+at NANO_REVISION: --check fails if the committed file differs, and the tests check that its SHA-256 is the one
+src/manifest.ts pins, so the published file is the one this source makes.
 """
 from __future__ import annotations
 
@@ -62,7 +63,7 @@ def main(check: bool) -> None:
     tok = PreTrainedTokenizerFast(tokenizer_file=src, cls_token="[CLS]", sep_token="[SEP]", mask_token="[MASK]",
                                   pad_token="[PAD]", unk_token="[UNK]")
     with open(src, encoding="utf-8") as f:
-        (HERE / "tokenizer.web.json").write_text(dumps(web_tokenizer(json.load(f))), encoding="utf-8")
+        web_tok = dumps(web_tokenizer(json.load(f)))
     prompts = []
     for st in STATES:
         for q in QUESTIONS:
@@ -75,13 +76,16 @@ def main(check: bool) -> None:
            "prompts": prompts}
     text = json.dumps(out, ensure_ascii=False, indent=0) + "\n"
     path = HERE / "parity.json"
+    tok_path = HERE / "tokenizer.web.json"
     if check:
-        if path.read_text(encoding="utf-8") != text:
-            sys.exit("parity.json is out of date: run PYTHONPATH=.. python test/fixtures/make_fixtures.py")
-        print("parity.json is up to date")
+        for p, want in ((path, text), (tok_path, web_tok)):
+            if not p.exists() or p.read_text(encoding="utf-8") != want:
+                sys.exit(f"{p.name} is out of date: run PYTHONPATH=.. python test/fixtures/make_fixtures.py")
+        print("parity.json and tokenizer.web.json are up to date")
     else:
         path.write_text(text, encoding="utf-8")
-        print(f"wrote {path}")
+        tok_path.write_text(web_tok, encoding="utf-8")
+        print(f"wrote {path} and {tok_path.name}")
 
 
 if __name__ == "__main__":
