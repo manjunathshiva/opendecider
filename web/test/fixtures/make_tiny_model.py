@@ -65,7 +65,7 @@ def main():
         pt, po = probs(tl, p["ids"]), probs(lg, p["ids"])
         assert max(abs(a - b) for a, b in zip(pt, po)) < 1e-5, "ONNX and PyTorch disagree"
         out.append({"probs": po})
-    (HERE / "tiny.json").write_text(json.dumps({"prompts": out}, indent=0) + "\n")
+    (HERE / "tiny.json").write_bytes((json.dumps({"prompts": out}, indent=0) + "\n").encode("utf-8"))
     print(f"tiny.onnx {(HERE / 'tiny.onnx').stat().st_size} bytes, {len(out)} prompts")
 
 

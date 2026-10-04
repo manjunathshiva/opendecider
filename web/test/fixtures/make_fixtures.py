@@ -79,12 +79,12 @@ def main(check: bool) -> None:
     tok_path = HERE / "tokenizer.web.json"
     if check:
         for p, want in ((path, text), (tok_path, web_tok)):
-            if not p.exists() or p.read_text(encoding="utf-8") != want:
+            if not p.exists() or p.read_bytes() != want.encode("utf-8"):
                 sys.exit(f"{p.name} is out of date: run PYTHONPATH=.. python test/fixtures/make_fixtures.py")
         print("parity.json and tokenizer.web.json are up to date")
     else:
-        path.write_text(text, encoding="utf-8")
-        tok_path.write_text(web_tok, encoding="utf-8")
+        path.write_bytes(text.encode("utf-8"))   # bytes: LF on every platform, as committed
+        tok_path.write_bytes(web_tok.encode("utf-8"))
         print(f"wrote {path} and {tok_path.name}")
 
 

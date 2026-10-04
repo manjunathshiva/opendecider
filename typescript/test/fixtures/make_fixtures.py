@@ -189,5 +189,5 @@ if __name__ == "__main__":
             sys.exit(f"{OUT} is out of date: run python typescript/test/fixtures/make_fixtures.py")
         print(f"{OUT.name} is up to date")
     else:
-        OUT.write_text(text, encoding="utf-8")
+        OUT.write_bytes(text.encode("utf-8"))   # bytes: LF on every platform, as committed
         print(f"wrote {OUT}")

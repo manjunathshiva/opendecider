@@ -36,6 +36,6 @@ if __name__ == "__main__":
     src, out = sys.argv[1:3]
     with open(src, encoding="utf-8") as f:
         text = dumps(web_tokenizer(json.load(f)))
-    with open(out, "w", encoding="utf-8") as f:
-        f.write(text)
+    with open(out, "wb") as f:   # bytes: the same file, and SHA-256, on every platform
+        f.write(text.encode("utf-8"))
     print(f"wrote {out} ({len(text.encode())} bytes)")
