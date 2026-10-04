@@ -5,8 +5,8 @@
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
-* **In the browser.** opendecider-nano as ONNX, so a web page or an edge function decides without a server
-  (`opendecider-client` and `@opendecider/client` shipped in 0.6.0).
+* **A browser extension.** A Chrome extension on `@opendecider/web` (first: a YouTube feed that keeps only what you
+  choose, decided on the device), and a guide for building your own (`@opendecider/web` shipped in 0.7.0).
 
 **Next**
 

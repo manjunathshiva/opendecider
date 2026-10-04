@@ -1,4 +1,5 @@
 /** The prompt the Qwen-based OpenDecider models were trained on (a port of opendecider/prompt.py; parity-tested). */
+import { pyJsonIndented, type JsonValue } from "./json.js";
 
 export const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 export const SYSTEM = "You make one decision for a software system.";
@@ -7,8 +8,7 @@ export const SYSTEM = "You make one decision for a software system.";
 export type Option = readonly [name: string, description: unknown];
 
 export function render(state: unknown, instructions: string, options: readonly Option[]): string {
-  // json.dumps(state, indent=1, ensure_ascii=False) writes the same text as JSON.stringify(state, null, 1)
-  const st = typeof state === "string" ? state : JSON.stringify(state ?? null, null, 1);
+  const st = typeof state === "string" ? state : pyJsonIndented((state ?? null) as JsonValue); // json.dumps(..., indent=1)
   const lines = options.map(([k, v], i) => `${LETTERS[i]}) ${v && v !== k ? `${k}: ${String(v)}` : k}`);
   return (
     `Input:\n${st}\n\nQuestion: ${instructions}\n\nOptions:\n${lines.join("\n")}\n\n` +

@@ -1,6 +1,7 @@
 """Models under test. Each exposes decide(state, instructions, options, qtype) -> {option: probability}.
 
-  opendecider  OpenDecider through the pip package (a Hub name or a local folder)
+  opendecider  OpenDecider through the pip package (a Hub name or a local folder), or onnx:<file>, one of
+               @opendecider/web's ONNX builds in native ONNX Runtime (the browser's WebAssembly gives the same logits)
   laya         Laya through its pip package (`pip install laya`), a named checkpoint
   jev          TypeSafe Jev through TypeSafe's own API (set TYPESAFE_API_KEY)
 """
@@ -13,10 +14,53 @@ import urllib.error
 import urllib.request
 
 
+NANO_REVISION = "beeeb640f3333aec4ef78ed3b7bd0605f973a590"   # opendecider-nano, the weights the ONNX builds come from
+
+
+class OnnxNano:
+    """opendecider-nano's ONNX build (manjunathshiva/opendecider-nano-ONNX, what @opendecider/web runs) in native ONNX
+    Runtime on the CPU, with the Python package's prompt. Needs `pip install onnxruntime`."""
+
+    def __init__(self, path: str):
+        import onnxruntime as ort
+        from huggingface_hub import snapshot_download
+        from transformers import AutoTokenizer
+        self.tok = AutoTokenizer.from_pretrained(snapshot_download("manjunathshiva/opendecider-nano",
+                                                                   revision=NANO_REVISION))
+        self.sess = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
+
+    def decide_many(self, items, info=None):
+        import numpy as np
+        from opendecider.prompt import nano_ids
+        built = [nano_ids(self.tok, *it, 2048) for it in items]
+        if info is not None:
+            info.extend({"input_tokens": len(ids), "truncated": tr} for ids, tr in built)
+        out = [None] * len(items)
+        order = sorted(range(len(items)), key=lambda i: len(built[i][0]))
+        for s in range(0, len(order), 16):   # by length, so padding stays small
+            grp = order[s:s + 16]
+            L = max(len(built[i][0]) for i in grp)
+            x = np.array([built[i][0] + [self.tok.pad_token_id] * (L - len(built[i][0])) for i in grp], dtype=np.int64)
+            a = np.array([[1] * len(built[i][0]) + [0] * (L - len(built[i][0])) for i in grp], dtype=np.int64)
+            logits = self.sess.run(["logits"], {"input_ids": x, "attention_mask": a})[0]
+            for r, i in enumerate(grp):
+                z = logits[r][: len(built[i][0])][np.array(built[i][0]) == self.tok.mask_token_id].astype(np.float64)
+                p = np.exp(z - z.max())
+                out[i] = dict(zip(items[i][2], (p / p.sum()).tolist()))
+        return out
+
+
+def load(name: str, device: str | None = None):
+    """opendecider.load, plus onnx:<file> for an ONNX build of opendecider-nano."""
+    import opendecider
+    if name.startswith("onnx:"):
+        return opendecider.OpenDecider(OnnxNano(name[len("onnx:"):]), {"name": "opendecider-nano", "kind": "nano"})
+    return opendecider.load(name, device=device)
+
+
 class OpenDecider:
     def __init__(self, name: str, device: str | None = None):
-        import opendecider
-        self.m = opendecider.load(name, device=device)
+        self.m = load(name, device)
 
     def decide(self, state, instructions, options, qtype):
         return self.m.impl.decide_many([(state, instructions, options)])[0]

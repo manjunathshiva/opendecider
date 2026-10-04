@@ -15,6 +15,9 @@ python benchmarks/run.py --model opendecider-small --suites general,typed
 python benchmarks/run.py --model laya-td --suites general            # pip install laya
 TYPESAFE_API_KEY=... python benchmarks/run.py --model jev             # TypeSafe's own API
 python benchmarks/run.py --model ./my-model --name mine               # any OpenDecider folder
+# @opendecider/web's ONNX builds in native ONNX Runtime (pip install onnxruntime; the browser's WebAssembly gives the
+# same logits): hf download manjunathshiva/opendecider-nano-ONNX --local-dir nano-onnx
+python benchmarks/run.py --model onnx:nano-onnx/onnx/model_q8.onnx --name opendecider-nano-onnx-q8
 ```
 
 ## The three benchmarks
@@ -36,6 +39,7 @@ distribution; Laya's battery uses Laya's own `metrics()`.
 |---|---|---|---|---|
 | opendecider-nano | ✅ | ✅ | ✅ | the released model through this package (identical on Apple Silicon and NVIDIA) |
 | opendecider-small | ✅ | ✅ | ✅ | the released model through this package, NVIDIA L40S |
+| opendecider-nano-onnx-q8, -q8f16 | ✅ | ✅ | ✅ | @opendecider/web's builds, `onnx:<file>` in native ONNX Runtime (CPU), plus the guard sets |
 | jev | ✅ | ✅ | ✅ | TypeSafe's own API, Jev 1.13, 2026-09-26/27 |
 | laya, laya-td | ✅ | Antz AI's run | Laya's committed run | `pip install laya` (0.3.x) for `general` |
 | clm-8b | ✅ | ✅ | ✅ | Contrastive-LM/CLM-v0.1-8B with its own engine through the official vLLM pooling server |

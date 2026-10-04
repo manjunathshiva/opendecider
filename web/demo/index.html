@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenDecider in your browser</title>
+    <style>
+      :root { --bg: #fafaf9; --fg: #1c1917; --muted: #57534e; --line: #e7e5e4; --accent: #0f766e; --bar: #99f6e4; }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1c1917; --fg: #f5f5f4; --muted: #a8a29e; --line: #44403c; --accent: #5eead4; --bar: #115e59; }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+      main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+      h1 { font-size: 1.6rem; margin: 0 0 4px; }
+      p.lead { color: var(--muted); margin: 0 0 20px; }
+      label { display: block; font-weight: 600; margin: 16px 0 6px; }
+      textarea { width: 100%; min-height: 96px; padding: 10px; font: 14px/1.4 ui-monospace, monospace; color: var(--fg);
+                 background: transparent; border: 1px solid var(--line); border-radius: 8px; }
+      button { margin-top: 12px; padding: 10px 18px; font: inherit; font-weight: 600; color: var(--bg);
+               background: var(--accent); border: 0; border-radius: 8px; cursor: pointer; }
+      button:disabled { opacity: 0.5; cursor: progress; }
+      #status { color: var(--muted); margin-top: 12px; min-height: 1.5em; }
+      .q { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+      .q h2 { font-size: 1rem; margin: 0 0 6px; }
+      .row { display: grid; grid-template-columns: minmax(80px, 160px) 1fr 56px; gap: 8px; align-items: center; }
+      .bar { height: 10px; background: var(--bar); border-radius: 5px; }
+      .num { text-align: right; font-variant-numeric: tabular-nums; }
+      footer { margin-top: 32px; color: var(--muted); font-size: 0.9rem; }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>OpenDecider in your browser</h1>
+      <p class="lead">
+        opendecider-nano runs on this device with WebGPU or WebAssembly: what you type here is decided in the page and
+        never sent anywhere. The first run downloads the model once (about 450 MiB on WebGPU), checked against its pinned
+        SHA-256, then reads it from the browser's cache.
+      </p>
+      <label for="state">Text or JSON</label>
+      <textarea id="state">Hi, we were billed twice for March. Please refund the duplicate today or we will cancel our plan.</textarea>
+      <label for="questions">Questions</label>
+      <textarea id="questions" rows="9"></textarea>
+      <button id="run" disabled>Decide</button>
+      <div id="status"></div>
+      <div id="answers"></div>
+      <footer>
+        <a href="../guides/browser/">Guide</a> · <a href="https://www.npmjs.com/package/@opendecider/web">npm</a> ·
+        <a href="https://github.com/manjunathshiva/opendecider">GitHub</a> · Apache-2.0
+      </footer>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -37,6 +37,8 @@ export const THRESHOLDS: Readonly<Record<string, number>> = {
   "opendecider-small-gguf:q4_k_m": 0.5576,
   "opendecider-small-mlx-8bit": 0.5156,
   "opendecider-small-mlx-4bit": 0.5467,
+  "opendecider-nano-onnx-q8": 0.3905, // @opendecider/web's builds
+  "opendecider-nano-onnx-q8f16": 0.3903,
 };
 /** The threshold for a model or custom checks without a measured one. */
 export const DEFAULT_THRESHOLD = 0.5;

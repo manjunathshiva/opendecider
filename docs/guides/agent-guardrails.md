@@ -89,7 +89,8 @@ its per-dataset tables and how to reproduce them are in [Benchmarks](../benchmar
   scores higher than its model, and at its own threshold screens as well
   ([Benchmarks](../benchmarks.md#quantised-builds)). The guard reads the build from the model's name: an Ollama tag
   (`hf.co/manjunathshiva/opendecider-small-td-GGUF:Q4_K_M`), an LM Studio variant (`opendecider-small-td@q4_k_m`, set
-  with `lms load ... --identifier`) or the MLX build's name. Other models use 0.5.
+  with `lms load ... --identifier`) or the MLX build's name. opendecider-nano's browser builds in
+  [`@opendecider/web`](browser.md) (q8, q8f16) have their own too, measured the same way. Other models use 0.5.
 - **Where it runs.** opendecider-small-td is a 4B model: give it an NVIDIA GPU or Apple Silicon (about 8 GB), or
   point `model=` at an `opendecider serve` URL so many agents share one copy. On a CPU-only machine use
   opendecider-nano. The model loads on the first check (15 to 30 seconds); call `guard.check("warm up")` at startup

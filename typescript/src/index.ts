@@ -16,6 +16,9 @@
  *
  * Agent tools: `@opendecider/client/ai-sdk` (Vercel AI SDK) and `@opendecider/client/mastra` (Mastra).
  */
+export { type Backend, type Decided, type Info, type Item } from "./backends.js";
+export { type JsonValue } from "./json.js";
+export { type Option } from "./prompt.js";
 export { InputError, ServerError } from "./errors.js";
 export { type ConnectionOptions } from "./http.js";
 export { setLogger, type Logger } from "./log.js";

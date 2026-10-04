@@ -42,6 +42,22 @@ def chat_ids(tok, prompt: str) -> list[int]:
                 + tok.encode(tail, add_special_tokens=False))
 
 
+def nano_ids(tok, state, instructions: str, options: dict, max_len: int) -> tuple[list[int], bool]:
+    """opendecider-nano's input, [CLS] question: ... [SEP] [MASK] opt1 [MASK] opt2 ... [SEP] input: <state> [SEP], as
+    token ids, and whether the state was shortened to fit `max_len` (it goes first, so every option survives). Every
+    text is read as plain text: "[MASK]" written in a state is not an option marker. @opendecider/web builds the same
+    ids (tested against this function)."""
+    st = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
+    q = text_ids(tok, f"question: {instructions}")
+    opts = []
+    for k, v in options.items():
+        opts += [tok.mask_token_id] + text_ids(tok, f" {k}: {v}" if v and v != k else f" {k}")
+    s = text_ids(tok, f"input: {st}")
+    room = max(max_len - len(q) - len(opts) - 4, 0)
+    ids = [tok.cls_token_id] + q + [tok.sep_token_id] + opts + [tok.sep_token_id] + s[:room] + [tok.sep_token_id]
+    return ids, len(s) > room
+
+
 def text_ids(tok, text: str) -> list[int]:
     """`text` as token ids with no special tokens: one written in the text is read as plain characters."""
     with _ENCODING:

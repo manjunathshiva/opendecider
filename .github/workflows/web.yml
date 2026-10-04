@@ -1,0 +1,63 @@
+name: Web
+
+# @opendecider/web (web/): the Python package's token ids and prompts (fixtures rebuilt from opendecider-nano's
+# tokenizer at its pinned revision, so the pinned tokenizer.web.json is the one this source makes), types, formatting,
+# the whole pipeline on a tiny model in WebAssembly, and what npm would publish. Runs only when the web package, the
+# client it builds on, or the Python prompt it mirrors changes.
+
+on:
+  push:
+    branches: [main]
+    paths: [web/**, typescript/**, opendecider/prompt.py, packaging/onnx/**, .github/workflows/web.yml]
+  pull_request:
+    paths: [web/**, typescript/**, opendecider/prompt.py, packaging/onnx/**, .github/workflows/web.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: The token ids and prompts match the Python package (torch-free)
+        working-directory: web
+        run: |
+          python -m pip install "transformers>=5,<6" huggingface_hub
+          PYTHONPATH=.. python test/fixtures/make_fixtures.py --check
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Build @opendecider/client (web depends on this checkout's)
+        working-directory: typescript
+        run: npm ci --ignore-scripts --no-audit --no-fund && npm run build
+      - working-directory: web
+        run: npm ci --ignore-scripts --no-audit --no-fund   # no dependency runs install scripts
+      - working-directory: web
+        run: npm run typecheck && npm run format:check
+      - working-directory: web
+        run: npm test
+      - name: The package builds, and carries what it should
+        working-directory: web
+        run: |
+          npm run build
+          npm pkg set "dependencies.@opendecider/client=$(node -p 'require("../typescript/package.json").version')"
+          npm pack --dry-run --json > pack.json
+          git checkout -- package.json
+          # shellcheck disable=SC2016  # the ${...} in single quotes is a JavaScript template literal
+          node -e '
+            const files = require("./pack.json")[0].files.map((f) => f.path);
+            const need = ["LICENSE", "NOTICE", "README.md", "package.json", "dist/index.js", "dist/index.d.ts"];
+            const missing = need.filter((f) => !files.includes(f));
+            const extra = files.filter((f) => !need.includes(f) && !/^dist\/[a-z-]+\.(js|d\.ts)$/.test(f));
+            if (missing.length || extra.length) { console.error({ missing, extra }); process.exit(1); }
+            console.log(`${files.length} files, as expected`);'

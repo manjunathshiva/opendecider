@@ -1,11 +1,12 @@
 # Changelog
 
 All notable changes to the `opendecider` package, and from 0.6.0 to `opendecider-client` (the same package without
-PyTorch) and `@opendecider/client` on npm, which share its version number. Versions follow
+PyTorch) and `@opendecider/client` on npm, and from 0.7.0 to `@opendecider/web` on npm, which share its version number. Versions follow
 [Semantic Versioning](https://semver.org). The public API is `load`, `OpenDecider.system_one`, `system_one_batch`, the
 question helpers, the answer fields, the HTTP wire format and, from 0.4.0, the agent-facing surfaces: the MCP server's
 tool names, arguments and answers, `opendecider.tools` and the public names in `opendecider.integrations`, from 0.5.0,
-`opendecider.guard`, and from 0.6.0, the exports of `@opendecider/client` and its `/ai-sdk` and `/mastra` entry points
+`opendecider.guard`, from 0.6.0, the exports of `@opendecider/client` and its `/ai-sdk` and `/mastra` entry points, and
+from 0.7.0, the exports of `@opendecider/web`
 (where a deprecation is marked `@deprecated` and logs a warning).
 
 - **Before 1.0.0** (0.x): patch releases (0.2.x) never change the public API. A breaking change can only ship in a new
@@ -13,6 +14,34 @@ tool names, arguments and answers, `opendecider.tools` and the public names in `
   warning.
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
+
+## [Unreleased]
+
+### Added
+
+- `@opendecider/web` on npm: opendecider-nano on the user's device, in the browser with WebGPU (q8f16 build, 450 MiB)
+  or WebAssembly (q8, 569 MiB), and in Node, Bun and Deno. `loadNano()` returns an `OpenDecider` with
+  `@opendecider/client`'s API, so `Router`, `Guard` and the agent tools take it. Each version pins the files of
+  manjunathshiva/opendecider-nano-ONNX by size and SHA-256 and never uses one that does not match; the browser keeps
+  them in the Cache API. Both builds give PyTorch's answer on 99.5% or more of the benchmark questions, and the guard
+  has a measured threshold for each. Its tokenizer and prompt are tested against this package's. Builds:
+  `packaging/onnx/` (byte for byte reproducible). Guide: [In the browser](docs/guides/browser.md); demo on the docs
+  site.
+
+### Fixed
+
+- `@opendecider/client` writes a number below 1e-4 in a state as Python does (`1e-05`, not `0.00001`), so the prompt it
+  sends to Ollama, LM Studio and vLLM is the Python package's for every JSON state.
+
+### Changed
+
+- opendecider-nano's prompt is built by `opendecider.prompt.nano_ids`, without PyTorch (the same ids as before), so
+  `@opendecider/web`'s tests can check against it.
+- `opendecider` needs transformers 5.0 or later (it said 4.51): opendecider-nano's tokenizer does not load on
+  transformers 4, so the default model failed there. opendecider-nano and opendecider-small give the same probabilities
+  on transformers 5.0.0 as on 5.18. With it, `opendecider` needs PyTorch 2.4 or later (it said 2.1): transformers 5
+  turns PyTorch off below 2.2, and its ModernBERT code did not load on 2.2. The `[small]` extra needs peft 0.18 or later
+  (it said 0.11): peft 0.11 cannot read the adapters' configuration, and peft 0.17 fails on transformers 5.
 
 ## [0.6.1] - 2026-10-03
 

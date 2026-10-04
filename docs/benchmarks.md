@@ -126,6 +126,32 @@ build's extra flags at 0.5 fall on them.
 question (Laya's published deepset question) and Laya's whole guard preset scored with LayaGuardrail's own rule. See
 [Agent guardrails](guides/agent-guardrails.md#how-accurate-is-it) for what the numbers mean in practice.
 
+## In the browser
+
+`@opendecider/web` runs opendecider-nano as ONNX: q8 (8-bit weights, float32 elsewhere; WebAssembly's default) and q8f16
+(8-bit weights, float16 elsewhere; WebGPU's default). Both were scored with native ONNX Runtime on the CPU, which gives
+the same logits as the browser's WebAssembly to 1e-6 (WebGPU: within 0.02), against the PyTorch model's committed
+answers. A build ships only if it gives PyTorch's answer on at least 99% of the questions and loses at most 0.5 points
+on each benchmark.
+
+| build | download | typed-decisions (2,000) | general (200) | Laya's battery (10 × 400) | answers as PyTorch |
+|---|---|---|---|---|---|
+| opendecider-nano (PyTorch, above) | 790 MB (bf16) | 0.796 | 0.680 | 0.656 | – |
+| **q8** (WebAssembly) | 569 MiB | 0.795 | 0.680 | 0.656 | 99.6–99.8% |
+| **q8f16** (WebGPU) | 450 MiB | 0.798 | 0.680 | 0.656 | 99.5–99.8% |
+
+Not shipped: 4-bit builds (286–410 MiB) changed 2.5–4.3% of the answers (typed-decisions 0.790), whatever the
+quantisation method (symmetric, asymmetric, HQQ), and dynamic int8 gave different logits in the browser's WebAssembly
+than in native ONNX Runtime, so its benchmark would not describe what runs in the browser.
+
+As a guard (the attack questions, each build at its own train-split threshold):
+
+| build | threshold | all (95% CI) | attacks caught | benign flagged |
+|---|---|---|---|---|
+| opendecider-nano (PyTorch, above) | 0.387 | 0.831 (0.816–0.845) | 0.914 | 0.214 |
+| q8 | 0.391 | 0.828 (0.813–0.843) | 0.914 | 0.218 |
+| q8f16 | 0.390 | 0.828 (0.813–0.842) | 0.914 | 0.218 |
+
 ## Speed
 
 | questions per call | nano, NVIDIA L40S | nano, Apple M4 Max | small, NVIDIA L40S | small, Apple M4 Max |

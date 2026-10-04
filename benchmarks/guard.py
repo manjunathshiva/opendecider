@@ -89,8 +89,9 @@ def items(split="test"):
 
 class OpenDecider:
     def __init__(self, name):
-        import opendecider
-        self.m = opendecider.load(name)
+        sys.path.insert(0, str(HERE))
+        from models import load   # opendecider.load, plus onnx:<file> for @opendecider/web's builds
+        self.m = load(name)
 
     def ask(self, state, questions):
         return self.m.system_one(state, questions)["answers"]

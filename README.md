@@ -315,6 +315,30 @@ const guarded = wrapLanguageModel({ model: llm, middleware: guardMiddleware({ mo
 Its prompt, answers, limits and guard windows are tested against the Python package's, and both give the same
 probabilities on the same server. See the [TypeScript guide](https://manjunathshiva.github.io/opendecider/guides/typescript/).
 
+## In the browser: no server, nothing sent
+
+`@opendecider/web` runs opendecider-nano on the user's device, in the browser with WebGPU or WebAssembly, or in Node,
+Bun and Deno. The text is decided where it is: no server, no API key, no cost per decision. It has
+`@opendecider/client`'s API, so `Router`, `Guard` and the agent tools take it as is.
+[Try the demo](https://manjunathshiva.github.io/opendecider/demo/).
+
+```ts
+import { loadNano, choice, Guard } from "@opendecider/web";
+
+const model = await loadNano();   // ~450 MiB once (pinned, SHA-256 checked), then from the browser's cache
+const r = await model.systemOne(ticket, { team: choice("Which team?", { billing: "charges", tech: "bugs" }) });
+const guard = new Guard({ model });   // the prompt guard, on the device
+```
+
+| device | build | download | one question (Chrome, Apple M4 Max) |
+|---|---|---|---|
+| WebGPU | q8f16 (8-bit weights) | 450 MiB | 47 ms |
+| WebAssembly | q8 (8-bit weights) | 569 MiB | 125 ms with 8 threads |
+
+Both builds give the PyTorch model's answer on 99.5% or more of the benchmark questions, and its accuracy within 0.2
+points. Each version pins the files by SHA-256, and they rebuild byte for byte from `packaging/onnx/`. See
+[In the browser](https://manjunathshiva.github.io/opendecider/guides/browser/) (self-hosting, CSP, threads, Node).
+
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
 **On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for
@@ -492,8 +516,8 @@ better than opendecider-small-mlx-8bit (0.730) at several times the memory, so i
 * **Native in Ollama.** opendecider-small-td retrained on Ollama's own `/v1/systemone` prompt as well as ours: 0.793 on
   typed-decisions through Ollama's endpoint, up from 0.719, and still 0.794 through the opendecider package. It goes on
   ollama.com once Ollama 0.35.1 (the first release that accepts third-party decision models) is out.
-* **In the browser.** opendecider-nano as ONNX, so a web page or an edge function decides without a server
-  (`opendecider-client` and `@opendecider/client` shipped in 0.6.0).
+* **A browser extension.** A Chrome extension on `@opendecider/web` (first: a YouTube feed that keeps only what you
+  choose, decided on the device), and a guide for building your own (`@opendecider/web` shipped in 0.7.0).
 
 **Next**
 
@@ -522,6 +546,8 @@ pip install torch --index-url https://download.pytorch.org/whl/cu128      # Linu
 pip install "opendecider[small]"
 ```
 
+* **Versions:** PyTorch 2.4 or newer, transformers 5.0 or newer (opendecider-nano's tokenizer needs it) and, for `[small]`,
+  peft 0.18 or newer.
 * **Device:** CUDA, then MPS, then CPU, chosen automatically. Override with `load(..., device="cpu")`.
 * **Offline or air-gapped:** download a model folder once (`hf download manjunathshiva/opendecider-nano --local-dir ./nano`), then `load("./nano")`.
 * **Google Colab:** run `pip uninstall -y torchao` before loading small or small-td. Colab preinstalls torchao 0.10,
@@ -530,7 +556,7 @@ pip install "opendecider[small]"
 * **CPU only:** nano runs fine on CPU for batch jobs. small needs ~17 GB of RAM in fp32 and is slow on CPU.
 * **Memory:** nano 2.0 GiB, small 8.9 GiB of GPU or unified memory, measured on a 16 GB Mac mini (M4), where the GPU budget is 11.8 GiB.
   medium-td has 61 GB and large-td 160 GB of bf16 weights, spread across all visible NVIDIA GPUs (both tested on 4× L40S,
-  48 GB each). large-td needs transformers 4.57 or newer; `pip install flash-linear-attention` speeds it up.
+  48 GB each). `pip install flash-linear-attention` speeds up large-td.
 
 ## Decision primitives
 
