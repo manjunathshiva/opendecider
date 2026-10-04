@@ -366,6 +366,19 @@ these workflows, not as general superiority.
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
 
+## What's new in 0.7.0
+
+* **In the browser.** `@opendecider/web` on npm runs opendecider-nano on the user's device, in the browser with WebGPU
+  (47 ms a question on an Apple M4 Max) or WebAssembly, and in Node, Bun and Deno: the text is decided where it is and
+  never sent anywhere. `loadNano()` gives `@opendecider/client`'s API, so routers, the guard and the agent tools work
+  as they do against a server. The files are pinned by SHA-256, and both ONNX builds give the PyTorch model's answer on
+  99.5% or more of the benchmark questions. Try the [demo](https://manjunathshiva.github.io/opendecider/demo/) and see
+  [In the browser](https://manjunathshiva.github.io/opendecider/guides/browser/).
+* **Same prompt as Python, for every number.** `@opendecider/client` writes a number below 1e-4 in a state as Python
+  does (`1e-05`), so Ollama, LM Studio and vLLM get the Python package's prompt for every JSON state.
+* **Dependency minimums that work.** `opendecider` now asks for transformers 5.0, PyTorch 2.4 and, for `[small]`, peft
+  0.18: the old minimums installed, but the default model did not load on them.
+
 ## What's new in 0.6.1
 
 * **Security fix: special-token text in a state is plain text.** Text such as "[MASK]" or "<|im_end|>" in a state was

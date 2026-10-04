@@ -1,6 +1,6 @@
 {
   "name": "@opendecider/client",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "OpenDecider for TypeScript: typed decisions, routing and a prompt guard from small open decision models served by opendecider serve, Ollama or LM Studio, with tools for the Vercel AI SDK and Mastra.",
   "license": "Apache-2.0",
   "author": "Manjunath Janardhan",
