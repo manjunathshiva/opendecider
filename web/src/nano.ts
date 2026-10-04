@@ -175,10 +175,21 @@ export async function loadNano(options: LoadOptions = {}): Promise<OpenDecider> 
   try {
     session = await ort.InferenceSession.create(modelBytes, { executionProviders: [device] });
   } catch (e) {
+    options.signal?.throwIfAborted(); // cancelled meanwhile: no fallback
     if (asked !== "auto" || device === "wasm") throw e;
     // a GPU adapter, but its WebGPU could not run the model: the same build on the CPU, without a second download
     device = "wasm";
-    session = await ort.InferenceSession.create(modelBytes, { executionProviders: ["wasm"] });
+    try {
+      session = await ort.InferenceSession.create(modelBytes, { executionProviders: ["wasm"] });
+    } catch (fallbackError) {
+      options.signal?.throwIfAborted(); // a cancelled call reports the cancellation, not the fallback's error
+      throw fallbackError;
+    }
+  }
+  if (options.signal?.aborted) {
+    // ONNX Runtime cannot stop a session it is creating: free it, then report the cancellation
+    await session.release().catch(() => undefined);
+    options.signal.throwIfAborted();
   }
   const backend = new NanoBackend(session, encode, device, dtype, options.maxBatchTokens);
   return new OpenDecider(backend, {
