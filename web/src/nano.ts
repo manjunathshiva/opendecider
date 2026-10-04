@@ -73,8 +73,11 @@ export class NanoBackend implements Backend {
       built.map((b) => b.ids.length),
       this.maxBatchTokens,
     )) {
-      signal?.throwIfAborted();
-      const logits = await this.run(batch.map((i) => built[i]!.ids));
+      const logits = await this.run(
+        batch.map((i) => built[i]!.ids),
+        signal,
+      );
+      signal?.throwIfAborted(); // cancelled during the pass (which ONNX Runtime cannot stop): no answer
       batch.forEach((i, r) => {
         const ids = built[i]!.ids;
         const L = logits.dims[1]!;
@@ -102,8 +105,9 @@ export class NanoBackend implements Backend {
   }
 
   /** One padded forward pass. A session runs one call at a time, so calls queue. */
-  private run(rows: readonly number[][]): Promise<Tensor> {
+  private run(rows: readonly number[][], signal?: AbortSignal): Promise<Tensor> {
     const go = async () => {
+      signal?.throwIfAborted(); // cancelled while queued behind another call: the pass never starts
       const B = rows.length;
       const L = Math.max(...rows.map((r) => r.length));
       const ids = new BigInt64Array(B * L).fill(BigInt(SPECIAL.pad));
@@ -167,7 +171,9 @@ export async function loadNano(options: LoadOptions = {}): Promise<OpenDecider> 
     signal: options.signal,
   };
   options.signal?.throwIfAborted();
-  const [tokJson, modelBytes] = await Promise.all([loadFile(TOKENIZER, fo), loadFile(MODELS[dtype], fo)]);
+  // the 1.5 MiB tokenizer first: when it cannot be loaded, the model's 450-570 MiB are never downloaded
+  const tokJson = await loadFile(TOKENIZER, fo);
+  const modelBytes = await loadFile(MODELS[dtype], fo);
   options.signal?.throwIfAborted(); // cancelled while the files arrived: no model is built
   const tok = new Tokenizer(JSON.parse(new TextDecoder().decode(tokJson)), {});
   const encode: Encode = (text) => tok.encode(text, { add_special_tokens: false }).ids;

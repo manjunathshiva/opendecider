@@ -84,9 +84,15 @@ so the page stays responsive. WebGPU does its work off the main thread.
 
 ## Node, Bun and Deno
 
-The same package runs WebAssembly there. Download the files once (`hf download manjunathshiva/opendecider-nano-ONNX
---local-dir ./nano-onnx`) and read them yourself; they are still checked against the pinned SHA-256. (There is no Cache API there: without
-`files`, every start downloads the files again.)
+The same package runs WebAssembly there. Download the files once, at the revision your installed version pins, and read
+them yourself; they are still checked against the pinned SHA-256. (There is no Cache API there: without `files`, every
+start downloads the files again.)
+
+```bash
+REVISION=$(node --input-type=module -e 'import { REVISION } from "@opendecider/web"; console.log(REVISION)')
+hf download manjunathshiva/opendecider-nano-ONNX tokenizer.web.json onnx/model_q8.onnx \
+  --revision "$REVISION" --local-dir ./nano-onnx
+```
 
 ```ts
 import { readFile } from "node:fs/promises";
