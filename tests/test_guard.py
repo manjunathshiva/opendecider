@@ -88,7 +88,7 @@ def test_a_builds_threshold_is_never_below_its_models_or_the_default():
     for key, t in guard_module.THRESHOLDS.items():
         name = key.split(":")[0]
         base = name.removesuffix("-gguf")
-        for build in ("-mlx-4bit", "-mlx-8bit", "-onnx-q8f16", "-onnx-q8"):
+        for build in ("-mlx-4bit", "-mlx-8bit", "-onnx-q8f16", "-onnx-q8", "-onnx-fp16"):
             base = base.removesuffix(build)
         if base != key:
             assert t >= guard_module.THRESHOLDS[base], key

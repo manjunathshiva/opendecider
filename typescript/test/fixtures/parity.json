@@ -3131,7 +3131,8 @@
   "opendecider-small-mlx-8bit": 0.5156,
   "opendecider-small-mlx-4bit": 0.5467,
   "opendecider-nano-onnx-q8": 0.3905,
-  "opendecider-nano-onnx-q8f16": 0.3903
+  "opendecider-nano-onnx-q8f16": 0.3903,
+  "opendecider-nano-onnx-fp16": 0.3875
  },
  "threshold_keys": [
   {

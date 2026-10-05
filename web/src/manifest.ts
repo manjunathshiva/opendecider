@@ -4,13 +4,14 @@ import type { FileSpec } from "./hub.js";
 /** The Hugging Face repository with the ONNX builds. */
 export const REPO = "manjunathshiva/opendecider-nano-ONNX";
 /** The commit of REPO the files below come from. */
-export const REVISION = "e4b38b8614f8c5ae89df68777463e4ab5b5440d8";
+export const REVISION = "53da62af62275ff5076e29b962dd965f38107c50";
 /** Tokens in one input, as opendecider-nano was trained (the state is shortened first). */
 export const MAX_TOKENS = 2048;
 
-/** The ONNX builds: q8 (8-bit weights, float32 elsewhere; WebAssembly's default) and q8f16 (8-bit weights, float16
- * elsewhere; WebGPU's default). */
-export type Dtype = "q8" | "q8f16";
+/** The ONNX builds: q8 (8-bit weights, float32 elsewhere; WebAssembly's default), q8f16 (8-bit weights, float16
+ * elsewhere; WebGPU's default) and fp16 (float16 throughout: a larger download, and on WebGPU about 7 times faster than
+ * q8f16 for many questions at once). */
+export type Dtype = "q8" | "q8f16" | "fp16";
 
 export const MODELS: Readonly<Record<Dtype, FileSpec>> = {
   q8: {
@@ -22,6 +23,11 @@ export const MODELS: Readonly<Record<Dtype, FileSpec>> = {
     path: "onnx/model_q8f16.onnx",
     bytes: 469218222,
     sha256: "80436dbed1a284548b5e6c3975bb26df81fb493fc4e64629e5a6ef490bf0e0ae",
+  },
+  fp16: {
+    path: "onnx/model_fp16.onnx",
+    bytes: 791886899,
+    sha256: "ce3b92ed327c394570123867d48a73383e748b015c08ca5b735670d6601ab44c",
   },
 };
 

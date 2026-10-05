@@ -22,7 +22,8 @@ export type Device = "webgpu" | "wasm";
 export interface LoadOptions extends CallOptions {
   /** "auto" (default): WebGPU when the browser has a GPU adapter, else WebAssembly. */
   device?: Device | "auto";
-  /** The build: q8f16 (default on WebGPU, 450 MiB) or q8 (default on WebAssembly, 569 MiB). */
+  /** The build: q8f16 (default on WebGPU, 450 MiB), q8 (default on WebAssembly, 569 MiB) or fp16 (755 MiB; on WebGPU
+   * about 7 times faster than q8f16 when many questions are asked at once, as a feed filter does). */
   dtype?: Dtype;
   /** A folder URL with the files (self-hosting, for a strict connect-src); default the pinned Hub revision. */
   baseUrl?: string;

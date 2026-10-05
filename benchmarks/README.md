@@ -39,7 +39,7 @@ distribution; Laya's battery uses Laya's own `metrics()`.
 |---|---|---|---|---|
 | opendecider-nano | ✅ | ✅ | ✅ | the released model through this package (identical on Apple Silicon and NVIDIA) |
 | opendecider-small | ✅ | ✅ | ✅ | the released model through this package, NVIDIA L40S |
-| opendecider-nano-onnx-q8, -q8f16 | ✅ | ✅ | ✅ | @opendecider/web's builds, `onnx:<file>` in native ONNX Runtime (CPU), plus the guard sets |
+| opendecider-nano-onnx-q8, -q8f16, -fp16 | ✅ | ✅ | ✅ | @opendecider/web's builds, `onnx:<file>` in native ONNX Runtime (CPU), plus the guard sets (fp16: the attack questions) |
 | jev | ✅ | ✅ | ✅ | TypeSafe's own API, Jev 1.13, 2026-09-26/27 |
 | laya, laya-td | ✅ | Antz AI's run | Laya's committed run | `pip install laya` (0.3.x) for `general` |
 | clm-8b | ✅ | ✅ | ✅ | Contrastive-LM/CLM-v0.1-8B with its own engine through the official vLLM pooling server |

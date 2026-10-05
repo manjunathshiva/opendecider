@@ -38,11 +38,21 @@ read it from there in a second or two. Load it once per page or worker and reuse
 |---|---|---|---|
 | `webgpu`: a GPU through the browser | `q8f16`: 8-bit weights, float16 elsewhere | 450 MiB | 47 ms |
 | `wasm`: the CPU, in browsers and in Node | `q8`: 8-bit weights, float32 elsewhere | 569 MiB | 125 ms with 8 threads, 830 ms with 1 |
+| either (`dtype: "fp16"`) | `fp16`: float16 throughout | 755 MiB | on WebGPU, 40 questions at once in 1.1 s (q8f16: 7.4 s) |
 
 `loadNano()` picks WebGPU when the browser offers a GPU adapter, else WebAssembly; `device` and `dtype` choose
-yourself. Both builds give the same answer as the PyTorch model on 99.5% or more of the benchmark questions, with the
-same accuracy within 0.2 points (see [Benchmarks](../benchmarks.md#in-the-browser)). The WebAssembly build gives the same
-logits as native ONNX Runtime to 1e-6, so the published numbers describe what runs in the browser.
+yourself. In native ONNX Runtime, each build gives the PyTorch model's answer on 99.5% or more of the benchmark
+questions, with the same accuracy within 0.2 points (see [Benchmarks](../benchmarks.md#in-the-browser)). The 8-bit
+builds give the same logits in WebAssembly as native ONNX Runtime to 1e-6, so those numbers describe what runs there.
+WebGPU computes in float16: there, fp16 gave PyTorch's answer on 100% of the general and 99.45% of the typed-decisions
+questions, and q8f16 on 99.5% and 99.3%.
+
+**Many questions at once on WebGPU: use `fp16`.** ONNX Runtime's 8-bit WebGPU kernels are tuned for one question at a
+time; with many (a feed, a batch of tickets), their time grows with every question, about 1 ms per token. The fp16
+build runs a batch about 7 times faster, for a larger download, and gives PyTorch's answer at least as often (above).
+On WebAssembly it is no faster than q8 and needs about
+4.8 GiB, so without a GPU keep q8: ask for fp16 only when the device is `"webgpu"` (with `"auto"`, a GPU whose WebGPU
+cannot run the model falls back to WebAssembly with the same file).
 
 ## The files are pinned
 
@@ -106,8 +116,8 @@ For a server, [`opendecider serve`](serve.md) is faster: it batches requests and
 ## Limits
 
 - **Download size:** about 450 MiB on WebGPU, once per device; plan for it on mobile networks.
-- **Memory:** about 2.2 GiB (q8f16) or 2.8 GiB (q8) with a 2,048-token question. Phones with little memory may not load
-  it.
+- **Memory:** about 2.2 GiB (q8f16) or 2.8 GiB (q8) with a 2,048-token question; fp16 takes about 0.6 GiB more than
+  q8f16 on WebGPU, and about 4.8 GiB on WebAssembly. Phones with little memory may not load it.
 - **Input length:** 2,048 tokens, as opendecider-nano was trained; a longer state is shortened (the answer is marked
   `truncated`). A question whose options alone are longer is refused with an `InputError` (the Python package runs it,
   but the browser runs out of memory).

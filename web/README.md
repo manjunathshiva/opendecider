@@ -27,18 +27,20 @@ const guard = new Guard({ model });
 |---|---|---|---|
 | WebGPU | q8f16 | 450 MiB | 47 ms |
 | WebAssembly | q8 | 569 MiB | 125 ms with 8 threads |
+| WebGPU, many questions at once | fp16 (`dtype: "fp16"`) | 755 MiB | 40 questions in 1.1 s (q8f16: 7.4 s) |
 
 - **Pinned files.** Each version pins one Hub revision and the size and SHA-256 of every file; a file that does not
   match is never used. The builds rebuild byte for byte from the repository's `packaging/onnx/`.
 - **Self-hosting.** `loadNano({ baseUrl: "/models/" })` loads from your own origin, for a strict `connect-src`. ONNX
   Runtime's WebAssembly comes with your bundle, never from a CDN.
-- **Same answers as Python.** The tokenizer and the prompt are tested against the Python package's, and both builds
-  give the PyTorch model's answer on 99.5% or more of the benchmark questions.
+- **Same answers as Python.** The tokenizer and the prompt are tested against the Python package's. In native ONNX
+  Runtime each build gives the PyTorch model's answer on 99.5% or more of the benchmark questions; on WebGPU, 99.3%
+  or more ([per build and benchmark](https://manjunathshiva.github.io/opendecider/benchmarks/#in-the-browser)).
 
 ## API
 
 - `loadNano(options?)`: the model, as an `OpenDecider` (`systemOne`, `systemOneBatch`). Options: `device` (`"auto"`,
-  `"webgpu"`, `"wasm"`), `dtype` (`"q8f16"`, `"q8"`), `baseUrl`, `files` (read the files yourself, e.g. in Node),
+  `"webgpu"`, `"wasm"`), `dtype` (`"q8f16"`, `"q8"`, `"fp16"`), `baseUrl`, `files` (read the files yourself, e.g. in Node),
   `cache`, `onProgress`, `wasm` (`wasmPaths`, `numThreads`, `proxy`), `maxBatchTokens`, `signal`, `fetch`.
 - `NanoBackend`: what `loadNano` wraps (`dispose()` frees the model's memory).
 - `ModelFileError`: a model file that could not be loaded, or did not match its pinned size and SHA-256.
