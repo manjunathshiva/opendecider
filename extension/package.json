@@ -1,6 +1,6 @@
 {
   "name": "opendecider-focus",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "OpenDecider Focus: a Chrome extension that filters your YouTube feed with opendecider-nano running on your computer. Nothing you see is sent anywhere.",
   "license": "Apache-2.0",

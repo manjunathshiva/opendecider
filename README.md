@@ -377,6 +377,20 @@ these workflows, not as general superiority.
 
 <sub>Highlighted: best in each column. typed-decisions scored with the Antz AI harness; OpenDecider-nano and Laya's typed-decisions checkpoint were fine-tuned on the train split, and the test split was never seen. Speeds: OpenDecider on an NVIDIA L40S, Laya on Apple Silicon, APIs include the network. Every number: [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md).</sub>
 
+## What's new in 0.8.0
+
+* **A Chrome extension.** OpenDecider Focus filters your YouTube feed with opendecider-nano running in the browser:
+  hide the kinds of video you choose, or the topics you name in your own words, and Shorts. Nothing you watch is sent
+  anywhere, and it works offline after one download. On rules you write yourself it is within a point of TypeSafe's
+  Jev in the cloud and ahead of every Laya checkpoint. Right-click selected text on any page to check it for prompt
+  injection. See the [Chrome extension guide](https://manjunathshiva.github.io/opendecider/guides/chrome-extension/);
+  each release attaches the extension's zip, attested and signed.
+* **fp16 for many questions at once.** `@opendecider/web` adds an fp16 build (`dtype: "fp16"`): on WebGPU, 40
+  questions in 1.1 s instead of 7.4 s, with PyTorch's answer more often than the 8-bit builds and its own measured
+  guard threshold. The defaults are unchanged.
+* **A YouTube benchmark.** `benchmarks/run.py --suites youtube` scores the extension's questions on 800 videos for
+  OpenDecider, Jev and Laya, including the exact request Quietly sends Jev.
+
 ## What's new in 0.7.0
 
 * **In the browser.** `@opendecider/web` on npm runs opendecider-nano on the user's device, in the browser with WebGPU
