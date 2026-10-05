@@ -33,8 +33,9 @@ const guard = new Guard({ model });
   match is never used. The builds rebuild byte for byte from the repository's `packaging/onnx/`.
 - **Self-hosting.** `loadNano({ baseUrl: "/models/" })` loads from your own origin, for a strict `connect-src`. ONNX
   Runtime's WebAssembly comes with your bundle, never from a CDN.
-- **Same answers as Python.** The tokenizer and the prompt are tested against the Python package's, and the builds
-  give the PyTorch model's answer on 99.5% or more of the benchmark questions.
+- **Same answers as Python.** The tokenizer and the prompt are tested against the Python package's. In native ONNX
+  Runtime each build gives the PyTorch model's answer on 99.5% or more of the benchmark questions; on WebGPU, 99.3%
+  or more ([per build and benchmark](https://manjunathshiva.github.io/opendecider/benchmarks/#in-the-browser)).
 
 ## API
 

@@ -41,14 +41,16 @@ read it from there in a second or two. Load it once per page or worker and reuse
 | either (`dtype: "fp16"`) | `fp16`: float16 throughout | 755 MiB | on WebGPU, 40 questions at once in 1.1 s (q8f16: 7.4 s) |
 
 `loadNano()` picks WebGPU when the browser offers a GPU adapter, else WebAssembly; `device` and `dtype` choose
-yourself. The builds give the same answer as the PyTorch model on 99.5% or more of the benchmark questions, with the
-same accuracy within 0.2 points (see [Benchmarks](../benchmarks.md#in-the-browser)). The 8-bit builds give the same
-logits in WebAssembly as native ONNX Runtime to 1e-6, so the published numbers describe what runs in the browser.
+yourself. In native ONNX Runtime, each build gives the PyTorch model's answer on 99.5% or more of the benchmark
+questions, with the same accuracy within 0.2 points (see [Benchmarks](../benchmarks.md#in-the-browser)). The 8-bit
+builds give the same logits in WebAssembly as native ONNX Runtime to 1e-6, so those numbers describe what runs there.
+WebGPU computes in float16: there, fp16 gave PyTorch's answer on 100% of the general and 99.45% of the typed-decisions
+questions, and q8f16 on 99.5% and 99.3%.
 
 **Many questions at once on WebGPU: use `fp16`.** ONNX Runtime's 8-bit WebGPU kernels are tuned for one question at a
 time; with many (a feed, a batch of tickets), their time grows with every question, about 1 ms per token. The fp16
-build runs a batch about 7 times faster, for a larger download, and gives PyTorch's answer more often: on WebGPU, on
-99.45–100% of the benchmark questions (q8f16: 99.3–99.5%). On WebAssembly it is no faster than q8 and needs about
+build runs a batch about 7 times faster, for a larger download, and gives PyTorch's answer at least as often (above).
+On WebAssembly it is no faster than q8 and needs about
 4.8 GiB, so without a GPU keep q8: ask for fp16 only when the device is `"webgpu"` (with `"auto"`, a GPU whose WebGPU
 cannot run the model falls back to WebAssembly with the same file).
 
