@@ -12,6 +12,7 @@ and its code is public: [github.com/manjunathshiva/opendecider](https://github.c
 | what | when | why | where it goes |
 |---|---|---|---|
 | The title, channel name and video id of each video on YouTube's home page, search results and the list beside a video (website content) | while the filter is on and you have downloaded the model | to decide whether to show or hide the video | nowhere: the model runs in your browser |
+| Shorts, recognised by their links (`/shorts/`) by the extension's stylesheet: no code reads them, and nothing is kept | while the filter is on and **Hide Shorts** is ticked, also before the model is downloaded | to hide Shorts | nowhere |
 | The text you select on a page and check with **Check with OpenDecider guard** (website content) | only when you choose that menu item | to check it for prompt injection | nowhere: the model runs in your browser |
 | Your settings: the kinds of video to hide, your own rule, how strict to be, Shorts | when you change them | to apply them | Chrome's synced storage, so they follow your Chrome profile if you use Chrome Sync |
 
@@ -20,8 +21,10 @@ and its code is public: [github.com/manjunathshiva/opendecider](https://github.c
 - **Answers already computed:** for up to 5,000 videos, the video id and the model's probabilities (never the title),
   so a video is not judged twice. They are kept in the extension's local storage.
 - **The model's files:** opendecider-nano (569–755 MiB), kept in the browser's cache after the first download.
-- **The text you check:** held in memory only until the guard window has read it, then deleted (if the window is
-  closed first, when Chrome closes).
+- **The text you check:** kept in Chrome's session storage (memory, never written to disk) until the guard window
+  reads it, then deleted from there. The guard window and the model's page hold it in memory while they check and show
+  it, and it is gone when the window closes. If the window closes before reading it, it stays in session storage until
+  Chrome closes.
 
 Uninstalling the extension deletes all of this. You can also clear it from Chrome's site data for the extension.
 
