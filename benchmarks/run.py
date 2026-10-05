@@ -106,7 +106,7 @@ def youtube(model, name):
         for it in I.youtube():
             for qn in I.youtube_questions():
                 state, instructions, opts, qtype = I.youtube_request(it, qn)
-                sha = I.request_sha(state, instructions, opts)
+                sha = I.request_sha(state, instructions, opts, qtype)
                 if (it["id"], qn, sha) in done:
                     continue
                 t = time.perf_counter()

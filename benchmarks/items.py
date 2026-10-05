@@ -233,18 +233,18 @@ def quietly_request(it: dict) -> tuple[str, str, dict]:
 def youtube_request(it: dict, qn: str) -> tuple[str, str, dict, str]:
     """What a model is asked about one video: (state, instructions, options, question type)."""
     q, _ = youtube_questions()[qn]
-    if q.get("quietly"):
+    if q.get("quietly"):   # a yes/no question with Quietly's true/false descriptions, as Quietly sends it
         state, instructions, options = quietly_request(it)
-        return state, instructions, options, "noul"
+        return state, instructions, options, "noul_criteria"
     if q["type"] == "choice":
         return it["state"], q["instructions"], dict(q["criteria"]), "choice"
     return it["state"], q["instructions"], {"yes": "Yes", "no": "No"}, "noul"
 
 
-def request_sha(state: str, instructions: str, options: dict) -> str:
-    """The fingerprint of a request, stored with its answer: an answer to a changed question (kinds.json, a rule) is
-    never reused or reported as an answer to the current one."""
-    return _sha([state, instructions, options])
+def request_sha(state: str, instructions: str, options: dict, qtype: str) -> str:
+    """The fingerprint of a request, stored with its answer: an answer to a changed question (kinds.json, a rule, how
+    it is sent) is never reused or reported as an answer to the current one."""
+    return _sha([state, instructions, options, qtype])
 
 
 def _youtube_items() -> list[dict]:

@@ -76,6 +76,9 @@ class Laya:
     def decide(self, state, instructions, options, qtype):
         if qtype == "noul":
             q = {"type": "noul", "instructions": instructions}
+        elif qtype == "noul_criteria":   # a yes/no question sent with its true/false descriptions (Quietly's request)
+            q = {"type": "noul", "instructions": instructions,
+                 "criteria": {"true": options["yes"], "false": options["no"]}}
         elif qtype == "score":
             q = {"type": "score", "instructions": instructions, "criteria": [options[k] or k for k in options]}
         else:
@@ -98,6 +101,9 @@ class Jev:
         names = list(options)
         if qtype == "noul":
             q = {"type": "noul", "instructions": instructions}
+        elif qtype == "noul_criteria":   # a yes/no question sent with its true/false descriptions (Quietly's request)
+            q = {"type": "noul", "instructions": instructions,
+                 "criteria": {"true": options["yes"], "false": options["no"]}}
         elif qtype == "score":
             q = {"type": "score", "instructions": instructions, "criteria": [options[k] or k for k in names]}
         else:

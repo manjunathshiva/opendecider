@@ -169,13 +169,14 @@ unwanted ones hidden), so a rule that matches 100 of 400 videos cannot score by 
 |---|---|---|---|---|---|---|
 | **opendecider-nano** (fp16, as the extension runs it) | **0.934** | **0.954** | 0.896 | 0.951 | 0.780 (0.872) | 0.502 |
 | opendecider-nano (PyTorch) | 0.934 | 0.956 | 0.896 | 0.951 | 0.778 (0.872) | 0.502 |
-| TypeSafe Jev 1.13 | 0.940 | 0.931 | 0.919 | 0.971 | 0.865 (0.928) | 0.798 |
-| Laya, typed-decisions checkpoint | 0.870 | 0.901 | 0.759 | 0.949 | 0.740 (0.898) | 0.562 |
-| Laya | 0.852 | 0.916 | 0.714 | 0.927 | 0.712 (0.875) | 0.510 |
-| Laya, multilingual | 0.660 | 0.761 | 0.700 | 0.520 | 0.782 (0.857) | 0.435 |
+| TypeSafe Jev 1.13 | 0.940 | 0.931 | 0.919 | 0.971 | 0.865 (0.928) | 0.787 |
+| Laya, typed-decisions checkpoint | 0.870 | 0.901 | 0.759 | 0.949 | 0.740 (0.898) | 0.535 |
+| Laya | 0.852 | 0.916 | 0.714 | 0.927 | 0.712 (0.875) | 0.500 |
+| Laya, multilingual | 0.660 | 0.761 | 0.700 | 0.520 | 0.782 (0.857) | 0.495 |
 
-"Quietly's request" is the one [Quietly](https://github.com/joeydash/quietly) sends Jev for each video: the title in
-the question, the same state for every video. opendecider-nano and Laya judge the state, so they answer it the same way
+"Quietly's request" is the one [Quietly](https://github.com/joeydash/quietly) sends Jev for each video: a yes/no
+question with the title in it and Quietly's keep and hide lists as its true and false descriptions, and the same state
+for every video. opendecider-nano and Laya judge the state, so they answer it the same way
 for every video; the extension puts the video in the state. The creator's category is a noisy label (a cooking show is
 often filed under Entertainment), so read the kinds column as a comparison, not as the share of a feed sorted right.
 `python benchmarks/run.py --suites youtube --model <model>` reruns a row.
