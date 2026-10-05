@@ -1,0 +1,27 @@
+/* OpenDecider Focus on YouTube. content.js sets data-odf-feed on the pages it filters and marks each judged tile
+   data-odf="wait" | "ok" | "hide"; data-odf-shorts while Shorts are hidden. */
+html[data-odf-feed] [data-odf="wait"],
+html[data-odf-feed] [data-odf="hide"] {
+  display: none !important;
+}
+html[data-odf-feed] [data-odf="ok"] {
+  animation: odf-in 0.2s ease-out;
+}
+@keyframes odf-in {
+  from {
+    opacity: 0;
+  }
+}
+html[data-odf-shorts]
+  :is(
+    ytd-reel-shelf-renderer,
+    ytd-rich-shelf-renderer[is-shorts],
+    ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+    ytd-rich-item-renderer:has(a[href^="/shorts/"]),
+    ytd-video-renderer:has(a[href^="/shorts/"]),
+    grid-shelf-view-model:has(a[href^="/shorts/"]),
+    ytd-guide-entry-renderer:has(a[title="Shorts"]),
+    ytd-mini-guide-entry-renderer[aria-label="Shorts"]
+  ) {
+  display: none !important;
+}

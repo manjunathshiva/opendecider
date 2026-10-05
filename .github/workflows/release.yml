@@ -114,8 +114,8 @@ jobs:
 
   build-npm:
     name: Test, build and pack @opendecider/client and @opendecider/web
-    # A pre-release tag (v0.6.0rc1: PEP 440, not a valid npm version) releases the Python packages only.
-    if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
+    # A pre-release tag (v0.6.0rc1: PEP 440, not a valid npm version; or v1.2.3-preview.1) releases the Python packages only.
+    if: ${{ !contains(github.ref_name, '-') && !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -237,6 +237,66 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "${GITHUB_REF#refs/tags/}" npm-dist/* --clobber --repo "$GITHUB_REPOSITORY"
+
+  build-extension:
+    name: Test and build OpenDecider Focus (the Chrome extension)
+    # Its own job, so a problem with the extension never holds up the npm or Python releases.
+    if: ${{ !contains(github.ref_name, '-') && !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false   # a release builds from the lockfile, never from a cache
+      - name: Build @opendecider/client and @opendecider/web (the extension bundles this checkout's)
+        run: |
+          (cd typescript && npm ci --ignore-scripts --no-audit --no-fund && npm run build)
+          (cd web && npm ci --ignore-scripts --no-audit --no-fund && npm run build)
+      - name: Verify its version, test it, build the Web Store zip
+        working-directory: extension
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          PKG=$(node -p 'require("./package.json").version')
+          if [ "$TAG" != "$PKG" ]; then echo "Tag v$TAG does not match extension/package.json $PKG" >&2; exit 1; fi
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run typecheck && npm test
+          npm run zip && node scripts/check-package.mjs
+          mkdir -p ../extension-dist && cp "opendecider-focus-$TAG.zip" ../extension-dist/
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: extension
+          path: extension-dist/*.zip
+          if-no-files-found: error
+
+  attach-extension:
+    name: Sign and attach the Chrome extension to the GitHub Release
+    needs: [release, build-extension]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # upload the release assets
+      id-token: write       # Sigstore keyless signing
+      attestations: write   # GitHub build provenance
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: extension
+          path: extension-dist/
+      - name: Build provenance (verify with `gh attestation verify <file> --repo manjunathshiva/opendecider`)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-path: extension-dist/*.zip
+      - name: Sigstore signature (<file>.sigstore.json)
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9  # v3.5.0
+        with:
+          inputs: extension-dist/*.zip
+          release-signing-artifacts: false   # attached below
+      - name: Attach to the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${GITHUB_REF#refs/tags/}" extension-dist/* --clobber --repo "$GITHUB_REPOSITORY"
 
   publish-pypi:
     name: Publish to PyPI (OIDC)

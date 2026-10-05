@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- A stand-in for a YouTube feed (served for https://www.youtube.com/ by e2e/run.mjs): the tile markup the content
+     script reads. Titles from the YouTube trending set (benchmarks/youtube). -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>YouTube</title>
+  </head>
+  <body>
+    <div id="feed"></div>
+    <script>
+      const videos = [
+        ["kqtD5dpn9C8", "Python Tutorial for Beginners - Full Course", "Programming with Mosh", "learn"],
+        ["aaaaaaaaaa1", "Coronavirus: Germany bans export of medical protection gear | DW News", "DW News", "learn"],
+        ["aaaaaaaaaa2", "How to Plant 20 MILLION TREES - Smarter Every Day 227 #TeamTrees", "SmarterEveryDay", "learn"],
+        ["aaaaaaaaaa3", "Pan Pizza | Basics with Babish", "Binging with Babish", "cooking"],
+        [
+          "aaaaaaaaaa4",
+          "Ed Sheeran - South of the Border (feat. Camila Cabello & Cardi B) [Official Lyric Video]",
+          "Ed Sheeran",
+          "fun",
+        ],
+        ["aaaaaaaaaa5", "Fortnite World Cup Finals - Day 3", "Fortnite", "fun"],
+        ["aaaaaaaaaa6", "PRANK WARS! Cinnamon vs Tootsie *GETTING REVENGE*", "Dan and Riya", "fun"],
+        ["aaaaaaaaaa7", "Jacques Cousteau vs Steve Irwin. Epic Rap Battles of History", "ERB", "fun"],
+      ];
+      const feed = document.getElementById("feed");
+      for (const [id, title, channel, kind] of videos) {
+        const tile = document.createElement("ytd-rich-item-renderer");
+        tile.dataset.expect = kind;
+        tile.innerHTML = `<a href="/watch?v=${id}"><h3 id="video-title"></h3></a><a href="/@${channel.replace(/\W/g, "")}"></a>`;
+        tile.querySelector("h3").textContent = title;
+        tile.querySelectorAll("a")[1].textContent = channel;
+        feed.append(tile);
+      }
+      // a Short (hidden by its link, no model) and a tile whose title never renders (must stay visible)
+      feed.insertAdjacentHTML(
+        "beforeend",
+        '<ytd-rich-item-renderer data-expect="short"><a href="/shorts/bbbbbbbbbb1"><h3 id="video-title">A short</h3></a></ytd-rich-item-renderer>' +
+          '<ytd-rich-item-renderer data-expect="untitled"><a href="/watch?v=cccccccccc1"></a></ytd-rich-item-renderer>',
+      );
+    </script>
+  </body>
+</html>

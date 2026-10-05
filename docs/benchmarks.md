@@ -130,7 +130,7 @@ question (Laya's published deepset question) and Laya's whole guard preset score
 
 `@opendecider/web` runs opendecider-nano as ONNX: q8 (8-bit weights, float32 elsewhere; WebAssembly's default), q8f16
 (8-bit weights, float16 elsewhere; WebGPU's default) and fp16 (float16 throughout; on WebGPU about 7 times faster than
-q8f16 for many questions at once). Each was scored with native ONNX Runtime on the
+q8f16 for many questions at once, which is what OpenDecider Focus uses). Each was scored with native ONNX Runtime on the
 CPU against the PyTorch model's committed answers. The browser's WebAssembly gives the same logits as native ONNX Runtime
 to 1e-6 for q8 and q8f16, and within 0.01 for fp16. WebGPU computes in float16: there (Chrome, Apple M4 Max), fp16 gave
 PyTorch's answer on all 400 general and 99.45% of the 2,000 typed-decisions questions, and q8f16 on 99.5% and 99.3%,
@@ -156,6 +156,30 @@ As a guard (the attack questions, each build at its own train-split threshold):
 | q8 | 0.391 | 0.828 (0.813–0.843) | 0.914 | 0.218 |
 | q8f16 | 0.390 | 0.828 (0.813–0.842) | 0.914 | 0.218 |
 | fp16 | 0.388 | 0.830 (0.815–0.845) | 0.913 | 0.215 |
+
+## YouTube feed
+
+The questions of the [Chrome extension](guides/chrome-extension.md) on 800 videos from a public set of US trending
+videos (2019–2020, MIT), 100 from each of 8 categories, with the creator's category as the label: News, Howto, Education
+and Science & Technology are kept, Music, Gaming, Comedy and Entertainment hidden. Below, the test half (400 videos);
+the dev half gives the same ranking. Balanced accuracy at 0.5 (the mean of the share of wanted videos kept and of
+unwanted ones hidden), so a rule that matches 100 of 400 videos cannot score by answering no.
+
+| model | your own rule (mean of 3) | hide music | hide gaming | only news | kinds: keep learning and news (AUC) | Quietly's request |
+|---|---|---|---|---|---|---|
+| **opendecider-nano** (fp16, as the extension runs it) | **0.934** | **0.954** | 0.896 | 0.951 | 0.780 (0.872) | 0.502 |
+| opendecider-nano (PyTorch) | 0.934 | 0.956 | 0.896 | 0.951 | 0.778 (0.872) | 0.502 |
+| TypeSafe Jev 1.13 | 0.940 | 0.931 | 0.919 | 0.971 | 0.865 (0.928) | 0.787 |
+| Laya, typed-decisions checkpoint | 0.870 | 0.901 | 0.759 | 0.949 | 0.740 (0.898) | 0.535 |
+| Laya | 0.852 | 0.916 | 0.714 | 0.927 | 0.712 (0.875) | 0.500 |
+| Laya, multilingual | 0.660 | 0.761 | 0.700 | 0.520 | 0.782 (0.857) | 0.495 |
+
+"Quietly's request" is the one [Quietly](https://github.com/joeydash/quietly) sends Jev for each video: a yes/no
+question with the title in it and Quietly's keep and hide lists as its true and false descriptions, and the same state
+for every video. opendecider-nano and Laya judge the state, so they answer it the same way
+for every video; the extension puts the video in the state. The creator's category is a noisy label (a cooking show is
+often filed under Entertainment), so read the kinds column as a comparison, not as the share of a feed sorted right.
+`python benchmarks/run.py --suites youtube --model <model>` reruns a row.
 
 ## Speed
 

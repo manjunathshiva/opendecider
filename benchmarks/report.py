@@ -176,8 +176,53 @@ def coverage_table():
         print(f"| typed-decisions | {path.stem} | " + " | ".join(f"{sel(pairs, c):.3f}" for c in (1.0, 0.9, 0.7, 0.5)) + " |")
 
 
+def youtube_table(split="test"):
+    """The extension's feed filter: balanced accuracy (the mean of the share of wanted videos kept and of unwanted
+    videos hidden, at 0.5), so a rule that matches 100 of 400 videos cannot score by answering no."""
+    items = {it["id"]: it for it in I.youtube() if it["split"] == split}
+    qs = I.youtube_questions()
+    keeps = set(qs["kind"][0]["keeps"])
+
+    def p_yes(qn, probs):
+        if qn == "kind":
+            return sum(v for k, v in probs.items() if k in keeps)
+        return probs.get("yes", probs.get("true", 0.0))
+
+    def bal(pairs):
+        pos = [p >= 0.5 for p, y in pairs if y]
+        neg = [p < 0.5 for p, y in pairs if not y]
+        return (sum(pos) / len(pos) + sum(neg) / len(neg)) / 2
+
+    def auc(pairs):
+        pos = [p for p, y in pairs if y]
+        neg = [p for p, y in pairs if not y]
+        return sum((a > b) + 0.5 * (a == b) for a in pos for b in neg) / (len(pos) * len(neg))
+
+    names = ["kind", "rule_music", "rule_gaming", "rule_news", "quietly"]
+    print(f"\n## YouTube feed ({len(items)} {split} videos; the creator's category as the label)\n")
+    print("| model | kind question: keep learning and news (AUC) | rule: music | rule: gaming | rule: news | "
+          "rules, mean | Quietly's request |")
+    print("|---|---|---|---|---|---|---|")
+    for path in sorted((RESULTS / "youtube").glob("*.jsonl")):
+        # only answers to the current requests (an older question's answers are not this question's)
+        want = {(i, qn): I.request_sha(*I.youtube_request(it, qn)) for i, it in items.items() for qn in names}
+        got = {(r["id"], r["q"]): r["probs"] for r in rows(path) if want.get((r["id"], r["q"])) == r.get("input")}
+        if len(got) < len(items) * len(names):
+            print(f"| {path.stem} | (incomplete: {len(got)}/{len(items) * len(names)} answers, skipped) |")
+            continue
+        score = {}
+        for qn in names:
+            label = qs[qn][1]
+            pairs = [(p_yes(qn, got[(i, qn)]), label(it)) for i, it in items.items()]
+            score[qn] = (bal(pairs), auc(pairs))
+        rules = st.mean(score[q][0] for q in names[1:4])
+        print(f"| {path.stem} | {score['kind'][0]:.3f} ({score['kind'][1]:.3f}) | " +
+              " | ".join(f"{score[q][0]:.3f}" for q in names[1:4]) + f" | **{rules:.3f}** | {score['quietly'][0]:.3f} |")
+
+
 if __name__ == "__main__":
     general_table()
     typed_table()
     laya_table()
+    youtube_table()
     coverage_table()

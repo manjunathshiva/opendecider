@@ -7,6 +7,10 @@
   typed    LocalLLaMA/typed-decisions `all/test` (400 cases, 2,000 decisions).
   laya     Laya's own application battery: research/scripts/bench_apps.py from Laya's repository,
            pinned to the commit we ran, cloned into .cache/ and called unchanged (N=400, seed 13).
+  youtube  800 US trending videos (2019-2020; astune/text_info_trending_youtube_videos_2019-04-15_to_2020-04-15, MIT,
+           pinned revision), 100 from each of 8 categories, the creator's category as the label (keep: News, Howto,
+           Education, Science & Technology; hide: Music, Gaming, Comedy, Entertainment), split dev/test, seed 0.
+           The questions are OpenDecider Focus's (extension/src/kinds.json) plus Quietly's own Jev request.
 """
 from __future__ import annotations
 
@@ -37,6 +41,10 @@ STARS = ["1 star: very negative", "2 stars: negative", "3 stars: mixed or neutra
 AG = {"World": "world news, politics, international affairs", "Sports": "sports and athletes",
       "Business": "business, companies, markets and the economy", "Sci/Tech": "science and technology"}
 EMOTIONS = ["sadness", "joy", "love", "anger", "fear", "surprise"]
+YOUTUBE_DATASET = "astune/text_info_trending_youtube_videos_2019-04-15_to_2020-04-15"
+YOUTUBE_REVISION = "42df8950a3df64552825d46c65ff9ed7d90099c1"
+YOUTUBE_KEEP = {"25": "News & Politics", "26": "Howto & Style", "27": "Education", "28": "Science & Technology"}
+YOUTUBE_HIDE = {"10": "Music", "20": "Gaming", "23": "Comedy", "24": "Entertainment"}
 
 
 def _sha(x) -> str:
@@ -176,3 +184,113 @@ def laya_battery():
     with contextlib.redirect_stdout(io.StringIO()):
         bench_apps.build()
     return bench_apps.SUITES, metrics
+
+
+def _youtube_state(title: str, channel: str) -> str:
+    """The state OpenDecider Focus sends (extension/src/questions.ts videoState, after messages.ts readVideos)."""
+    title, channel = " ".join(str(title).split())[:150], " ".join(str(channel or "").split())[:60]
+    return f"YouTube video. Title: {title}. Channel: {channel or 'unknown'}."
+
+
+def youtube_questions() -> dict:
+    """name -> (question, label of an item): the extension's kind question and the three rules a viewer might write,
+    plus Quietly's request (github.com/joeydash/quietly core.js buildTriageDecisions: the video in the question, a
+    fixed state), which is how Jev filters a feed there."""
+    k = json.loads((HERE.parent / "extension" / "src" / "kinds.json").read_text())
+    keeps = set(k["focus_keeps"])
+    return {
+        "kind": ({"type": "choice", "instructions": k["question"], "criteria": k["kinds"], "keeps": sorted(keeps)},
+                 lambda it: it["keep"]),
+        "rule_music": ({"type": "noul", "instructions": "Is this a music video or a song?"},
+                       lambda it: it["category"] == "10"),
+        "rule_gaming": ({"type": "noul", "instructions": "Is this video about video games or gameplay?"},
+                        lambda it: it["category"] == "20"),
+        "rule_news": ({"type": "noul", "instructions": "Is this a news or current affairs video?"},
+                      lambda it: it["category"] == "25"),
+        "quietly": ({"type": "noul", "quietly": True}, lambda it: it["keep"]),
+    }
+
+
+QUIETLY_KEEP = ("tutorials, courses, lectures, how-tos, explainers, science, technology, programming, engineering, "
+                "business, finance, health, history, news and current affairs, documentaries, serious talks, interviews "
+                "and podcasts, book summaries, skill-building")
+QUIETLY_HIDE = ("pranks, reactions, vlogs, gaming and gameplay, memes, comedy and skits, roasts, celebrity gossip, drama, "
+                "music videos and songs, movie clips and trailers, compilations, challenges, ASMR, hype unboxings, "
+                "clickbait with no clear topic")
+
+
+def quietly_request(it: dict) -> tuple[str, str, dict]:
+    """Quietly's Jev request for one video, verbatim: (state, instructions, {yes: ..., no: ...})."""
+    clip = lambda s, n: (s if len(s) <= n else s[: n - 1] + "\u2026")
+    state = ("A YouTube feed filter. The viewer wants only informational or productive videos; everything else is "
+             "hidden. Titles can be in any language. When unsure, answer false.")
+    instructions = (f'Is this YouTube video informational or productive? Title: "{clip(it["title"], 150)}". '
+                    f'Channel: {clip(it["channel"], 60) or "unknown"}.')
+    return state, instructions, {"yes": f"Informational or productive: {QUIETLY_KEEP}.",
+                                 "no": f"Entertainment or time-wasting: {QUIETLY_HIDE}."}
+
+
+def youtube_request(it: dict, qn: str) -> tuple[str, str, dict, str]:
+    """What a model is asked about one video: (state, instructions, options, question type)."""
+    q, _ = youtube_questions()[qn]
+    if q.get("quietly"):   # a yes/no question with Quietly's true/false descriptions, as Quietly sends it
+        state, instructions, options = quietly_request(it)
+        return state, instructions, options, "noul_criteria"
+    if q["type"] == "choice":
+        return it["state"], q["instructions"], dict(q["criteria"]), "choice"
+    return it["state"], q["instructions"], {"yes": "Yes", "no": "No"}, "noul"
+
+
+def request_sha(state: str, instructions: str, options: dict, qtype: str) -> str:
+    """The fingerprint of a request, stored with its answer: an answer to a changed question (kinds.json, a rule, how
+    it is sent) is never reused or reported as an answer to the current one."""
+    return _sha([state, instructions, options, qtype])
+
+
+def _youtube_items() -> list[dict]:
+    import pandas as pd
+    path = CACHE / "youtube_trending.parquet"
+    if not path.exists():
+        _download(f"https://huggingface.co/datasets/{YOUTUBE_DATASET}/resolve/{YOUTUBE_REVISION}/data.parquet", path)
+    d = pd.read_parquet(path).drop_duplicates("video_id")
+    d = d[d.title.str.strip().astype(bool)]
+    rng = random.Random(0)
+    items = []
+    for cat in list(YOUTUBE_KEEP) + list(YOUTUBE_HIDE):
+        rows = d[d.category_id == cat].to_dict("records")
+        rng.shuffle(rows)
+        for i, r in enumerate(rows[:100]):
+            title, channel = " ".join(r["title"].split()), " ".join(str(r["channel_title"] or "").split())
+            items.append({"id": r["video_id"], "title": title, "channel": channel, "category": cat,
+                          "keep": cat in YOUTUBE_KEEP, "split": "dev" if i % 2 == 0 else "test",
+                          "state": _youtube_state(title, channel)})
+    return items
+
+
+YOUTUBE_MANIFEST = MANIFESTS / "youtube_items_manifest.json"
+
+
+def youtube() -> list[dict]:
+    """The 800 videos, verified against manifests/youtube_items_manifest.json."""
+    items = _youtube_items()
+    want = {m["id"]: m for m in json.loads(YOUTUBE_MANIFEST.read_text())["items"]}
+    bad = [it["id"] for it in items if it["id"] not in want or want[it["id"]]["state_sha256"] != _sha(it["state"])
+           or want[it["id"]]["category"] != it["category"] or want[it["id"]]["split"] != it["split"]]
+    if bad or len(items) != len(want):
+        raise SystemExit(f"{len(bad)} youtube items differ from {YOUTUBE_MANIFEST.name} (first: {bad[:5]})")
+    return items
+
+
+def write_youtube_manifest() -> int:
+    """(Re)write the manifest from the pinned dataset revision: run once, when the suite is defined."""
+    items = _youtube_items()
+    YOUTUBE_MANIFEST.write_text(json.dumps({"source": f"{YOUTUBE_DATASET}@{YOUTUBE_REVISION}", "items": [
+        {"id": it["id"], "category": it["category"], "split": it["split"], "state_sha256": _sha(it["state"])}
+        for it in items]}, indent=0) + "\n")
+    return len(items)
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] != ["--write-youtube-manifest"]:
+        raise SystemExit("usage: python benchmarks/items.py --write-youtube-manifest")
+    sys.stdout.write(f"{write_youtube_manifest()} youtube items; manifest written\n")
