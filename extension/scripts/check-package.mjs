@@ -9,7 +9,7 @@ const want = {
   permissions: ["storage", "offscreen", "contextMenus", "alarms"],
   host_permissions: undefined,
   sites: ["https://www.youtube.com/*"],
-  csp: "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' https://huggingface.co https://*.hf.co; worker-src 'self'",
+  csp: "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' https://huggingface.co https://*.huggingface.co https://*.hf.co; worker-src 'self'",
 };
 const got = {
   version: m.version,

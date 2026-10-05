@@ -1,7 +1,7 @@
 /** The extension's hidden page (chrome.offscreen, reason WORKERS): it holds opendecider-nano, on WebGPU when there is a
  * GPU, else WebAssembly. Only the runtime API exists here; the service worker does everything else. */
-import { Guard, loadNano, type GuardResult, type OpenDecider } from "@opendecider/web";
-import { pickBuild } from "./build.js";
+import { Guard, ModelFileError, loadNano, type GuardResult, type OpenDecider } from "@opendecider/web";
+import { openBuild, pickBuild, type Build } from "./build.js";
 import { KIND_QUESTION, ruleQuestion, videoState, type Video } from "./questions.js";
 
 /** "" (the pinned Hub revision), or a test build's local server (build.mjs --model-url). */
@@ -10,32 +10,32 @@ declare const __MODEL_URL__: string;
 let model: Promise<OpenDecider> | null = null;
 let lastProgress = 0;
 
-function load(): Promise<OpenDecider> {
+function progress(p: { file: string; loaded: number; total: number; cached: boolean }) {
+  const now = performance.now();
+  if (now - lastProgress < 250 && p.loaded < p.total) return;
+  lastProgress = now;
+  void chrome.runtime.sendMessage({ type: "progress", ...p });
+}
+
+const open = (device: "webgpu" | "wasm", dtype: Build["dtype"]) =>
+  loadNano({
+    device,
+    dtype,
+    ...(__MODEL_URL__ ? { baseUrl: __MODEL_URL__ } : {}),
+    // ONNX Runtime's own files, shipped in the extension: threads need them, and nothing is fetched from a CDN
+    wasm: {
+      wasmPaths: chrome.runtime.getURL("ort/"),
+      numThreads: Math.max(1, Math.min(8, navigator.hardwareConcurrency - 2)),
+    },
+    onProgress: ({ file, loaded, total, cached }) => progress({ file, loaded, total, cached }),
+  });
+
+/** `last`: the build that loaded last time (the service worker keeps it). q8 with a GPU adapter means WebGPU could
+ * not run the model then, so it goes straight to the CPU build. */
+function load(last?: unknown): Promise<OpenDecider> {
   model ??= pickBuild()
-    .then(({ device, dtype }) =>
-      loadNano({
-        device,
-        dtype,
-        ...(__MODEL_URL__ ? { baseUrl: __MODEL_URL__ } : {}),
-        // ONNX Runtime's own files, shipped in the extension: threads need them, and nothing is fetched from a CDN
-        wasm: {
-          wasmPaths: chrome.runtime.getURL("ort/"),
-          numThreads: Math.max(1, Math.min(8, navigator.hardwareConcurrency - 2)),
-        },
-        onProgress: (p) => {
-          const now = performance.now();
-          if (now - lastProgress < 250 && p.loaded < p.total) return;
-          lastProgress = now;
-          void chrome.runtime.sendMessage({
-            type: "progress",
-            file: p.file,
-            loaded: p.loaded,
-            total: p.total,
-            cached: p.cached,
-          });
-        },
-      }),
-    )
+    .then((build) => (last === "q8" ? { ...build, device: "wasm" as const, dtype: "q8" as const } : build))
+    .then((build) => openBuild(build, open, (e) => e instanceof ModelFileError))
     .catch((e: unknown) => {
       model = null; // the next request tries again
       throw e;
@@ -74,7 +74,7 @@ chrome.runtime.onMessage.addListener((m, sender, reply) => {
   if (m?.target !== "offscreen" || sender.id !== chrome.runtime.id) return;
   const run =
     m.type === "load"
-      ? load().then(status)
+      ? load(m.build).then(status)
       : m.type === "decide"
         ? decide(m.videos, !!m.kinds, typeof m.rule === "string" ? m.rule : "")
         : m.type === "guard"

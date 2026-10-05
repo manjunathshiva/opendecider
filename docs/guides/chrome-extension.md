@@ -100,6 +100,15 @@ request (its pages' Content Security Policy allows only those hosts), and it has
 
 The guard check reads only the text you select and right-click, and shows its answer in a small window.
 
+## Limits
+
+- **It reads YouTube's pages.** When YouTube changes how a feed is built, the filter can stop finding videos until the
+  extension is updated: the feed is then shown unfiltered, and the popup counts no videos on the page.
+- **Home, search and the list beside a video.** Channel pages, subscriptions and playlists are not filtered.
+- **English**, as above, and **a computer**: Chrome on phones has no extensions.
+
+OpenDecider Focus is not affiliated with or endorsed by YouTube or Google.
+
 ## Build it yourself
 
 ```bash

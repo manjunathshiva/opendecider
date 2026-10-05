@@ -75,7 +75,9 @@ async function load(retry = false): Promise<void> {
   loading ??= (async () => {
     await chrome.storage.session.set({ model: { state: "loading" } });
     try {
-      const s = await offscreen<{ device: string; dtype: string }>({ type: "load" });
+      // the build that loaded last time: q8 where WebGPU could not run the model, so it is not tried on every load
+      const { build } = await chrome.storage.local.get("build");
+      const s = await offscreen<{ device: string; dtype: string }>({ type: "load", build });
       ready = true;
       await chrome.storage.local.set({ build: s.dtype });
       await chrome.storage.session.set({ model: { state: "ready", device: s.device, dtype: s.dtype } });
@@ -190,8 +192,10 @@ chrome.runtime.onMessage.addListener((m, sender, reply) => {
 
 // --- right-click: check selected text with the guard --------------------------------------------------------------
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   chrome.contextMenus.create({ id: "guard", title: "Check with OpenDecider guard", contexts: ["selection"] });
+  // each new version of the extension tries WebGPU again, in case it fell back to the CPU build after a passing failure
+  if (details.reason === "install" || details.reason === "update") void chrome.storage.local.remove("build");
 });
 
 chrome.contextMenus.onClicked.addListener(async (info) => {

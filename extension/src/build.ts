@@ -14,3 +14,20 @@ export async function pickBuild(): Promise<Build> {
   const dtype: Dtype = adapter ? "fp16" : "q8";
   return { device: adapter ? "webgpu" : "wasm", dtype, bytes: MODELS[dtype].bytes };
 }
+
+/** Opens the build, and when WebGPU cannot run it (a GPU adapter, but a session that fails), q8 on WebAssembly instead,
+ * so the filter still works on this computer. Not after a file error (a failed download, a file that did not match its
+ * pin): the CPU build would fail the same way. */
+export async function openBuild<T>(
+  build: Pick<Build, "device" | "dtype">,
+  open: (device: Build["device"], dtype: Dtype) => Promise<T>,
+  isFileError: (e: unknown) => boolean,
+): Promise<T> {
+  if (build.device !== "webgpu") return open(build.device, build.dtype);
+  try {
+    return await open("webgpu", build.dtype);
+  } catch (e) {
+    if (isFileError(e)) throw e;
+    return open("wasm", "q8");
+  }
+}
