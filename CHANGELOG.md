@@ -15,7 +15,7 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.8.0] - 2026-10-05
 
 ### Added
 
@@ -30,9 +30,8 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
   at once about 7 times faster than q8f16 (40 at once: 1.1 s instead of 7.4 s on an Apple M4 Max), whose 8-bit kernels
   ONNX Runtime tunes for one question at a time. It gives PyTorch's answer on 99.9–100% of the benchmark questions in
   native ONNX Runtime, and on WebGPU on 100% of the general and 99.45% of the typed-decisions questions (q8f16: 99.5%
-  and 99.3%).
-  The guard has a measured threshold for it (0.3875; it catches 0.913 of the attacks, PyTorch 0.914). q8f16 stays
-  the WebGPU default; the package pins the new revision of manjunathshiva/opendecider-nano-ONNX, whose
+  and 99.3%). The guard has a measured threshold for it (0.3875; it catches 0.913 of the attacks, PyTorch 0.914).
+  q8f16 stays the WebGPU default; the package pins the new revision of manjunathshiva/opendecider-nano-ONNX, whose
   other files are unchanged.
 - A `youtube` benchmark suite (`benchmarks/run.py --suites youtube`): 800 videos from a public trending set, the
   extension's questions, and the request Quietly sends Jev, for OpenDecider, Jev and Laya.
