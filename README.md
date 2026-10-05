@@ -334,8 +334,9 @@ const guard = new Guard({ model });   // the prompt guard, on the device
 |---|---|---|---|
 | WebGPU | q8f16 (8-bit weights) | 450 MiB | 47 ms |
 | WebAssembly | q8 (8-bit weights) | 569 MiB | 125 ms with 8 threads |
+| WebGPU, many questions at once | fp16 (`dtype: "fp16"`) | 755 MiB | 40 questions in 1.1 s (q8f16: 7.4 s) |
 
-Both builds give the PyTorch model's answer on 99.5% or more of the benchmark questions, and its accuracy within 0.2
+The builds give the PyTorch model's answer on 99.5% or more of the benchmark questions, and its accuracy within 0.2
 points. Each version pins the files by SHA-256, and they rebuild byte for byte from `packaging/onnx/`. See
 [In the browser](https://manjunathshiva.github.io/opendecider/guides/browser/) (self-hosting, CSP, threads, Node).
 

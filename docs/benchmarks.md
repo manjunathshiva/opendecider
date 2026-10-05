@@ -128,17 +128,21 @@ question (Laya's published deepset question) and Laya's whole guard preset score
 
 ## In the browser
 
-`@opendecider/web` runs opendecider-nano as ONNX: q8 (8-bit weights, float32 elsewhere; WebAssembly's default) and q8f16
-(8-bit weights, float16 elsewhere; WebGPU's default). Both were scored with native ONNX Runtime on the CPU, which gives
-the same logits as the browser's WebAssembly to 1e-6 (WebGPU: within 0.02), against the PyTorch model's committed
-answers. A build ships only if it gives PyTorch's answer on at least 99% of the questions and loses at most 0.5 points
-on each benchmark.
+`@opendecider/web` runs opendecider-nano as ONNX: q8 (8-bit weights, float32 elsewhere; WebAssembly's default), q8f16
+(8-bit weights, float16 elsewhere; WebGPU's default) and fp16 (float16 throughout; on WebGPU about 7 times faster than
+q8f16 for many questions at once). Each was scored with native ONNX Runtime on the
+CPU against the PyTorch model's committed answers. The browser's WebAssembly gives the same logits as native ONNX Runtime
+to 1e-6 for q8 and q8f16, and within 0.01 for fp16. WebGPU computes in float16: there (Chrome, Apple M4 Max), fp16 gave
+PyTorch's answer on all 400 general and 99.45% of the 2,000 typed-decisions questions, and q8f16 on 99.5% and 99.3%,
+with the same typed-decisions accuracy. A build ships only if it gives PyTorch's answer on at least 99% of the questions
+and loses at most 0.5 points on each benchmark.
 
 | build | download | typed-decisions (2,000) | general (200) | Laya's battery (10 × 400) | answers as PyTorch |
 |---|---|---|---|---|---|
 | opendecider-nano (PyTorch, above) | 790 MB (bf16) | 0.796 | 0.680 | 0.656 | – |
 | **q8** (WebAssembly) | 569 MiB | 0.795 | 0.680 | 0.656 | 99.6–99.8% |
 | **q8f16** (WebGPU) | 450 MiB | 0.798 | 0.680 | 0.656 | 99.5–99.8% |
+| **fp16** | 755 MiB | 0.796 | 0.680 | 0.655 | 99.9–100% |
 
 Not shipped: 4-bit builds (286–410 MiB) changed 2.5–4.3% of the answers (typed-decisions 0.790), whatever the
 quantisation method (symmetric, asymmetric, HQQ), and dynamic int8 gave different logits in the browser's WebAssembly
@@ -151,6 +155,7 @@ As a guard (the attack questions, each build at its own train-split threshold):
 | opendecider-nano (PyTorch, above) | 0.387 | 0.831 (0.816–0.845) | 0.914 | 0.214 |
 | q8 | 0.391 | 0.828 (0.813–0.843) | 0.914 | 0.218 |
 | q8f16 | 0.390 | 0.828 (0.813–0.842) | 0.914 | 0.218 |
+| fp16 | 0.388 | 0.830 (0.815–0.845) | 0.913 | 0.215 |
 
 ## Speed
 

@@ -1,7 +1,9 @@
 """The browser builds from export_nano.py's float32 graph: 8-bit weights (MatMulNBits, block 32, symmetric), the rest
-float32 (q8) or float16 (q8f16). Weight-only, so ONNX Runtime Web's WebAssembly gives the same logits as native ONNX
-Runtime (dynamic int8 did not: its WebAssembly kernels round differently). The exporter's metadata is removed, so the
-files carry no build paths and rebuild byte for byte from the same versions.
+float32 (q8) or float16 (q8f16), weight-only, so ONNX Runtime Web's WebAssembly gives the same logits as native ONNX
+Runtime (dynamic int8 did not: its WebAssembly kernels round differently); and float16 throughout (fp16: WebAssembly
+within 0.01 of native), whose plain MatMul runs many questions at once on WebGPU about 7 times faster than MatMulNBits,
+which ONNX Runtime Web tunes for one row at a time. The exporter's metadata is removed, so the files carry no build
+paths and rebuild byte for byte from the same versions.
 
     python packaging/onnx/quantize.py build/model.onnx build/onnx/
 """
@@ -54,6 +56,8 @@ def main():
     # logits stay float32 (keep_io_types); LayerNorm and attention run in float16
     onnx.save(plain(convert_float_to_float16(q8(onnx.load(src)), keep_io_types=True, disable_shape_infer=True)),
               out / "model_q8f16.onnx")
+    onnx.save(plain(convert_float_to_float16(onnx.load(src), keep_io_types=True, disable_shape_infer=True)),
+              out / "model_fp16.onnx")
     for p in sorted(out.glob("model_*.onnx")):
         print(p.name, p.stat().st_size)
 
