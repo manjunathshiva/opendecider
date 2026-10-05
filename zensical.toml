@@ -25,6 +25,7 @@ nav = [
     { "TypeScript (AI SDK, Mastra)" = "guides/typescript.md" },
     { "In the browser" = "guides/browser.md" },
     { "Chrome extension" = "guides/chrome-extension.md" },
+    { "Chrome extension privacy policy" = "chrome-extension-privacy.md" },
   ] },
   { "Examples and notebook" = "examples.md" },
   { "Benchmarks" = "benchmarks.md" },

@@ -15,6 +15,18 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [Unreleased]
+
+### Fixed
+
+- OpenDecider Focus: its icons had a see-through background and looked faint in Chrome's toolbar, on dark themes most
+  of all. They now sit on a white rounded square (the 128-pixel icon with the padding the Chrome Web Store asks for).
+
+### Added
+
+- A privacy policy for OpenDecider Focus on the docs site (what it reads, keeps and downloads), linked from its popup
+  and its guide, as the Chrome Web Store requires.
+
 ## [0.8.0] - 2026-10-05
 
 ### Added

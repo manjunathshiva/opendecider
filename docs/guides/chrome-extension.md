@@ -98,7 +98,8 @@ request (its pages' Content Security Policy allows only those hosts), and it has
 | `contextMenus` | the right-click guard check |
 | `alarms` | to close the model after 10 idle minutes |
 
-The guard check reads only the text you select and right-click, and shows its answer in a small window.
+The guard check reads only the text you select and right-click, and shows its answer in a small window. The full
+[privacy policy](../chrome-extension-privacy.md) lists what the extension reads, keeps and downloads.
 
 ## Limits
 
