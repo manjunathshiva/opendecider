@@ -15,7 +15,9 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.8.1] - 2026-10-05
+
+OpenDecider Focus only: the Python and npm packages are unchanged apart from their version number.
 
 ### Fixed
 
