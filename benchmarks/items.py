@@ -234,7 +234,8 @@ def youtube_request(it: dict, qn: str) -> tuple[str, str, dict, str]:
     """What a model is asked about one video: (state, instructions, options, question type)."""
     q, _ = youtube_questions()[qn]
     if q.get("quietly"):
-        return (*quietly_request(it), "noul")
+        state, instructions, options = quietly_request(it)
+        return state, instructions, options, "noul"
     if q["type"] == "choice":
         return it["state"], q["instructions"], dict(q["criteria"]), "choice"
     return it["state"], q["instructions"], {"yes": "Yes", "no": "No"}, "noul"
