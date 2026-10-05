@@ -97,24 +97,22 @@ def laya_battery(model, name):
 
 
 def youtube(model, name):
-    """OpenDecider Focus's questions on 800 YouTube videos (the extension's feed filter)."""
+    """OpenDecider Focus's questions on 800 YouTube videos (the extension's feed filter). Each answer keeps the
+    fingerprint of its request, and only an answer to the same request is kept when a run resumes."""
     path = RESULTS / "youtube" / f"{name}.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)
-    done = _done(path, lambda r: (r["id"], r["q"]))
+    done = _done(path, lambda r: (r["id"], r["q"], r.get("input")))
     with path.open("a") as f:
         for it in I.youtube():
-            for qn, (q, _) in I.youtube_questions().items():
-                if (it["id"], qn) in done:
+            for qn in I.youtube_questions():
+                state, instructions, opts, qtype = I.youtube_request(it, qn)
+                sha = I.request_sha(state, instructions, opts)
+                if (it["id"], qn, sha) in done:
                     continue
-                if q.get("quietly"):
-                    state, instructions, opts = I.quietly_request(it)
-                elif q["type"] == "choice":
-                    state, instructions, opts = it["state"], q["instructions"], dict(q["criteria"])
-                else:
-                    state, instructions, opts = it["state"], q["instructions"], {"yes": "Yes", "no": "No"}
                 t = time.perf_counter()
-                p = model.decide(state, instructions, opts, q["type"])
-                f.write(json.dumps({"id": it["id"], "q": qn, "probs": p, "wall_s": time.perf_counter() - t}) + "\n")
+                p = model.decide(state, instructions, opts, qtype)
+                f.write(json.dumps({"id": it["id"], "q": qn, "input": sha, "probs": p,
+                                    "wall_s": time.perf_counter() - t}) + "\n")
     print(f"youtube -> {path}")
 
 

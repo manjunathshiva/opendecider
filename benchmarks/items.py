@@ -230,8 +230,23 @@ def quietly_request(it: dict) -> tuple[str, str, dict]:
                                  "no": f"Entertainment or time-wasting: {QUIETLY_HIDE}."}
 
 
-def youtube() -> list[dict]:
-    """The 800 videos, verified against manifests/youtube_items_manifest.json."""
+def youtube_request(it: dict, qn: str) -> tuple[str, str, dict, str]:
+    """What a model is asked about one video: (state, instructions, options, question type)."""
+    q, _ = youtube_questions()[qn]
+    if q.get("quietly"):
+        return (*quietly_request(it), "noul")
+    if q["type"] == "choice":
+        return it["state"], q["instructions"], dict(q["criteria"]), "choice"
+    return it["state"], q["instructions"], {"yes": "Yes", "no": "No"}, "noul"
+
+
+def request_sha(state: str, instructions: str, options: dict) -> str:
+    """The fingerprint of a request, stored with its answer: an answer to a changed question (kinds.json, a rule) is
+    never reused or reported as an answer to the current one."""
+    return _sha([state, instructions, options])
+
+
+def _youtube_items() -> list[dict]:
     import pandas as pd
     path = CACHE / "youtube_trending.parquet"
     if not path.exists():
@@ -248,18 +263,33 @@ def youtube() -> list[dict]:
             items.append({"id": r["video_id"], "title": title, "channel": channel, "category": cat,
                           "keep": cat in YOUTUBE_KEEP, "split": "dev" if i % 2 == 0 else "test",
                           "state": _youtube_state(title, channel)})
-    manifest = MANIFESTS / "youtube_items_manifest.json"
-    if "--write-youtube-manifest" in sys.argv:
-        manifest.write_text(json.dumps({"source": f"{YOUTUBE_DATASET}@{YOUTUBE_REVISION}", "items": [
-            {"id": it["id"], "category": it["category"], "split": it["split"], "state_sha256": _sha(it["state"])}
-            for it in items]}, indent=0) + "\n")
-    want = {m["id"]: m for m in json.loads(manifest.read_text())["items"]}
-    bad = [it["id"] for it in items if it["id"] not in want or want[it["id"]]["state_sha256"] != _sha(it["state"])
-           or want[it["id"]]["category"] != it["category"] or want[it["id"]]["split"] != it["split"]]
-    if bad or len(items) != len(want):
-        raise SystemExit(f"{len(bad)} youtube items differ from {manifest.name} (first: {bad[:5]})")
     return items
 
 
-if __name__ == "__main__" and "--write-youtube-manifest" in sys.argv:
-    print(len(youtube()), "youtube items; manifest written")
+YOUTUBE_MANIFEST = MANIFESTS / "youtube_items_manifest.json"
+
+
+def youtube() -> list[dict]:
+    """The 800 videos, verified against manifests/youtube_items_manifest.json."""
+    items = _youtube_items()
+    want = {m["id"]: m for m in json.loads(YOUTUBE_MANIFEST.read_text())["items"]}
+    bad = [it["id"] for it in items if it["id"] not in want or want[it["id"]]["state_sha256"] != _sha(it["state"])
+           or want[it["id"]]["category"] != it["category"] or want[it["id"]]["split"] != it["split"]]
+    if bad or len(items) != len(want):
+        raise SystemExit(f"{len(bad)} youtube items differ from {YOUTUBE_MANIFEST.name} (first: {bad[:5]})")
+    return items
+
+
+def write_youtube_manifest() -> int:
+    """(Re)write the manifest from the pinned dataset revision: run once, when the suite is defined."""
+    items = _youtube_items()
+    YOUTUBE_MANIFEST.write_text(json.dumps({"source": f"{YOUTUBE_DATASET}@{YOUTUBE_REVISION}", "items": [
+        {"id": it["id"], "category": it["category"], "split": it["split"], "state_sha256": _sha(it["state"])}
+        for it in items]}, indent=0) + "\n")
+    return len(items)
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] != ["--write-youtube-manifest"]:
+        raise SystemExit("usage: python benchmarks/items.py --write-youtube-manifest")
+    sys.stdout.write(f"{write_youtube_manifest()} youtube items; manifest written\n")

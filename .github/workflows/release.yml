@@ -114,8 +114,8 @@ jobs:
 
   build-npm:
     name: Test, build and pack @opendecider/client and @opendecider/web
-    # A pre-release tag (v0.6.0rc1: PEP 440, not a valid npm version) releases the Python packages only.
-    if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
+    # A pre-release tag (v0.6.0rc1: PEP 440, not a valid npm version; or v1.2.3-preview.1) releases the Python packages only.
+    if: ${{ !contains(github.ref_name, '-') && !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -241,7 +241,7 @@ jobs:
   build-extension:
     name: Test and build OpenDecider Focus (the Chrome extension)
     # Its own job, so a problem with the extension never holds up the npm or Python releases.
-    if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
+    if: ${{ !contains(github.ref_name, '-') && !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') && !contains(github.ref_name, 'dev') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1

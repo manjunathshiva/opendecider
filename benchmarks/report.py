@@ -204,7 +204,9 @@ def youtube_table(split="test"):
           "rules, mean | Quietly's request |")
     print("|---|---|---|---|---|---|---|")
     for path in sorted((RESULTS / "youtube").glob("*.jsonl")):
-        got = {(r["id"], r["q"]): r["probs"] for r in rows(path) if r["id"] in items}
+        # only answers to the current requests (an older question's answers are not this question's)
+        want = {(i, qn): I.request_sha(*I.youtube_request(it, qn)[:3]) for i, it in items.items() for qn in names}
+        got = {(r["id"], r["q"]): r["probs"] for r in rows(path) if want.get((r["id"], r["q"])) == r.get("input")}
         if len(got) < len(items) * len(names):
             print(f"| {path.stem} | (incomplete: {len(got)}/{len(items) * len(names)} answers, skipped) |")
             continue

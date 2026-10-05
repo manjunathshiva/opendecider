@@ -22,6 +22,12 @@ async function main() {
     return;
   }
   const r = res.r as GuardResult;
+  if (r.reason === "error") {
+    // the text could not be checked: never shown as a clean result
+    v.textContent = `Could not check this text: ${r.error ?? "unknown error"}`;
+    v.className = "verdict flagged";
+    return;
+  }
   const top = Math.max(0, ...Object.values(r.probabilities));
   if (r.reason === "flagged") {
     v.textContent = "Looks like a prompt injection or jailbreak";
