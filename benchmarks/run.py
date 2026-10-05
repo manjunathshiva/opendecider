@@ -1,6 +1,7 @@
 """Score a model on the three benchmarks; resumable (already-answered items are skipped).
 
-    python benchmarks/run.py --model opendecider-nano                  # all three suites
+    python benchmarks/run.py --model opendecider-nano                  # general, typed and laya
+    python benchmarks/run.py --model onnx:model_fp16.onnx --name opendecider-nano-onnx-fp16 --suites youtube
     python benchmarks/run.py --model opendecider-small --suites typed
     python benchmarks/run.py --model laya-td --suites general          # needs `pip install laya`
     TYPESAFE_API_KEY=... python benchmarks/run.py --model jev          # TypeSafe's own API
@@ -95,13 +96,35 @@ def laya_battery(model, name):
     print(f"laya_battery -> {path}")
 
 
+def youtube(model, name):
+    """OpenDecider Focus's questions on 800 YouTube videos (the extension's feed filter)."""
+    path = RESULTS / "youtube" / f"{name}.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    done = _done(path, lambda r: (r["id"], r["q"]))
+    with path.open("a") as f:
+        for it in I.youtube():
+            for qn, (q, _) in I.youtube_questions().items():
+                if (it["id"], qn) in done:
+                    continue
+                if q.get("quietly"):
+                    state, instructions, opts = I.quietly_request(it)
+                elif q["type"] == "choice":
+                    state, instructions, opts = it["state"], q["instructions"], dict(q["criteria"])
+                else:
+                    state, instructions, opts = it["state"], q["instructions"], {"yes": "Yes", "no": "No"}
+                t = time.perf_counter()
+                p = model.decide(state, instructions, opts, q["type"])
+                f.write(json.dumps({"id": it["id"], "q": qn, "probs": p, "wall_s": time.perf_counter() - t}) + "\n")
+    print(f"youtube -> {path}")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True, help="opendecider-nano | opendecider-small | laya | laya-td | jev | a folder")
     ap.add_argument("--name", default=None, help="results name (default: the model name)")
-    ap.add_argument("--suites", default="general,typed,laya")
+    ap.add_argument("--suites", default="general,typed,laya", help="general,typed,laya (default), youtube")
     a = ap.parse_args()
     name = a.name or Path(a.model).name
     model = M.get(a.model)
     for s in a.suites.split(","):
-        {"general": general, "typed": typed, "laya": laya_battery}[s](model, name)
+        {"general": general, "typed": typed, "laya": laya_battery, "youtube": youtube}[s](model, name)

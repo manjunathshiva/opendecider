@@ -19,6 +19,13 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
 
 ### Added
 
+- OpenDecider Focus, a Chrome extension (`extension/`): it filters the YouTube feed with opendecider-nano running in
+  the browser, so the titles it reads never leave the computer. It hides the kinds of video the viewer chooses (11
+  kinds, one choice question), or the topics they name in their own words (one yes/no question), and Shorts; a
+  right-click checks selected text for prompt injection with the guard. Nothing is downloaded until the viewer agrees;
+  it then works offline. It asks for no host permission beyond running on YouTube, and CI fails if its manifest asks for
+  more. Each release attaches its Web Store zip (rebuilds byte for byte), attested and signed. Guide:
+  [Chrome extension](docs/guides/chrome-extension.md).
 - `@opendecider/web`: an fp16 build of opendecider-nano (`dtype: "fp16"`, 755 MiB). On WebGPU it runs many questions
   at once about 7 times faster than q8f16 (40 at once: 1.1 s instead of 7.4 s on an Apple M4 Max), whose 8-bit kernels
   ONNX Runtime tunes for one question at a time. It gives PyTorch's answer on 99.9–100% of the benchmark questions in
@@ -27,6 +34,8 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
   The guard has a measured threshold for it (0.3875; it catches 0.913 of the attacks, PyTorch 0.914). q8f16 stays
   the WebGPU default; the package pins the new revision of manjunathshiva/opendecider-nano-ONNX, whose
   other files are unchanged.
+- A `youtube` benchmark suite (`benchmarks/run.py --suites youtube`): 800 videos from a public trending set, the
+  extension's questions, and the request Quietly sends Jev, for OpenDecider, Jev and Laya.
 
 ## [0.7.0] - 2026-10-04
 

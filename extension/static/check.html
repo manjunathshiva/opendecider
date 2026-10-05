@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenDecider guard</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      body {
+        width: auto;
+      }
+      blockquote {
+        margin: 8px 0;
+        padding: 8px;
+        border-left: 3px solid var(--line);
+        max-height: 120px;
+        overflow: auto;
+        white-space: pre-wrap;
+        color: var(--muted);
+      }
+      .verdict {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 10px 0 4px;
+      }
+      .flagged {
+        color: var(--bad);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>OpenDecider guard</h1>
+    <blockquote id="text"></blockquote>
+    <p id="verdict" class="verdict">Checking…</p>
+    <p id="detail" class="muted"></p>
+    <p class="muted">Checked on this computer by opendecider-nano: the text was not sent anywhere.</p>
+    <script type="module" src="check.js"></script>
+  </body>
+</html>

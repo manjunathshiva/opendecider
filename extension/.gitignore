@@ -1,0 +1,5 @@
+/node_modules/
+/dist/
+/*.zip
+/e2e/profile/
+/e2e/model/

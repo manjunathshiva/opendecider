@@ -340,6 +340,16 @@ In native ONNX Runtime each build gives the PyTorch model's answer on 99.5% or m
 accuracy within 0.2 points; on WebGPU, which computes in float16, 99.3% or more (fp16: 99.45–100%). Each version pins the files by SHA-256, and they rebuild byte for byte from `packaging/onnx/`. See
 [In the browser](https://manjunathshiva.github.io/opendecider/guides/browser/) (self-hosting, CSP, threads, Node).
 
+## Chrome extension: a quieter YouTube feed, decided on your computer
+
+**OpenDecider Focus** hides the kinds of video you choose (Focus keeps learning, news and how-tos), or the topics you
+name in your own words ("Hide videos about crypto"), with opendecider-nano running in the browser: no server, no API
+key, nothing you watch sent anywhere, and offline after one download. Select text on any page and right-click it to
+check it for prompt injection with the same model. On rules you write yourself it is within a point of TypeSafe's Jev
+in the cloud (0.934 vs 0.940 balanced accuracy on 400 held-out videos) and ahead of every Laya checkpoint (0.870 at
+best). See the
+[Chrome extension guide](https://manjunathshiva.github.io/opendecider/guides/chrome-extension/).
+
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
 **On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for

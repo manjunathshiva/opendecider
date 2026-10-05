@@ -1,0 +1,17 @@
+{
+  "question": "What kind of YouTube video is this?",
+  "kinds": {
+    "news": "news, politics and current affairs",
+    "howto": "tutorials and how-tos: cooking recipes, DIY, fitness, makeup lessons",
+    "science_tech": "science, technology, engineering and product reviews",
+    "education": "lectures, explainers, history and documentaries",
+    "business": "business, finance and economics",
+    "talk": "serious interviews, talks and podcasts",
+    "music": "music videos, songs and concerts",
+    "gaming": "video games, gameplay and game trailers",
+    "comedy": "comedy, sketches, pranks and memes",
+    "showbiz": "celebrity gossip, talk shows, movie and TV clips, trailers and reactions",
+    "vlog": "vlogs, challenges, hauls, unboxings and lifestyle"
+  },
+  "focus_keeps": ["news", "howto", "science_tech", "education", "business", "talk"]
+}

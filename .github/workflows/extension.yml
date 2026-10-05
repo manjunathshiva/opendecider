@@ -1,0 +1,74 @@
+name: Extension
+
+# OpenDecider Focus (extension/), the Chrome extension: types, formatting, its logic, the Web Store package (it rebuilds
+# byte for byte and asks for no more than it should), and end to end in Chromium with the pinned opendecider-nano build
+# on a stand-in YouTube page (WebAssembly: the runner has no GPU). Runs only when the extension, or the packages it is
+# built from, change.
+
+on:
+  push:
+    branches: [main]
+    paths: [extension/**, web/**, typescript/**, .github/workflows/extension.yml]
+  pull_request:
+    paths: [extension/**, web/**, typescript/**, .github/workflows/extension.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Build @opendecider/client and @opendecider/web (the extension is built from this checkout's)
+        run: |
+          (cd typescript && npm ci --ignore-scripts --no-audit --no-fund && npm run build)
+          (cd web && npm ci --ignore-scripts --no-audit --no-fund && npm run build)
+      - working-directory: extension
+        run: npm ci --ignore-scripts --no-audit --no-fund   # no dependency runs install scripts
+      - working-directory: extension
+        run: npm run typecheck && npm run format:check && npm test
+      - name: The Web Store package rebuilds byte for byte, and asks for no more than it should
+        working-directory: extension
+        run: |
+          npm run zip
+          first=$(sha256sum opendecider-focus-*.zip)
+          npm run zip
+          [ "$first" = "$(sha256sum opendecider-focus-*.zip)" ] || { echo "the zip differs between two builds"; exit 1; }
+          node scripts/check-package.mjs
+      - name: The model's pinned files (cached by the revision and hashes @opendecider/web pins)
+        id: model
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: extension/e2e/model
+          key: extension-model-q8-${{ hashFiles('web/src/manifest.ts') }}
+      - name: Download them when not cached (the extension checks their SHA-256 again when it loads them)
+        if: steps.model.outputs.cache-hit != 'true'
+        working-directory: extension
+        run: |
+          node --input-type=module -e '
+            import { HUB_URL, MODELS, TOKENIZER } from "@opendecider/web";
+            import { createHash } from "node:crypto";
+            import { mkdirSync, writeFileSync } from "node:fs";
+            import path from "node:path";
+            for (const f of [TOKENIZER, MODELS.q8]) {   // the runner has no GPU: the extension loads q8
+              const res = await fetch(HUB_URL + f.path);
+              if (!res.ok) throw new Error(`${f.path}: HTTP ${res.status}`);
+              const bytes = Buffer.from(await res.arrayBuffer());
+              if (createHash("sha256").update(bytes).digest("hex") !== f.sha256) throw new Error(`${f.path}: SHA-256 differs`);
+              mkdirSync(path.dirname(`e2e/model/${f.path}`), { recursive: true });
+              writeFileSync(`e2e/model/${f.path}`, bytes);
+              console.log(f.path, bytes.length);
+            }'
+      - name: End to end in Chromium
+        working-directory: extension
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e

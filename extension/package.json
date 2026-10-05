@@ -1,0 +1,29 @@
+{
+  "name": "opendecider-focus",
+  "version": "0.7.0",
+  "private": true,
+  "description": "OpenDecider Focus: a Chrome extension that filters your YouTube feed with opendecider-nano running on your computer. Nothing you see is sent anywhere.",
+  "license": "Apache-2.0",
+  "author": "Manjunath Janardhan",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "zip": "node build.mjs --zip",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "node e2e/run.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@opendecider/web": "file:../web"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.12",
+    "esbuild": "0.28.2",
+    "playwright": "1.56.0",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

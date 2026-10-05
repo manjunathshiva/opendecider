@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenDecider Focus</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icons/32.png" alt="" width="20" height="20" />
+      <h1>OpenDecider Focus</h1>
+      <label class="switch" title="Filter YouTube"
+        ><input type="checkbox" id="on" aria-label="Filter YouTube" /><span></span
+      ></label>
+    </header>
+
+    <section id="model" class="card"></section>
+
+    <section>
+      <h2>Hide these kinds of video</h2>
+      <div class="presets">
+        <button type="button" id="focus">Focus: learning and news only</button>
+        <button type="button" id="none">Hide none</button>
+      </div>
+      <div id="kinds" class="kinds"></div>
+    </section>
+
+    <section>
+      <h2>Your own rule</h2>
+      <div class="rule">
+        <select id="ruleMode" aria-label="What the rule does">
+          <option value="hide">Hide videos about</option>
+          <option value="only">Show only videos about</option>
+        </select>
+        <input id="rule" type="text" maxlength="200" placeholder="e.g. crypto, celebrity gossip" spellcheck="true" />
+      </div>
+    </section>
+
+    <section>
+      <h2>How sure before showing a video</h2>
+      <div class="slider">
+        <span>Show more</span><input id="strictness" type="range" min="0.2" max="0.8" step="0.05" /><span
+          >Hide more</span
+        >
+      </div>
+      <label class="check"><input type="checkbox" id="shorts" /> Hide Shorts</label>
+    </section>
+
+    <p id="counts" class="muted"></p>
+    <footer class="muted">
+      Select text on any page, right-click, <b>Check with OpenDecider guard</b>: a prompt-injection check that also runs
+      here.
+      <a href="https://manjunathshiva.github.io/opendecider/guides/chrome-extension/" target="_blank">How it works</a>
+    </footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
