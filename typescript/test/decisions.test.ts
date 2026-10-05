@@ -329,6 +329,10 @@ describe("Guard", () => {
       ["hf.co/manjunathshiva/opendecider-small-td-GGUF", 0.5], // no tag: which build?
       ["opendecider-small-mlx-4bit", 0.5467],
       ["hf.co/manjunathshiva/opendecider-small-td-GGUF:Q5_K_M", 0.5],
+      // @opendecider/web's builds, as a loaded model names itself (opendecider-nano-onnx-<dtype>)
+      ["opendecider-nano-onnx-q8", 0.3905],
+      ["opendecider-nano-onnx-q8f16", 0.3903],
+      ["opendecider-nano-onnx-fp16", 0.3875],
     ] as const) {
       const fake = fakeServe(name);
       const g = new Guard({ model: URL_, connection: { fetch: fake.fetch } });
