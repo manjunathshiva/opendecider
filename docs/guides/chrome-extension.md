@@ -9,17 +9,15 @@ guard**.
 
 ## Install
 
-Until it is on the Chrome Web Store, install it from a release:
-
-1. Download `opendecider-focus-<version>.zip` from the [latest release](https://github.com/manjunathshiva/opendecider/releases/latest)
-   and unzip it.
-2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the unzipped folder.
-3. Click the OpenDecider Focus button in the toolbar and press **Download the model** (once: 755 MiB on a computer
+1. Add [OpenDecider Focus](https://chromewebstore.google.com/detail/opendecider-focus/npjgckljljojppjgikkiiaifoojkoebj)
+   from the Chrome Web Store.
+2. Click the OpenDecider Focus button in the toolbar and press **Download the model** (once: 755 MiB on a computer
    with a usable GPU, 569 MiB without one).
 
-Each release's zip carries a build provenance attestation and a Sigstore signature: `gh attestation verify
-opendecider-focus-<version>.zip --repo manjunathshiva/opendecider`. It needs Chrome 124 or later, on a computer
-(Chrome on phones has no extensions).
+It needs Chrome 124 or later, on a computer (Chrome on phones has no extensions).
+
+Installed it from a zip before it was on the store? That copy does not update itself: remove it at
+`chrome://extensions` and add the store's (it starts with its own settings and downloads the model again).
 
 ## What it filters
 
