@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-**Open, calibrated System 1 decision models.** Ask typed questions (`choice`, `score`, `noul`) about any state (text, email, ticket or JSON) and get a calibrated probability for every option: 17 ms on an NVIDIA GPU, 18 ms on a Mac. Distilled from open teachers, and benchmarked head to head against TypeSafe Jev, Microsoft-Decision-1, Laya, CLM-8B and frontier LLMs on the same questions with the same scorer.
+**Open, calibrated System 1 decision models.** Ask typed questions (`choice`, `score`, `noul`) about any state (text, email, ticket or JSON) and get a calibrated probability for every option: 17 ms on an NVIDIA GPU, 18 ms on a Mac. Distilled from open teachers, and benchmarked head-to-head against TypeSafe Jev, Microsoft-Decision-1, Laya, CLM-8B and frontier LLMs on the same questions with the same scorer.
 
 <div align="center">
 
@@ -373,8 +373,8 @@ its card notes that fine-tuned and zero-shot scores are not comparable, so read 
 these workflows, not as general superiority.
 
 **Microsoft-Decision-1** (9B, Microsoft Foundry API), measured on the same three benchmarks through our own Foundry
-deployment: 0.795 on general decisions (tied with medium-td, ahead of Jev), 0.783 on typed-decisions (tied with nano,
-small-td and medium-td, which were fine-tuned on the train split; Microsoft does not publish what Decision-1 was trained
+deployment: 0.795 on general decisions (within noise of medium-td, ahead of Jev), 0.783 on typed-decisions (within noise of
+nano, small-td and medium-td, which were fine-tuned on the train split; Microsoft does not publish what Decision-1 was trained
 on) and 0.751 on Laya's battery (ahead of every OpenDecider model, behind Jev's 0.774). Paired 95% CIs:
 [COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md#4-microsoft-decision-1-question-for-question).
 

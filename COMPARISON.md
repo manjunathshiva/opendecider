@@ -16,7 +16,7 @@ BANKING77 intent (78 options), BoolQ yes/no, Yelp 1–5 star rating, ChaosNLI (1
 | **OpenDecider-small-td** | 4B, open | **0.715** | 0.68 | 0.88 | 0.60 | 0.70 | 0.107 | 0.040 | 40 ms | local |
 | **OpenDecider-nano** | ~400M, open | **0.680** | 0.68 | 0.74 | 0.64 | 0.66 | 0.092 | 0.045 | 17 ms L40S · 18 ms M4 Max | local |
 | Claude Fable 5.1 | API | **0.840** | 0.88 | 0.94 | 0.74 | 0.80 | 0.064 | 0.043 | 4.27 s | $11.812 |
-| Microsoft-Decision-1 | 9B, Microsoft Foundry API | **0.795** | 0.86 | 0.94 | 0.70 | 0.68 | 0.072 | 0.079 | 1.13 s (from India) | $0.042 per M input tokens |
+| Microsoft-Decision-1 | 9B, Microsoft Foundry API | **0.795** | 0.86 | 0.94 | 0.70 | 0.68 | 0.072 | 0.079 | 1.13 s (from India) | – (see notes) |
 | GPT-6 Astra | API | **0.790** | 0.86 | 0.96 | 0.68 | 0.66 | 0.119 | 0.158 | 2.22 s | $6.963 |
 | DeepSeek V4.1 Flash | API | **0.760** | 0.86 | 0.96 | 0.68 | 0.54 | 0.138 | 0.168 | 4.08 s | $0.158 |
 | MiniMax M3 | API | **0.755** | 0.80 | 0.90 | 0.60 | 0.72 | 0.112 | 0.107 | 1.02 s | $0.149 |
@@ -84,7 +84,7 @@ Laya was trained on the first five datasets (its own `in_training` flags). OpenD
 
 ## 4. Microsoft-Decision-1, question for question
 
-Microsoft-Decision-1 (9B, built on Qwen3.5-9B) answers the same typed questions as Jev through Microsoft Foundry's `/v1/systemone` API. Microsoft's announcement reports one aggregate score over 36 benchmarks it does not name, so these are per-dataset numbers on public data. Accuracy difference, Microsoft-Decision-1 minus each model, with a paired bootstrap 95% CI (items resampled; cases on typed-decisions; within each task on Laya's battery). A CI that includes zero is a tie.
+Microsoft-Decision-1 (9B, built on Qwen3.5-9B) answers the same typed questions as Jev through Microsoft Foundry's `/v1/systemone` API. Microsoft's announcement reports one aggregate score over 36 benchmarks it does not name, so these are per-dataset numbers on public data. Accuracy difference, Microsoft-Decision-1 minus each model, with a paired bootstrap 95% CI (items resampled; cases on typed-decisions; within each task on Laya's battery). A CI that includes zero means the difference is not distinguishable from zero at this level, not that the two models are equal.
 
 | vs | 200 general decisions | typed-decisions (2,000) | Laya's battery (10 tasks) |
 |---|---|---|---|
@@ -96,8 +96,8 @@ Microsoft-Decision-1 (9B, built on Qwen3.5-9B) answers the same typed questions 
 | OpenDecider-nano | **+0.115** [+0.050, +0.180] | -0.013 [-0.030, +0.005] | **+0.095** [+0.082, +0.108] |
 
 - **Ahead of Jev** on general decisions and typed-decisions, **behind it on Laya's battery**, where Jev leads on phishing (0.897 vs 0.777), jailbreaks (0.940 vs 0.890) and toxicity (0.665 vs 0.530).
-- **Tied with OpenDecider's fine-tuned models on typed-decisions** (nano 0.4B, small-td 4B and medium-td; large-td's 0.018 lead sits at the edge of its CI). These were fine-tuned on the dataset's train split; Microsoft does not say what Decision-1 was trained on.
-- **Ahead of every OpenDecider model on Laya's battery** overall. Its widest gap is toxicity, where OpenDecider's 4B-and-larger models score 0.77–0.81 against its 0.530.
+- **No measurable difference from OpenDecider's fine-tuned models on typed-decisions** (nano 0.4B, small-td 4B and medium-td; large-td's 0.018 lead sits at the edge of its CI). These were fine-tuned on the dataset's train split; Microsoft does not say what Decision-1 was trained on.
+- **Ahead of every OpenDecider model on Laya's battery** overall, but **it trails on toxicity**: 0.530, against 0.77–0.81 for OpenDecider's 4B-and-larger models.
 - **Calibration:** ECE 0.072 on general decisions, second only to Claude Fable 5.1; on ChaosNLI its probabilities are further from the 100 human votes than OpenDecider's (JSD 0.079 vs 0.030–0.045).
 
 Every row above, and Decision-1 against the remaining models, comes from `python benchmarks/report.py`.

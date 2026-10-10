@@ -68,8 +68,9 @@ Microsoft publishes neither its training data nor per-dataset results.
 | weights | Microsoft Foundry API | **Apache-2.0** | **Apache-2.0** | **Apache-2.0** | **Apache-2.0** | closed API |
 
 Paired 95% CIs ([COMPARISON.md, section 4](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md#4-microsoft-decision-1-question-for-question)):
-on typed-decisions Decision-1 is tied with nano, small-td and medium-td (OpenDecider's were fine-tuned on the train
-split), and ahead of Jev (+0.029). On general decisions it is tied with medium-td and large-td and ahead of Jev
+on typed-decisions Decision-1 is not distinguishable from nano, small-td and medium-td (OpenDecider's were fine-tuned
+on the train split), and ahead of Jev (+0.029). On general decisions it is not distinguishable from medium-td and
+large-td and ahead of Jev
 (+0.065). On Laya's battery it is ahead of every OpenDecider model and behind Jev (−0.023).
 
 **Where Decision-1 leads:** general decisions (0.795) and calibration (ECE 0.072, second only to Claude Fable 5.1),
@@ -82,7 +83,7 @@ API-only.
 | model | accuracy | ECE ↓ | median latency | $ / 1,000 decisions |
 |---|---|---|---|---|
 | Claude Fable 5.1 | **0.840** | **0.064** | 4.27 s | $11.81 |
-| Microsoft-Decision-1 (decision model, 9B) | 0.795 | 0.072 | 1.13 s | $0.042 per M input tokens |
+| Microsoft-Decision-1 (decision model, 9B) | 0.795 | 0.072 | 1.13 s | – (see below) |
 | GPT-6 Astra | 0.790 | 0.119 | 2.22 s | $6.96 |
 | **opendecider-medium-td** | 0.765 | 0.110 | 214 ms | self-hosted |
 | DeepSeek V4.1 Flash | 0.760 | 0.138 | 4.08 s | $0.158 |
@@ -97,7 +98,8 @@ API-only.
 Only Claude Fable 5.1, Microsoft-Decision-1 and GPT-6 Astra beat opendecider-medium-td here, all through an API with a
 per-call bill. The 200-item set is about ±3 points: Decision-1's lead over medium-td is within noise (+0.030, 95% CI
 −0.025 to +0.090), and medium-td, DeepSeek V4.1 Flash and MiniMax M3 are close. Decision-1's latency is the round trip
-from India to Foundry's East US region.
+from India to Foundry's East US region. Foundry lists it at $0.042 per million input tokens (output free); the runs did
+not record token counts, so there is no per-1,000 figure.
 
 ## Prompt guard
 
