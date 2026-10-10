@@ -14,6 +14,10 @@ python benchmarks/run.py --model opendecider-nano
 python benchmarks/run.py --model opendecider-small --suites general,typed
 python benchmarks/run.py --model laya-td --suites general            # pip install laya
 TYPESAFE_API_KEY=... python benchmarks/run.py --model jev             # TypeSafe's own API
+# Microsoft-Decision-1 through your own Microsoft Foundry deployment ("model" in each request is the deployment's name)
+FOUNDRY_END_POINT=https://<resource>.services.ai.azure.com/providers/microsoft/v1/systemone \
+FOUNDRY_API_KEY=... FOUNDRY_DEPLOYMENT=<deployment name> \
+    python benchmarks/run.py --model foundry --name microsoft-decision-1
 python benchmarks/run.py --model ./my-model --name mine               # any OpenDecider folder
 # @opendecider/web's ONNX builds in native ONNX Runtime (pip install onnxruntime; the browser's WebAssembly gives the
 # same logits): hf download manjunathshiva/opendecider-nano-ONNX --local-dir nano-onnx
@@ -42,11 +46,15 @@ distribution; Laya's battery uses Laya's own `metrics()`.
 | opendecider-small | ✅ | ✅ | ✅ | the released model through this package, NVIDIA L40S |
 | opendecider-nano-onnx-q8, -q8f16, -fp16 | ✅ | ✅ | ✅ | @opendecider/web's builds, `onnx:<file>` in native ONNX Runtime (CPU), plus the guard sets (fp16: the attack questions) |
 | jev | ✅ | ✅ | ✅ | TypeSafe's own API, Jev 1.13, 2026-09-26/27 |
+| microsoft-decision-1 | ✅ | ✅ | ✅ | Microsoft-Decision-1 through our own Microsoft Foundry deployment (East US), 2026-10-10 |
 | laya, laya-td | ✅ | Antz AI's run | Laya's committed run | `pip install laya` (0.3.x) for `general` |
 | clm-8b | ✅ | ✅ | ✅ | Contrastive-LM/CLM-v0.1-8B with its own engine through the official vLLM pooling server |
 
 The `youtube` suite: opendecider-nano (PyTorch) and its fp16 build, jev (TypeSafe's own API, Jev 1.13, 2026-10-05),
 laya, laya-td and laya-ml (`pip install laya`, 0.3.22).
+
+`report.py` also prints Microsoft-Decision-1 against every other model, question for question, with paired bootstrap
+95% CIs.
 
 Frontier LLM numbers (Claude Fable 5.1, GPT-6 Astra, DeepSeek V4.1 Flash, MiniMax M3, Kimi K3) come from the
 same 200 general decisions in [jev-frontier-bench](https://github.com/manjunathshiva/jev-frontier-bench).
