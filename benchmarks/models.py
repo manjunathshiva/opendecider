@@ -97,8 +97,11 @@ def _retry_after(value, fallback: float, cap: float = 120.0) -> float:
     try:
         wait = float(value)
     except ValueError:
-        when = email.utils.parsedate_to_datetime(value) if email.utils.parsedate_tz(value) else None
-        if when is None or when.tzinfo is None:
+        try:
+            when = email.utils.parsedate_to_datetime(value)
+        except (TypeError, ValueError):   # not a date, or a date with an impossible field (hour 25)
+            return fallback
+        if when.tzinfo is None:
             return fallback
         wait = when.timestamp() - time.time()
     return min(max(fallback, wait), cap)
