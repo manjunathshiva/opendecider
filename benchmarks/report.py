@@ -150,6 +150,69 @@ def laya_table():
         print(f"| {m} | **{st.mean(x.values()):.3f}** | {tr:.3f} | {ho:.3f} | " + " | ".join(f"{x[t]:.3f}" for t in tasks) + " |")
 
 
+def _paired(diff, strata, n=2000):
+    """The mean over strata of the pooled per-question difference (a - b: 1, 0 or -1 per question), with a paired
+    bootstrap 95% CI that resamples clusters (lists of question keys) within each stratum."""
+    import numpy as np
+    rng = np.random.default_rng(0)
+    point, boot = 0.0, np.zeros(n)
+    for s in strata:
+        sums = np.array([sum(diff[k] for k in c) for c in s], dtype=float)
+        sizes = np.array([len(c) for c in s], dtype=float)
+        idx = rng.integers(0, len(s), size=(n, len(s)))
+        point += sums.sum() / sizes.sum()
+        boot += sums[idx].sum(1) / sizes[idx].sum(1)
+    boot = np.sort(boot / len(strata))
+    return point / len(strata), boot[int(0.025 * n)], boot[int(0.975 * n) - 1]
+
+
+def pairs_table(model="microsoft-decision-1"):
+    """`model` against every other complete run, question for question: the accuracy difference with a paired bootstrap
+    95% CI. The 200 general decisions resample items, typed-decisions resamples cases (as typed_table does), and Laya's
+    battery resamples within each task and averages the ten task accuracies (as laya_table does)."""
+    its = {i["id"]: i for i in I.general() if i["task"] in CORE}
+    suites, _ = I.laya_battery()
+    correct = {"general": {}, "typed": {}, "laya_battery": {}}
+    for path in (RESULTS / "general").glob("*.jsonl"):
+        recs = {r["id"]: norm(r["probs"]) for r in rows(path) if r["id"] in its}
+        if len(recs) == len(its):
+            correct["general"][path.stem] = {i: float(max(p, key=p.get) == its[i]["gold"]) for i, p in recs.items()}
+    for path in (RESULTS / "typed").glob("*.jsonl"):
+        rs = rows(path)
+        if len(rs) >= 2000:
+            correct["typed"][path.stem] = {(r["case"], r["q"]): float(str(r["pred"]) == str(r["gold"])) for r in rs}
+    need = sum(len(S["cases"]) for S in suites.values())
+    for path in (RESULTS / "laya_battery").glob("*.jsonl"):
+        got = {(r["suite"], r["i"]): r["p"] for r in rows(path)}
+        if len(got) >= need:
+            correct["laya_battery"][path.stem] = {k: float(max(range(len(p)), key=p.__getitem__) == suites[k[0]]["gold"][k[1]])
+                                                  for k, p in got.items() if p is not None}
+    others = sorted({m for c in correct.values() for m in c} - {model})
+    print(f"\n## {model} against each model, question for question (accuracy difference, paired bootstrap 95% CI)\n")
+    print("| model | 200 general decisions | typed-decisions (2,000) | Laya's battery (10 tasks) |")
+    print("|---|---|---|---|")
+    for m in others:
+        cells = []
+        for suite, c in correct.items():
+            if model not in c or m not in c:
+                cells.append("–")
+                continue
+            keys = set(c[model]) & set(c[m])
+            diff = {k: c[model][k] - c[m][k] for k in keys}
+            if suite == "typed":
+                by_case = {}
+                for k in sorted(keys):
+                    by_case.setdefault(k[0], []).append(k)
+                strata = [list(by_case.values())]
+            elif suite == "laya_battery":
+                strata = [[[k] for k in sorted(keys) if k[0] == s] for s in suites]
+            else:
+                strata = [[[k] for k in sorted(keys)]]
+            d, lo, hi = _paired(diff, strata)
+            cells.append(f"{d:+.3f} [{lo:+.3f}, {hi:+.3f}]")
+        print(f"| {m} | " + " | ".join(cells) + " |")
+
+
 def coverage_table():
     """Automate only the most confident share of decisions: accuracy on that share (selective accuracy)."""
     def sel(pairs, cov):
@@ -224,5 +287,6 @@ if __name__ == "__main__":
     general_table()
     typed_table()
     laya_table()
+    pairs_table()
     youtube_table()
     coverage_table()

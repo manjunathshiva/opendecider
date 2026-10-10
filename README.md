@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-**Open, calibrated System 1 decision models.** Ask typed questions (`choice`, `score`, `noul`) about any state (text, email, ticket or JSON) and get a calibrated probability for every option: 17 ms on an NVIDIA GPU, 18 ms on a Mac. Distilled from open teachers, and benchmarked head to head against TypeSafe Jev, Laya, CLM-8B and frontier LLMs on the same questions with the same scorer.
+**Open, calibrated System 1 decision models.** Ask typed questions (`choice`, `score`, `noul`) about any state (text, email, ticket or JSON) and get a calibrated probability for every option: 17 ms on an NVIDIA GPU, 18 ms on a Mac. Distilled from open teachers, and benchmarked head to head against TypeSafe Jev, Microsoft-Decision-1, Laya, CLM-8B and frontier LLMs on the same questions with the same scorer.
 
 <div align="center">
 
@@ -354,8 +354,8 @@ see the [Chrome extension guide](https://manjunathshiva.github.io/opendecider/gu
 ## Ahead of Jev on unseen decisions, ahead of Laya like for like
 
 **On 200 general decisions none of these models trained on, opendecider-medium-td scores 0.765 against 0.730 for
-TypeSafe Jev**, the best of any model you can run yourself; only Claude Fable 5.1 (0.840) and GPT-6 Astra (0.790) score
-higher, at 10–20× the latency. Its probabilities are also the closest of all tested systems to the spread of 100 human
+TypeSafe Jev**, the best of any model you can run yourself; only Claude Fable 5.1 (0.840), Microsoft-Decision-1 (0.795,
+a lead within noise) and GPT-6 Astra (0.790) score higher, all through a paid API. Its probabilities are also the closest of all tested systems to the spread of 100 human
 votes on ChaosNLI (JSD 0.035, against 0.148 for Jev).
 
 On the [typed-decisions](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) benchmark (2,000 decisions across
@@ -371,6 +371,12 @@ dataset's leaderboard), and **opendecider-small, which never saw the dataset, sc
 0.362). The dataset's gold labels come from a ~4B teacher whose own fresh samples agree with them 73.5% of the time, and
 its card notes that fine-tuned and zero-shot scores are not comparable, so read fine-tuned scores near 0.8 as fitting
 these workflows, not as general superiority.
+
+**Microsoft-Decision-1** (9B, Microsoft Foundry API), measured on the same three benchmarks through our own Foundry
+deployment: 0.795 on general decisions (tied with medium-td, ahead of Jev), 0.783 on typed-decisions (tied with nano,
+small-td and medium-td, which were fine-tuned on the train split; Microsoft does not publish what Decision-1 was trained
+on) and 0.751 on Laya's battery (ahead of every OpenDecider model, behind Jev's 0.774). Paired 95% CIs:
+[COMPARISON.md](https://github.com/manjunathshiva/opendecider/blob/main/COMPARISON.md#4-microsoft-decision-1-question-for-question).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/manjunathshiva/opendecider/main/assets/comparison_table.jpg" alt="OpenDecider vs TypeSafe Jev, Laya, CLM-8B and frontier LLMs: typed-decisions, general decisions, Laya's battery, calibration, speed and open weights, same questions and same scorer" width="100%" />

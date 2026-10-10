@@ -4,6 +4,7 @@
                @opendecider/web's ONNX builds in native ONNX Runtime (the browser's WebAssembly gives the same logits)
   laya         Laya through its pip package (`pip install laya`), a named checkpoint
   jev          TypeSafe Jev through TypeSafe's own API (set TYPESAFE_API_KEY)
+  foundry      Microsoft-Decision-1 through your own Microsoft Foundry deployment (see Foundry)
 """
 from __future__ import annotations
 
@@ -90,6 +91,7 @@ class Laya:
 class Jev:
     """TypeSafe's own API (never a reseller), questions in their native typed form."""
     URL = "https://api.typesafe.ai/v1/systemone"
+    RETRY, ATTEMPTS, TIMEOUT = (429, 529), 4, 60
 
     def __init__(self, model: str = "jev-1.13.0"):
         self.key = os.environ.get("TYPESAFE_API_KEY", "").strip()
@@ -110,18 +112,37 @@ class Jev:
             q = {"type": "choice", "instructions": instructions, "criteria": options}
         body = json.dumps({"model": self.model, "state": state, "questions": {"q": q}}).encode()
         delay = 1.0
-        for attempt in range(4):
+        for attempt in range(self.ATTEMPTS):
             req = urllib.request.Request(self.URL, data=body, method="POST", headers={
                 "Authorization": f"Bearer {self.key}", "Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(req, timeout=60) as r:
+                with urllib.request.urlopen(req, timeout=self.TIMEOUT) as r:
                     return _from_native(json.loads(r.read())["answers"]["q"], options)
             except urllib.error.HTTPError as e:
-                if e.code in (429, 529) and attempt < 3:
+                if e.code in self.RETRY and attempt < self.ATTEMPTS - 1:
+                    time.sleep(max(delay, float(e.headers.get("Retry-After") or 0))); delay *= 2
+                    continue
+                raise
+            except (urllib.error.URLError, OSError):   # refused or reset connections: the request never reached the model
+                if attempt < self.ATTEMPTS - 1:
                     time.sleep(delay); delay *= 2
                     continue
                 raise
-        raise RuntimeError("Jev did not answer after 4 attempts")   # not reached: each attempt returns or raises
+        raise RuntimeError(f"{self.model} did not answer after {self.ATTEMPTS} attempts")   # not reached
+
+
+class Foundry(Jev):
+    """Microsoft-Decision-1 through your own Microsoft Foundry deployment: the same typed questions and answers as Jev's
+    API. Set FOUNDRY_END_POINT (…/providers/microsoft/v1/systemone), FOUNDRY_API_KEY and FOUNDRY_DEPLOYMENT (the
+    deployment's name, which the request's "model" must match)."""
+    RETRY, ATTEMPTS, TIMEOUT = (429, 500, 502, 503, 504), 8, 20   # answers take ~1 s; a dropped connection should not cost 60
+
+    def __init__(self):
+        self.URL = os.environ.get("FOUNDRY_END_POINT", "").strip()
+        self.key = os.environ.get("FOUNDRY_API_KEY", "").strip()
+        self.model = os.environ.get("FOUNDRY_DEPLOYMENT", "").strip()
+        if not (self.URL and self.key and self.model):
+            raise SystemExit("set FOUNDRY_END_POINT, FOUNDRY_API_KEY and FOUNDRY_DEPLOYMENT to benchmark Microsoft-Decision-1")
 
 
 def _from_native(a: dict, options: dict) -> dict:
@@ -139,6 +160,8 @@ def _from_native(a: dict, options: dict) -> dict:
 def get(name: str):
     if name == "jev":
         return Jev()
+    if name == "foundry":
+        return Foundry()
     if name.startswith("laya"):
         return Laya({"laya": "english", "laya-td": "typed-decisions", "laya-ml": "multilingual"}[name])
     if name.startswith("opendecider-") and "/" not in name:   # a published model, e.g. opendecider-medium-td
