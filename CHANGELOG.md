@@ -27,6 +27,11 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
   not leave an older build's 450–755 MiB behind; every build it pins is kept. `cache: false` still keeps nothing.
 - OpenDecider Focus: when Chrome did not let it keep the model, the popup says so under the ready line, since the model
   then downloads again next time.
+- OpenDecider Focus: without a GPU, videos on a long feed could appear and then vanish. Each video waiting for its
+  answer was shown after 15 seconds, while the model was still judging the videos before it (one batch of 16 takes
+  about 9 seconds on a 16 GB M4 Mac mini), and hidden again when its answer came. Waiting videos are now shown only when
+  the model has not answered anything for 15 seconds, or after a minute in all, and a video once shown stays shown
+  until the settings change.
 
 ## [0.8.1] - 2026-10-05
 
