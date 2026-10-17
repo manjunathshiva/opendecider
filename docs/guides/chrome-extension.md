@@ -38,8 +38,8 @@ The popup has three filters; a video is hidden when any of them says so.
 
 **How sure before showing a video** moves the line between showing and hiding: towards "Show more", a video the model is
 unsure about stays; towards "Hide more", it goes. It filters the home page, search results and the list beside a
-video. New videos stay hidden until they are judged (a fraction of a second on a GPU, once the model is loaded), so
-nothing flashes past. Each video is judged once and the answers are kept on your computer: hiding other kinds applies at
+video. New videos stay hidden until they are judged (the first in a second or two on a GPU, once the model is loaded: see
+[Speed and memory](#speed-and-memory)), so nothing flashes past. Each video is judged once and the answers are kept on your computer: hiding other kinds applies at
 once, and a new rule asks each video once more.
 
 ## How accurate is it
@@ -73,16 +73,19 @@ gameplay?", "Is this a news or current affairs video?".
 
 ## Speed and memory
 
-| | with a GPU (WebGPU, fp16 build) | without one (WebAssembly, q8 build) |
-|---|---|---|
-| download, once | 755 MiB | 569 MiB |
-| 40 videos, kinds | 1.1 s | 15 s |
-| 40 videos, your rule | 0.3 s | 5.5 s |
-| memory while loaded | about 3.3 GiB | about 3 GiB |
+| | download, once | a feed of 40 videos, kinds | a feed of 40 videos, your rule | memory while loaded |
+|---|---|---|---|---|
+| Apple M4 Max, with its GPU (WebGPU, fp16 build) | 755 MiB | 1.8 s | 1.2 s | about 3 GiB |
+| Apple M4 Max, without it (WebAssembly, q8 build) | 569 MiB | 16 s | 7.8 s | about 2 GiB |
+| 16 GB Apple M4 Mac mini, with its GPU | 755 MiB | 4.5 s | 2.6 s | about 3 GiB |
+| 16 GB Apple M4 Mac mini, without it | 569 MiB | 24 s | 12 s | about 2 GiB |
 
-Times on an Apple M4 Max in Chrome (8 threads without the GPU); a slower computer takes longer.
+Times from opening the page until every video on it is judged: the median of five runs, with 40 real YouTube titles,
+in Chromium 141 (up to 8 threads without the GPU). The feed is judged 16 videos at a time, so the first ones appear
+sooner: on the Mac mini after 1.7 s with its GPU, 10 s without. The memory is what Chrome uses on top of what it used
+before; the 16 GB Mac mini never ran short of memory or used swap.
 
-The model is kept in the browser after the first download, and later loads in one or two seconds (if Chrome does not
+The model is kept in the browser after the first download, and later loads in two to four seconds (if Chrome does not
 let the extension keep it, the popup says so, and it downloads again on the next load). It is loaded when
 you open YouTube and closed after 10 minutes without filtering, which gives the memory back. Without a GPU, the feed
 fills in a few videos at a time.
