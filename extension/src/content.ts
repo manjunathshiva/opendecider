@@ -15,7 +15,7 @@ let on = false;
 let busy = false;
 let generation = 0; // new settings: answers to an earlier batch are dropped, and its videos are asked again
 let gather = 0;
-let lastProgress = 0; // when a batch was last answered (or failed): the queue still moves
+let lastProgress = 0; // when the model last answered a batch for these settings: the queue still moves
 
 const text = (el: Element | null | undefined) => (el?.textContent ?? "").replace(/\s+/g, " ").trim();
 const channelOf = (tile: Element) =>
@@ -77,7 +77,7 @@ async function judge() {
   } catch {
     // the extension was reloaded or the service worker failed: show these videos
   } finally {
-    lastProgress = Date.now();
+    if (got && gen === generation) lastProgress = Date.now(); // a failure is no progress: it shows its own videos
     if (gen === generation)
       for (const v of batch) {
         waitingSince.delete(v.id);
