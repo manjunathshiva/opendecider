@@ -82,7 +82,8 @@ gameplay?", "Is this a news or current affairs video?".
 
 Times on an Apple M4 Max in Chrome (8 threads without the GPU); a slower computer takes longer.
 
-The model is kept in the browser after the first download, and later loads in one or two seconds. It is loaded when
+The model is kept in the browser after the first download, and later loads in one or two seconds (if Chrome does not
+let the extension keep it, the popup says so, and it downloads again on the next load). It is loaded when
 you open YouTube and closed after 10 minutes without filtering, which gives the memory back. Without a GPU, the feed
 fills in a few videos at a time.
 

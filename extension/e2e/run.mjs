@@ -114,6 +114,7 @@ const dl = await send({ type: "download" });
 check(dl?.ok, `the model loads (${((Date.now() - t0) / 1000).toFixed(1)} s): ${dl?.error ?? ""}`);
 const { model } = await extPage.evaluate(() => chrome.storage.session.get("model"));
 console.log("     model:", JSON.stringify(model));
+check(["cache", "opfs"].includes(model?.stored), `the downloaded model is kept for the next load (${model?.stored})`);
 
 // 3. Focus (the default): learning kept, entertainment hidden, Shorts hidden, an untitled tile shown
 await yt.reload();

@@ -32,6 +32,13 @@ const guard = new Guard({ model }); // the prompt guard, on the same model
 The first `loadNano()` downloads the build once (about 450 MiB) and keeps it in the browser's Cache API; later loads
 read it from there in a second or two. Load it once per page or worker and reuse it.
 
+Where the Cache API refuses a file, it is kept in the
+[origin private file system](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system)
+instead. The last `onProgress` event of a downloaded file says where, in `stored`: `"cache"`, `"opfs"`, or `false` when
+the browser kept it in neither (storage full or blocked), so the next load downloads it again; tell the user then.
+Either copy is checked against the pinned SHA-256 each time it is read. Once a model has loaded, files of builds the
+installed version does not pin (an older version's) are deleted; `cache: false` keeps nothing and deletes nothing.
+
 ## Builds and devices
 
 | device | build (default) | download | one question (Chrome, Apple M4 Max) |
@@ -95,8 +102,10 @@ so the page stays responsive. WebGPU does its work off the main thread.
 ## Node, Bun and Deno
 
 The same package runs WebAssembly there. Download the files once, at the revision your installed version pins, and read
-them yourself; they are still checked against the pinned SHA-256. (There is no Cache API there: without `files`, every
-start downloads the files again.)
+them yourself; they are still checked against the pinned SHA-256. (Node and Bun have no Cache API or private file
+system: without `files`, every start downloads the files again. Deno has a
+[Cache API](https://docs.deno.com/examples/web_cache_api/) that keeps its files between runs, and `loadNano` uses it
+as in a browser.)
 
 ```bash
 REVISION=$(node --input-type=module -e 'import { REVISION } from "@opendecider/web"; console.log(REVISION)')

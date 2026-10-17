@@ -66,7 +66,15 @@ async function renderModel() {
   const box = $("model");
   const { consent } = await chrome.storage.local.get("consent");
   const { model } = (await chrome.storage.session.get("model")) as {
-    model?: { state: string; loaded?: number; total?: number; cached?: boolean; device?: string; error?: string };
+    model?: {
+      state: string;
+      loaded?: number;
+      total?: number;
+      cached?: boolean;
+      device?: string;
+      stored?: string | false | null;
+      error?: string;
+    };
   };
   box.replaceChildren();
   const p = document.createElement("p");
@@ -106,6 +114,13 @@ async function renderModel() {
     model?.state === "ready"
       ? `Model ready, on this computer's ${model.device === "webgpu" ? "GPU (WebGPU)" : "CPU (WebAssembly)"}.`
       : "Model downloaded: it loads when you open YouTube.";
+  if (model?.state === "ready" && model.stored === false) {
+    // the download worked, but neither the Cache API nor the extension's file storage would keep it
+    const note = document.createElement("p");
+    note.className = "muted";
+    note.textContent = "Chrome didn't let the extension keep the model, so it will download again next time.";
+    box.append(note);
+  }
 }
 
 async function renderCounts() {

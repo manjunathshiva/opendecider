@@ -1,12 +1,16 @@
 // Cancelling: loadNano while ONNX Runtime creates the session (it cannot stop that, so loadNano waits, frees the session
-// and rejects), and a question while it waits for, or runs, a forward pass. ONNX Runtime and the file loader are
-// replaced here, so this runs without the model.
+// and rejects), and a question while it waits for, or runs, a forward pass; and the files loadNano reads and prunes.
+// ONNX Runtime and the file loader are replaced here, so this runs without the model.
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const tokenizer = readFileSync(new URL("./fixtures/tokenizer.web.json", import.meta.url));
 const ort = vi.hoisted(() => ({ create: vi.fn() }));
-const files = vi.hoisted(() => ({ loaded: [] as string[], tokenizerFails: false }));
+const files = vi.hoisted(() => ({
+  loaded: [] as string[],
+  tokenizerFails: false,
+  prune: vi.fn(async (_keep: readonly string[]) => undefined),
+}));
 vi.mock("../src/ort.js", () => ({
   ort: {
     env: { wasm: {} },
@@ -28,6 +32,7 @@ vi.mock("../src/hub.js", async (actual) => ({
     if (files.tokenizerFails) throw new Error("tokenizer unavailable");
     return tokenizer;
   },
+  prune: files.prune,
 }));
 const { loadNano, NanoBackend } = await import("../src/nano.js");
 
@@ -43,6 +48,7 @@ beforeEach(() => {
   ort.create.mockReset();
   files.loaded = [];
   files.tokenizerFails = false;
+  files.prune.mockClear();
 });
 
 describe("loadNano cancelled while the session is created", () => {
@@ -57,6 +63,7 @@ describe("loadNano cancelled while the session is created", () => {
     creating.finish(session);
     await expect(loading).rejects.toThrow(/abort/i);
     expect(session.release).toHaveBeenCalledTimes(1);
+    expect(files.prune).not.toHaveBeenCalled(); // no model: nothing is deleted
   });
 
   it("reports the cancellation even when freeing the session fails", async () => {
@@ -101,6 +108,27 @@ describe("loadNano's files", () => {
     await expect(loadNano({ device: "wasm" })).rejects.toThrow(/tokenizer unavailable/);
     expect(files.loaded).toEqual(["tokenizer.web.json"]);
     expect(ort.create).not.toHaveBeenCalled();
+    expect(files.prune).not.toHaveBeenCalled();
+  });
+
+  it("deletes the files of builds it does not pin once the model is built, keeping every build it pins", async () => {
+    ort.create.mockResolvedValue({ release: vi.fn() });
+    await loadNano({ device: "wasm" });
+    expect(files.prune).toHaveBeenCalledTimes(1);
+    const { MODELS, TOKENIZER } = await import("../src/manifest.js");
+    expect(new Set(files.prune.mock.calls[0]![0])).toEqual(
+      new Set([TOKENIZER.sha256, MODELS.q8.sha256, MODELS.q8f16.sha256, MODELS.fp16.sha256]),
+    );
+    // not without the cache, nor with files read yourself (no store was used)
+    await loadNano({ device: "wasm", cache: false });
+    await loadNano({ device: "wasm", files: async () => new Uint8Array(1) });
+    expect(files.prune).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads the model even when pruning fails", async () => {
+    ort.create.mockResolvedValueOnce({ release: vi.fn() });
+    files.prune.mockRejectedValueOnce(new Error("storage blocked"));
+    await expect(loadNano({ device: "wasm" })).resolves.toBeDefined();
   });
 });
 

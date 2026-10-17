@@ -77,10 +77,16 @@ async function load(retry = false): Promise<void> {
     try {
       // the build that loaded last time: q8 where WebGPU could not run the model, so it is not tried on every load
       const { build } = await chrome.storage.local.get("build");
-      const s = await offscreen<{ device: string; dtype: string }>({ type: "load", build });
+      const s = await offscreen<{ device: string; dtype: string; stored: "cache" | "opfs" | false | null }>({
+        type: "load",
+        build,
+      });
       ready = true;
       await chrome.storage.local.set({ build: s.dtype });
-      await chrome.storage.session.set({ model: { state: "ready", device: s.device, dtype: s.dtype } });
+      // stored: where a download was kept (false: nowhere, so the next load downloads it again; null: no download)
+      await chrome.storage.session.set({
+        model: { state: "ready", device: s.device, dtype: s.dtype, stored: s.stored },
+      });
     } catch (e) {
       failedAt = Date.now();
       await chrome.storage.session.set({
