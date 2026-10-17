@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .questions import Choice, Noul, Score, answer, as_dict, options
 
-__version__ = "0.8.1"
+__version__ = "0.9.0"
 __all__ = ["load", "OpenDecider", "Choice", "Score", "Noul", "__version__"]
 
 

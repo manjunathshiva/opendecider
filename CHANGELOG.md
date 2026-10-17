@@ -15,16 +15,24 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
-## [Unreleased]
+## [0.9.0] - 2026-10-17
+
+`@opendecider/web` and OpenDecider Focus. The Python packages and `@opendecider/client` are unchanged apart from their
+version number. A minor release because `@opendecider/web` adds a field to its public API (`LoadProgress.stored`).
+
+### Added
+
+- `@opendecider/web`: `onProgress` says where a downloaded file was kept, in a new optional field on its last event,
+  `stored`: `"cache"` (the Cache API), `"opfs"` (the origin private file system), or `false` when neither would keep
+  it, so the next load downloads it again.
 
 ### Fixed
 
 - `@opendecider/web`: where the browser's Cache API refuses a model file (a user reported it in Chrome), the file was
   downloaded again on every load, without a word. It is now kept in the origin private file system instead,
-  and checked against its pinned SHA-256 like a cached copy. `onProgress` says where a downloaded file was kept, in a
-  new optional field on its last event, `stored`: `"cache"`, `"opfs"`, or `false` when neither would keep it. Once a
-  model has loaded, the files of builds the installed version no longer pins are deleted from both, so an update does
-  not leave an older build's 450–755 MiB behind; every build it pins is kept. `cache: false` still keeps nothing.
+  and checked against its pinned SHA-256 like a cached copy. Once a model has loaded, the files of builds the installed
+  version no longer pins are deleted from both, so an update does not leave an older build's 450–755 MiB behind; every
+  build it pins is kept. `cache: false` still keeps nothing.
 - OpenDecider Focus: when Chrome did not let it keep the model, the popup says so under the ready line, since the model
   then downloads again next time.
 - OpenDecider Focus: without a GPU, videos on a long feed could appear and then vanish. Each video waiting for its
@@ -32,6 +40,12 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
   about 9 seconds on a 16 GB M4 Mac mini), and hidden again when its answer came. Waiting videos are now shown only when
   the model has not answered anything for 15 seconds, or after a minute in all, and a video once shown stays shown
   until the settings change.
+
+### Documentation
+
+- The OpenDecider Focus guide explains Chrome's "not trusted by Enhanced Safe Browsing" notice, and gives feed times on
+  an Apple M4 Max and a 16 GB Mac mini; its privacy policy says where the model is kept when the Cache API refuses it.
+- The browser guide no longer groups Deno with Node and Bun: Deno's Cache API keeps the files between runs.
 
 ## [0.8.1] - 2026-10-05
 
