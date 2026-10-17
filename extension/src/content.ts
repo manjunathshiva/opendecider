@@ -1,12 +1,12 @@
 /** OpenDecider Focus on YouTube (the page's isolated world). Each feed tile is marked "wait" as soon as its title exists,
  * which the stylesheet hides, until the service worker answers "ok" or "hide". Anything that goes wrong shows the
  * video: the filter fails open, never into an empty feed. */
+import { failOpen, settle } from "./failopen.js";
 import { MAX_VIDEOS } from "./messages.js";
 import { readSettings } from "./settings.js";
 
 const TILES = "ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, yt-lockup-view-model";
 const FILTERED = new Set(["/", "/results", "/watch"]); // home, search, and the list beside a video
-const WAIT_MS = 15_000; // a tile still waiting this long is shown
 const root = document.documentElement;
 const verdicts = new Map<string, "wait" | "ok" | "hide">();
 const queue = new Map<string, { id: string; title: string; channel: string }>();
@@ -15,6 +15,7 @@ let on = false;
 let busy = false;
 let generation = 0; // new settings: answers to an earlier batch are dropped, and its videos are asked again
 let gather = 0;
+let lastProgress = 0; // when a batch was last answered (or failed): the queue still moves
 
 const text = (el: Element | null | undefined) => (el?.textContent ?? "").replace(/\s+/g, " ").trim();
 const channelOf = (tile: Element) =>
@@ -76,10 +77,11 @@ async function judge() {
   } catch {
     // the extension was reloaded or the service worker failed: show these videos
   } finally {
+    lastProgress = Date.now();
     if (gen === generation)
       for (const v of batch) {
         waitingSince.delete(v.id);
-        mark(v.id, got?.[v.id] === "hide" ? "hide" : "ok");
+        mark(v.id, settle(verdicts.get(v.id), got?.[v.id] === "hide" ? "hide" : "ok"));
       }
     busy = false;
     if (!on) for (const id of queue.keys()) (mark(id, "ok"), queue.delete(id));
@@ -87,10 +89,10 @@ async function judge() {
   }
 }
 
-// fail open: a tile that waits too long is shown
+// fail open: waiting tiles are shown when no batch has been answered for a while (the model hangs), or after a minute
 window.setInterval(() => {
   const now = Date.now();
-  for (const [id, t] of waitingSince) if (now - t > WAIT_MS && verdicts.get(id) === "wait") mark(id, "ok");
+  for (const [id, t] of waitingSince) if (failOpen(now, t, lastProgress) && verdicts.get(id) === "wait") mark(id, "ok");
   sweep(); // YouTube sometimes swaps a tile's link without adding nodes
 }, 1000);
 
