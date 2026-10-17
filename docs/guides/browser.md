@@ -102,8 +102,10 @@ so the page stays responsive. WebGPU does its work off the main thread.
 ## Node, Bun and Deno
 
 The same package runs WebAssembly there. Download the files once, at the revision your installed version pins, and read
-them yourself; they are still checked against the pinned SHA-256. (There is no Cache API or private file system there:
-without `files`, every start downloads the files again.)
+them yourself; they are still checked against the pinned SHA-256. (Node and Bun have no Cache API or private file
+system: without `files`, every start downloads the files again. Deno has a
+[Cache API](https://docs.deno.com/examples/web_cache_api/) that keeps its files between runs, and `loadNano` uses it
+as in a browser.)
 
 ```bash
 REVISION=$(node --input-type=module -e 'import { REVISION } from "@opendecider/web"; console.log(REVISION)')
