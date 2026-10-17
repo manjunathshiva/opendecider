@@ -2,12 +2,12 @@
 
 ## Reporting a vulnerability
 
-Please report security issues privately through GitHub's
-[private vulnerability reporting](https://github.com/manjunathshiva/opendecider/security/advisories/new), not in a
-public issue. You'll get an acknowledgement within 3 working days and a fix or mitigation plan within 14 days for
-confirmed issues. Fixes ship in a patch release, with credit if you want it.
+Please report security issues privately through GitHub's [private vulnerability
+reporting](https://github.com/manjunathshiva/opendecider/security/advisories/new), or by email to
+manjunath.shiva@gmail.com, not in a public issue. You'll get an acknowledgement within 3 working days and a fix or
+mitigation plan within 14 days for confirmed issues. Fixes ship in a patch release, with credit if you want it.
 
-Supported versions: the latest minor release (currently 0.8.x) receives security fixes.
+Supported versions: the latest minor release (currently 0.9.x) receives security fixes.
 
 ## Running the server safely
 
