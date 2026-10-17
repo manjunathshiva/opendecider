@@ -19,6 +19,11 @@ It needs Chrome 124 or later, on a computer (Chrome on phones has no extensions)
 Installed it from a zip before it was on the store? That copy does not update itself: remove it at
 `chrome://extensions` and add the store's (it starts with its own settings and downloads the model again).
 
+**Chrome says "This extension is not trusted by Enhanced Safe Browsing"?** Chrome shows this, only with Enhanced Safe
+Browsing on, for extensions from developers new to the Chrome Web Store, until they've followed its policies for a few
+months ([Chrome Help](https://support.google.com/chrome/answer/2664769)). The extension's code is open source, so you
+can check what it does: it sends nothing you watch anywhere.
+
 ## What it filters
 
 The popup has three filters; a video is hidden when any of them says so.
