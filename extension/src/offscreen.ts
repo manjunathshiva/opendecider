@@ -9,6 +9,8 @@ declare const __MODEL_URL__: string;
 
 let model: Promise<OpenDecider> | null = null;
 let lastProgress = 0;
+/** Where the files this load downloaded were kept: false when one was kept nowhere (it downloads again next time). */
+let stored: "cache" | "opfs" | false | undefined;
 
 function progress(p: { file: string; loaded: number; total: number; cached: boolean }) {
   const now = performance.now();
@@ -27,12 +29,16 @@ const open = (device: "webgpu" | "wasm", dtype: Build["dtype"]) =>
       wasmPaths: chrome.runtime.getURL("ort/"),
       numThreads: Math.max(1, Math.min(8, navigator.hardwareConcurrency - 2)),
     },
-    onProgress: ({ file, loaded, total, cached }) => progress({ file, loaded, total, cached }),
+    onProgress: ({ file, loaded, total, cached, stored: kept }) => {
+      if (kept !== undefined && stored !== false) stored = kept;
+      progress({ file, loaded, total, cached });
+    },
   });
 
 /** `last`: the build that loaded last time (the service worker keeps it). q8 with a GPU adapter means WebGPU could
  * not run the model then, so it goes straight to the CPU build. */
 function load(last?: unknown): Promise<OpenDecider> {
+  if (!model) stored = undefined;
   model ??= pickBuild()
     .then((build) => (last === "q8" ? { ...build, device: "wasm" as const, dtype: "q8" as const } : build))
     .then((build) => openBuild(build, open, (e) => e instanceof ModelFileError))
@@ -67,7 +73,7 @@ async function guardCheck(text: string): Promise<GuardResult> {
 
 async function status() {
   const m = model && (await model.catch(() => null));
-  return { loaded: !!m, device: m?.meta["device"] ?? null, dtype: m?.meta["dtype"] ?? null };
+  return { loaded: !!m, device: m?.meta["device"] ?? null, dtype: m?.meta["dtype"] ?? null, stored: stored ?? null };
 }
 
 chrome.runtime.onMessage.addListener((m, sender, reply) => {

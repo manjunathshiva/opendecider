@@ -41,7 +41,10 @@ const guard = new Guard({ model });
 
 - `loadNano(options?)`: the model, as an `OpenDecider` (`systemOne`, `systemOneBatch`). Options: `device` (`"auto"`,
   `"webgpu"`, `"wasm"`), `dtype` (`"q8f16"`, `"q8"`, `"fp16"`), `baseUrl`, `files` (read the files yourself, e.g. in Node),
-  `cache`, `onProgress`, `wasm` (`wasmPaths`, `numThreads`, `proxy`), `maxBatchTokens`, `signal`, `fetch`.
+  `cache`, `onProgress`, `wasm` (`wasmPaths`, `numThreads`, `proxy`), `maxBatchTokens`, `signal`, `fetch`. The files are
+  kept in the Cache API, or where it refuses them the origin private file system. `onProgress` gets
+  `{ file, loaded, total, cached }`, and on the last event of a downloaded file `stored`: `"cache"`, `"opfs"`, or
+  `false` when neither kept it (the next load downloads it again).
 - `NanoBackend`: what `loadNano` wraps (`dispose()` frees the model's memory).
 - `ModelFileError`: a model file that could not be loaded, or did not match its pinned size and SHA-256.
 - `MODELS`, `TOKENIZER`, `REPO`, `REVISION`, `HUB_URL`, `MAX_TOKENS`: the pinned build (types `Dtype`, `FileSpec`,

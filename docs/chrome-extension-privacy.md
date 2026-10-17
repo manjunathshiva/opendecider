@@ -21,7 +21,9 @@ and its code is public: [github.com/manjunathshiva/opendecider](https://github.c
 - **Answers already computed:** for each video judged, its id and the model's probabilities (never the title), so a
   video is not judged twice. They are kept in the extension's local storage: the newest 5,000, with older ones deleted
   when Chrome starts and every six hours (so for a few hours there can be more).
-- **The model's files:** opendecider-nano (569–755 MiB), kept in the browser's cache after the first download.
+- **The model's files:** opendecider-nano (569–755 MiB), kept in the browser's cache after the first download (or,
+  where Chrome refuses that, in the extension's own file storage). Files of model builds a newer version no longer uses
+  are deleted.
 - **The text you check:** kept in Chrome's session storage (memory, never written to disk) until the guard window
   reads it, then deleted from there. The guard window and the model's page hold it in memory while they check and show
   it, and it is gone when the window closes. If the window closes before reading it, it stays in session storage until

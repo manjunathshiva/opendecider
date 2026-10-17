@@ -1,4 +1,5 @@
-/** The model files: downloaded once, checked against the SHA-256 pinned in this package, kept in the Cache API. */
+/** The model files: downloaded once, checked against the SHA-256 pinned in this package, kept in the Cache API (or,
+ * where it refuses them, the origin private file system). */
 
 /** One file of a model build: where it is, and its exact size and SHA-256. */
 export interface FileSpec {
@@ -12,8 +13,12 @@ export interface LoadProgress {
   file: string;
   loaded: number;
   total: number;
-  /** True when the file came from the cache. */
+  /** True when the file came from the cache (the Cache API or the origin private file system). */
   cached: boolean;
+  /** On the last event of a file that was downloaded: where it was kept for the next load, "cache" (the Cache API),
+   * "opfs" (the origin private file system, where the Cache API refused it) or false (neither kept it: the next load
+   * downloads it again). Absent otherwise, and with `files` or `cache: false`. */
+  stored?: "cache" | "opfs" | false;
 }
 
 /** A model file that could not be loaded, or did not match its pinned size or SHA-256 (it is never used then). */
@@ -26,20 +31,33 @@ export interface FetchOptions {
   baseUrl: string;
   /** Read a file yourself instead of downloading it (Node, Bun, Deno: a local folder). It is still checked. */
   files?: ((path: string) => Promise<ArrayBuffer | Uint8Array>) | undefined;
-  /** Keep the files in the Cache API (browsers, workers, extensions). Default true where it exists. */
+  /** Keep the files in the Cache API, or where it refuses them the origin private file system (browsers, workers,
+   * extensions). Default true where either exists; false reads and writes neither. */
   cache?: boolean | undefined;
   fetch?: typeof globalThis.fetch | undefined;
   onProgress?: ((p: LoadProgress) => void) | undefined;
   signal?: AbortSignal | undefined;
 }
 
-const CACHE = "opendecider-web-v1";
+const CACHE = "opendecider-web-v1"; // the Cache API's cache, and the origin private file system's folder
+const KEY = "https://opendecider.invalid/sha256/"; // + the SHA-256: the content, wherever it was downloaded from
+const SHA256 = /^[0-9a-f]{64}$/;
+
+/** Where downloaded files are kept, by SHA-256. Any call may reject (storage full, blocked, or cleared meanwhile). */
+interface Store {
+  name: "cache" | "opfs";
+  get(sha256: string): Promise<Uint8Array | undefined>;
+  put(sha256: string, bytes: Uint8Array): Promise<void>;
+  delete(sha256: string): Promise<unknown>;
+  /** The SHA-256 of every file kept. */
+  list(): Promise<string[]>;
+}
 
 /** The file's bytes, after its size and SHA-256 matched the spec. */
 export async function loadFile(spec: FileSpec, o: FetchOptions): Promise<Uint8Array> {
   o.signal?.throwIfAborted();
-  const progress = (loaded: number, cached: boolean) =>
-    o.onProgress?.({ file: spec.path, loaded, total: spec.bytes, cached });
+  const progress = (loaded: number, cached: boolean, stored?: LoadProgress["stored"]) =>
+    o.onProgress?.({ file: spec.path, loaded, total: spec.bytes, cached, ...(stored === undefined ? {} : { stored }) });
   if (o.files) {
     const got = await o.files(spec.path);
     o.signal?.throwIfAborted();
@@ -48,34 +66,113 @@ export async function loadFile(spec: FileSpec, o: FetchOptions): Promise<Uint8Ar
     progress(bytes.length, false);
     return bytes;
   }
-  const cache = o.cache !== false ? await openCache() : null;
-  const key = `https://opendecider.invalid/sha256/${spec.sha256}`; // the content, wherever it was downloaded from
-  if (cache) {
-    const hit = await cache.match(key).catch(() => undefined);
-    if (hit) {
-      const bytes = new Uint8Array(await hit.arrayBuffer());
-      o.signal?.throwIfAborted();
-      try {
-        await check(spec, bytes);
-        progress(bytes.length, true);
-        return bytes;
-      } catch {
-        await cache.delete(key).catch(() => false); // damaged or replaced: download it again
-      }
+  const stores = o.cache !== false ? await openStores() : null;
+  for (const store of stores ?? []) {
+    const hit = await store.get(spec.sha256).catch(() => undefined);
+    if (!hit) continue;
+    o.signal?.throwIfAborted();
+    try {
+      await check(spec, hit);
+      progress(hit.length, true);
+      return hit;
+    } catch {
+      await store.delete(spec.sha256).catch(() => false); // damaged or replaced: download it again
     }
   }
   const bytes = await download(spec, o, (n) => progress(n, false));
   await check(spec, bytes);
-  if (cache) await cache.put(key, new Response(bytes as Uint8Array<ArrayBuffer>)).catch(() => undefined); // a full or blocked cache is no error
+  if (stores) progress(bytes.length, false, await save(stores, spec.sha256, bytes));
   return bytes;
 }
 
-async function openCache(): Promise<Cache | null> {
+/** Deletes every kept file but `keep` (SHA-256s), such as the builds an older version of the package pinned. Never
+ * fails: a file left behind only takes space. */
+export async function prune(keep: readonly string[]): Promise<void> {
+  for (const store of await openStores()) {
+    for (const sha256 of await store.list().catch(() => [])) {
+      if (!keep.includes(sha256)) await store.delete(sha256).catch(() => false);
+    }
+  }
+}
+
+/** The first store that keeps the bytes, or false: a full or blocked store is no error (the next load downloads). */
+async function save(stores: Store[], sha256: string, bytes: Uint8Array): Promise<Store["name"] | false> {
+  for (const store of stores) {
+    try {
+      await store.put(sha256, bytes);
+      return store.name;
+    } catch {
+      // refused, full or blocked: the next store
+    }
+  }
+  return false;
+}
+
+/** The Cache API first, then the origin private file system: whichever of them exist here. */
+async function openStores(): Promise<Store[]> {
+  return (await Promise.all([openCache(), openFolder()])).filter((s) => s !== null);
+}
+
+async function openCache(): Promise<Store | null> {
+  let cache: Cache;
   try {
-    return typeof caches === "undefined" ? null : await caches.open(CACHE);
+    if (typeof caches === "undefined") return null;
+    cache = await caches.open(CACHE);
   } catch {
     return null; // e.g. an opaque origin, or storage blocked
   }
+  return {
+    name: "cache",
+    get: async (sha256) => {
+      const hit = await cache.match(KEY + sha256);
+      return hit && new Uint8Array(await hit.arrayBuffer());
+    },
+    put: (sha256, bytes) => cache.put(KEY + sha256, new Response(bytes as Uint8Array<ArrayBuffer>)),
+    delete: (sha256) => cache.delete(KEY + sha256),
+    list: async () =>
+      (await cache.keys())
+        .filter((r) => r.url.startsWith(KEY))
+        .map((r) => r.url.slice(KEY.length))
+        .filter((k) => SHA256.test(k)),
+  };
+}
+
+/** The origin private file system's folder (navigator.storage.getDirectory), where there is one. */
+async function openFolder(): Promise<Store | null> {
+  let dir: FileSystemDirectoryHandle;
+  try {
+    const storage = (globalThis.navigator as { storage?: Partial<StorageManager> } | undefined)?.storage;
+    if (typeof storage?.getDirectory !== "function") return null;
+    dir = await (await storage.getDirectory()).getDirectoryHandle(CACHE, { create: true });
+  } catch {
+    return null; // e.g. a private window without one
+  }
+  return {
+    name: "opfs",
+    get: async (sha256) => {
+      const file = await (await dir.getFileHandle(sha256)).getFile();
+      return new Uint8Array(await file.arrayBuffer());
+    },
+    put: async (sha256, bytes) => {
+      // where a page cannot write a file this way (older Safari's main thread): skip it, before an empty one exists
+      if (typeof FileSystemFileHandle === "undefined" || !("createWritable" in FileSystemFileHandle.prototype))
+        throw new Error("no createWritable");
+      const w = await (await dir.getFileHandle(sha256, { create: true })).createWritable();
+      try {
+        await w.write(bytes as Uint8Array<ArrayBuffer>);
+        await w.close(); // the file changes here, at once: a failed or concurrent write never leaves part of one
+      } catch (e) {
+        await w.abort().catch(() => undefined);
+        throw e;
+      }
+    },
+    delete: (sha256) => dir.removeEntry(sha256),
+    list: async () => {
+      const names: string[] = [];
+      for await (const n of (dir as unknown as { keys(): AsyncIterable<string> }).keys()) names.push(n);
+      return names.filter((n) => SHA256.test(n));
+    },
+  };
 }
 
 async function download(spec: FileSpec, o: FetchOptions, onBytes: (n: number) => void): Promise<Uint8Array> {

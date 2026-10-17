@@ -15,6 +15,19 @@ surfaces: the MCP server's tool names, arguments and answers, `opendecider.tools
 - **From 1.0.0 on:** backward-compatible additions ship in minor releases, and breaking changes only in major releases,
   again with a deprecation release first.
 
+## [Unreleased]
+
+### Fixed
+
+- `@opendecider/web`: where the browser's Cache API refuses a model file (a user reported it in Chrome), the file was
+  downloaded again on every load, without a word. It is now kept in the origin private file system instead,
+  and checked against its pinned SHA-256 like a cached copy. `onProgress` says where a downloaded file was kept, in a
+  new optional field on its last event, `stored`: `"cache"`, `"opfs"`, or `false` when neither would keep it. Once a
+  model has loaded, the files of builds the installed version no longer pins are deleted from both, so an update does
+  not leave an older build's 450–755 MiB behind; every build it pins is kept. `cache: false` still keeps nothing.
+- OpenDecider Focus: when Chrome did not let it keep the model, the popup says so under the ready line, since the model
+  then downloads again next time.
+
 ## [0.8.1] - 2026-10-05
 
 OpenDecider Focus only: the Python and npm packages are unchanged apart from their version number.

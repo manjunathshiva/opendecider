@@ -10,7 +10,7 @@ import {
   type Item,
 } from "@opendecider/client";
 import type { InferenceSession, Tensor } from "onnxruntime-web";
-import { loadFile, type FetchOptions, type LoadProgress } from "./hub.js";
+import { loadFile, prune, type FetchOptions, type LoadProgress } from "./hub.js";
 import { ort } from "./ort.js";
 import { HUB_URL, MAX_TOKENS, MODELS, REPO, REVISION, TOKENIZER, type Dtype } from "./manifest.js";
 import { SPECIAL, nanoIds, type Encode } from "./prompt.js";
@@ -29,7 +29,8 @@ export interface LoadOptions extends CallOptions {
   baseUrl?: string;
   /** Read a file yourself instead of downloading it, e.g. from a local folder in Node. Its SHA-256 is still checked. */
   files?: (path: string) => Promise<ArrayBuffer | Uint8Array>;
-  /** Keep the files in the browser's Cache API after the first download (default true where it exists). */
+  /** Keep the files in the browser after the first download: the Cache API, or where it refuses them the origin private
+   * file system (default true where either exists). Files of builds this version does not pin are then deleted. */
   cache?: boolean;
   /** Called as the files arrive (about 450-570 MiB on the first load, then from the cache). */
   onProgress?: (p: LoadProgress) => void;
@@ -150,7 +151,8 @@ export function batches(lengths: readonly number[], budget: number): number[][] 
  *     const r = await model.systemOne(ticket, { team: choice("Which team?", { billing: "charges", tech: "bugs" }) });
  *
  * The first load downloads the build (its SHA-256 is checked against this package's pin), later loads read the
- * Cache API. The result is an @opendecider/client `OpenDecider`, so Router, Guard and the agent tools take it as is.
+ * Cache API (or the origin private file system). The result is an @opendecider/client `OpenDecider`, so Router, Guard
+ * and the agent tools take it as is.
  */
 export async function loadNano(options: LoadOptions = {}): Promise<OpenDecider> {
   const asked = options.device ?? "auto";
@@ -198,6 +200,10 @@ export async function loadNano(options: LoadOptions = {}): Promise<OpenDecider> 
     await session.release().catch(() => undefined);
     options.signal.throwIfAborted();
   }
+  // loaded: an older version's files are no longer needed (every build this one pins is kept, so a computer that
+  // switches between the GPU and the CPU build downloads neither again). In the background; it never fails the load
+  if (!options.files && options.cache !== false)
+    void prune([TOKENIZER, ...Object.values(MODELS)].map((f) => f.sha256)).catch(() => undefined);
   const backend = new NanoBackend(session, encode, device, dtype, options.maxBatchTokens);
   return new OpenDecider(backend, {
     name: `opendecider-nano-onnx-${dtype}`,
