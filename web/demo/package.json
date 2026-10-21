@@ -10,6 +10,6 @@
     "@opendecider/web": "file:.."
   },
   "devDependencies": {
-    "vite": "^8.3.2"
+    "vite": "^8.3.3"
   }
 }
