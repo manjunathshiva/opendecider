@@ -8,8 +8,8 @@
     "start": "node index.mjs"
   },
   "dependencies": {
-    "@mastra/core": "^1.72.0",
-    "@mastra/mcp": "^2.1.1"
+    "@mastra/core": "^1.80.0",
+    "@mastra/mcp": "^2.6.0"
   },
   "overrides": {
     "@modelcontextprotocol/client": "2.2.0",
